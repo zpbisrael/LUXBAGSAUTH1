@@ -1423,6 +1423,7 @@ function AuthenticationTool({ requests, updateRequest }) {
         </div>
       )}
 
+      {/* Modal for Cancel/Refund */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95">

@@ -358,12 +358,14 @@ export default function App() {
     let sessionTimer;
     if (user) {
       sessionTimer = setTimeout(() => {
-        handleLogout();
+        if(auth) signOut(auth);
+        setUser(null);
         setShowLoginModal(true);
         alert(isRtl ? 'פג תוקף החיבור (שעתיים). אנא התחברו מחדש.' : 'Session expired. Please log in again.');
       }, 7200000); 
     }
     return () => clearTimeout(sessionTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isRtl]);
 
   useEffect(() => {
@@ -394,6 +396,7 @@ export default function App() {
       }
     });
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -414,6 +417,7 @@ export default function App() {
     });
     
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, role]);
 
   const handleLogout = () => { 
@@ -498,12 +502,8 @@ export default function App() {
           <div className="flex-1 overflow-y-auto flex flex-col">
             <div className="p-4 md:p-8 flex-1">
               {role === 'admin' ? (
-                currentView === 'dashboard' || currentView === 'auth-tool' ? 
-                  <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} /> : 
                   <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} />
               ) : (
-                currentView === 'dashboard' ? 
-                  <ClientDashboard t={t} requests={systemRequests} setView={setCurrentView} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} /> : 
                 currentView === 'new-request' ? 
                   <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} /> :
                 currentView === 'business-pkgs' ? 
@@ -531,6 +531,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
     if (window.location.search.includes('dev=true')) {
       setShowDev(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applyGeoSettings = (region) => {
@@ -815,7 +816,6 @@ function LoginScreen({ onBack, t, geo, isRtl, lang, setLang }) {
 // ==========================================
 function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogout, geo }) {
   const adminMenu = [
-    { id: 'dashboard', label: 'Admin Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Search size={20} /> }
   ];
   const clientMenu = [
@@ -924,15 +924,9 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState(null);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
-
-  const prices = {
-    regular: geo.currency === 'ILS' ? 99 : 29,
-    fast: geo.currency === 'ILS' ? 129 : 39,
-    express: geo.currency === 'ILS' ? 149 : 49,
-  };
   const [paymentTrack, setPaymentTrack] = useState('regular');
 
-  // Load PayPal Script Dynamically
+  // Load PayPal Script Dynamically with LIVE CLIENT ID
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   
   useEffect(() => {
@@ -969,35 +963,31 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
     setTimeout(() => setIsCompressing(false), 1200);
   };
 
-  const handlePaymentSuccess = () => {
-    const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
-    addRequest({ 
-      id: newReqId, 
-      brand, 
-      model: model || 'N/A', 
-      date: new Date().toLocaleDateString('en-GB'), 
-      status: 'pending', 
-      paymentTrack, 
-      image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' 
-    });
-    setShowSuccess(true);
-  };
-
   // Render PayPal Buttons once script is loaded
   useEffect(() => {
     if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess) {
        const container = document.getElementById('paypal-button-container');
        if (container) {
          container.innerHTML = ''; // Clear previous instances
+         
+         // Calculate price safely inside the effect
+         const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
+
          window.paypal.Buttons({
            createOrder: (data, actions) => {
              return actions.order.create({
-               purchase_units: [{ amount: { value: prices[paymentTrack].toString() } }]
+               purchase_units: [{ amount: { value: amountToCharge.toString() } }]
              });
            },
            onApprove: (data, actions) => {
              return actions.order.capture().then((details) => {
-                handlePaymentSuccess();
+                const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+                addRequest({ 
+                  id: newReqId, brand, model: model || 'N/A', 
+                  date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, 
+                  image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' 
+                });
+                setShowSuccess(true);
              });
            },
            onError: (err) => {
@@ -1007,7 +997,18 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
          }).render('#paypal-button-container');
        }
     }
-  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, prices, showSuccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess]);
+
+  const handlePaymentSuccessFree = () => {
+    const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+    addRequest({ 
+      id: newReqId, brand, model: model || 'N/A', 
+      date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, 
+      image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' 
+    });
+    setShowSuccess(true);
+  };
 
   const handleReset = () => {
     setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular');
@@ -1105,9 +1106,9 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
             </div>
 
             <div className="space-y-4">
-              <TrackOption id="regular" title={t('track_reg')} hours={t('hours_12')} price={prices.regular} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
-              <TrackOption id="fast" title={t('track_fast')} hours={t('hours_6')} price={prices.fast} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-orange-500" />
-              <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={prices.express} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} tag={t('recommended')} highlight="text-red-500" />
+              <TrackOption id="regular" title={t('track_reg')} hours={t('hours_12')} price={geo.currency === 'ILS' ? 99 : 29} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
+              <TrackOption id="fast" title={t('track_fast')} hours={t('hours_6')} price={geo.currency === 'ILS' ? 129 : 39} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-orange-500" />
+              <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={geo.currency === 'ILS' ? 149 : 49} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} tag={t('recommended')} highlight="text-red-500" />
             </div>
 
             <div className="bg-slate-50 p-4 rounded-xl text-sm border border-slate-100 mt-4">
@@ -1123,7 +1124,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
               <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors mb-2">{t('back')}</button>
               
               {isDiscountApplied ? (
-                <button onClick={handlePaymentSuccess} className="w-full bg-teal-800 text-white font-bold py-3.5 rounded-xl hover:bg-teal-900 transition-colors">
+                <button onClick={handlePaymentSuccessFree} className="w-full bg-teal-800 text-white font-bold py-3.5 rounded-xl hover:bg-teal-900 transition-colors">
                   {t('send_free')}
                 </button>
               ) : (
@@ -1275,30 +1276,6 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
 // ==========================================
 // ADMIN VIEWS (BACKOFFICE & AI)
 // ==========================================
-function AdminDashboard({ requests }) {
-  const pendingCount = requests.filter(r => r.status !== 'completed').length;
-  
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in duration-500" dir="rtl">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-        <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-          <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3>
-          <p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingCount}</p>
-          <p className="text-xs text-orange-600 mt-2 font-medium bg-orange-50 inline-block px-2 py-1 rounded"> דורש התייחסות </p>
-        </div>
-        <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden">
-          <div className="relative z-10">
-            <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3>
-            <p className="text-xl md:text-2xl font-bold text-white flex items-center gap-2"><span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span></span>מערכת יציבה ופעילה</p>
-            <p className="text-xs text-teal-200 mt-2">הסוכנים פועלים כשורה ויש {requests.length} בקשות במערכת.</p>
-          </div>
-          <BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={true} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function AuthenticationTool({ requests, updateRequest }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
   
@@ -1393,8 +1370,26 @@ function AuthenticationTool({ requests, updateRequest }) {
 
   if (!activeReq) {
     const pendingRequests = requests.filter(r => r.status !== 'completed');
+    const pendingCount = pendingRequests.length;
+    
     return (
-      <div className="max-w-4xl mx-auto animate-in fade-in" dir="rtl">
+      <div className="max-w-6xl mx-auto animate-in fade-in" dir="rtl">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+          <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
+            <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3>
+            <p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingCount}</p>
+            <p className="text-xs text-orange-600 mt-2 font-medium bg-orange-50 inline-block px-2 py-1 rounded"> דורש התייחסות </p>
+          </div>
+          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3>
+              <p className="text-xl md:text-2xl font-bold text-white flex items-center gap-2"><span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span></span>מערכת יציבה ופעילה</p>
+              <p className="text-xs text-teal-200 mt-2">הסוכנים פועלים כשורה ויש {requests.length} בקשות במערכת.</p>
+            </div>
+            <BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={true} />
+          </div>
+        </div>
+
         <h2 className="text-2xl font-bold text-slate-800 mb-6">תור משימות לבדיקה</h2>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {pendingRequests.length === 0 ? (

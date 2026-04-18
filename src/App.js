@@ -1,11 +1,11 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
+  Search, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
-  QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle,
-  Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Facebook, Instagram
+  QrCode, Shield, AlertTriangle, Smartphone, XCircle,
+  PauseCircle, PlayCircle, LogOut, ArrowRight, Globe,
+  Briefcase, RefreshCcw, Cpu, Award, Zap
 } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
@@ -132,6 +132,24 @@ function CertificateStamp() {
   );
 }
 
+function FacebookIcon({ className = "w-5 h-5", ...props }) {
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+    </svg>
+  );
+}
+
+function InstagramIcon({ className = "w-5 h-5", ...props }) {
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+  );
+}
+
 function GoogleIcon({ className = "w-5 h-5" }) {
   return (
     <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
@@ -149,7 +167,7 @@ function BagPartIcon({ type, className = "w-8 h-8" }) {
     case 'buckle-back': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M8 14v-4a4 4 0 0 1 8 0v4" /><rect x="6" y="14" width="12" height="4" rx="1" /></svg>;
     case 'metal-stamp': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><rect x="3" y="8" width="18" height="8" rx="1" /><circle cx="5.5" cy="12" r="0.5" fill="currentColor" /><circle cx="18.5" cy="12" r="0.5" fill="currentColor" /><path d="M9 14V10h2M12 10l1.5 4L15 10" opacity="0.6" strokeWidth="1" /></svg>;
     case 'date-code': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M7 4h10l3 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4z" /><path d="M8 12h8M8 16h5" strokeDasharray="2 2" opacity="0.5" /></svg>;
-    default: return <UploadCloud className={baseClasses} />;
+    default: return <Upload className={baseClasses} />;
   }
 }
 
@@ -182,7 +200,7 @@ export default function App() {
   
   const t = (key) => translations[lang]?.[key] || translations['en'][key] || key;
   const isRtl = lang === 'he' || lang === 'ar';
-  const hideIsrael = geo.country !== 'IL'; // Consolidated hideIsrael logic
+  const hideIsrael = geo.country !== 'IL'; 
 
   const handleLogout = () => { if(auth) signOut(auth); setUser(null); };
 
@@ -267,7 +285,7 @@ export default function App() {
             ) : currentView === 'business-pkgs' ? (
               <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} />
             ) : currentView === 'certificate-view' ? (
-              <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={true} t={t} isRtl={isRtl} />
+              <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={true} t={t} isRtl={isRtl} hideIsrael={hideIsrael} />
             ) : (
               <ClientDashboard t={t} requests={systemRequests} setView={setCurrentView} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} />
             )}
@@ -319,7 +337,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-xl" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
           <p className="text-lg md:text-xl text-teal-100 max-w-2xl mx-auto font-light leading-relaxed mb-10" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button onClick={onGoToLogin} className="w-full sm:w-auto bg-[#d4af37] hover:bg-[#c4a130] text-[#1c1c1c] font-black px-8 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2"><ShieldCheck size={24} /> {t('cta_primary')}</button>
+            <button onClick={onGoToLogin} className="w-full sm:w-auto bg-[#d4af37] hover:bg-[#c4a130] text-[#1c1c1c] font-black px-8 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2"><Shield size={24} /> {t('cta_primary')}</button>
             <a href="#how-it-works" className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm font-bold px-8 py-4 rounded-full text-lg">{t('cta_secondary')}</a>
           </div>
         </div>
@@ -649,7 +667,7 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
   );
 }
 
-function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
+function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }) {
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   return (
@@ -658,8 +676,8 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
       <div className="bg-white border-[12px] border-[#1c1c1c] p-2 shadow-2xl relative">
         <div className="border-[3px] border-[#d4af37] p-8 md:p-12 relative flex flex-col items-center text-center overflow-hidden">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-5 pointer-events-none" />
-          <div className="mb-8 relative z-10"><BrandLogo className="w-24 h-24 mx-auto mb-4" hideIsrael={true} /><h1 className="text-2xl md:text-4xl font-serif tracking-widest text-[#1c1c1c] uppercase mb-2">Certificate of Authentication</h1><p className="text-[#d4af37] font-bold tracking-[0.3em] text-sm uppercase">Luxury Bags Israel</p></div>
-          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50/80 text-green-800' : 'border-red-200 bg-red-50/80 text-red-800'}`}><h2 className="text-xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><ShieldCheck size={32} /> Authentic</> : <><ShieldAlert size={32} /> Counterfeit</>}</h2></div>
+          <div className="mb-8 relative z-10"><BrandLogo className="w-24 h-24 mx-auto mb-4" hideIsrael={hideIsrael} /><h1 className="text-2xl md:text-4xl font-serif tracking-widest text-[#1c1c1c] uppercase mb-2">Certificate of Authentication</h1><p className="text-[#d4af37] font-bold tracking-[0.3em] text-sm uppercase">Luxury Bags Israel</p></div>
+          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50/80 text-green-800' : 'border-red-200 bg-red-50/80 text-red-800'}`}><h2 className="text-xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><Shield size={32} /> Authentic</> : <><AlertTriangle size={32} /> Counterfeit</>}</h2></div>
           <div className="w-full max-w-lg mb-10 relative z-10">
             <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr"><div className="text-slate-500 text-sm uppercase tracking-wider">Brand</div><div className="font-bold text-slate-800">{data.brand}</div><div className="text-slate-500 text-sm uppercase tracking-wider">Model</div><div className="font-bold text-slate-800">{data.model}</div><div className="text-slate-500 text-sm uppercase tracking-wider">Date Inspected</div><div className="font-bold text-slate-800">{data.date}</div></div>
             <p className="text-xs text-slate-500 italic text-center">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
@@ -675,8 +693,8 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mt-6 text-center animate-in fade-in slide-in-from-bottom-4">
           <h3 className="font-bold text-slate-800 text-lg mb-2">איזה יופי, הפריט מקורי! 🎉</h3>
           <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
-             <button className="flex items-center justify-center gap-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-medium py-3 px-6 rounded-xl"><Instagram size={18}/> שתפו בסטורי באינסטגרם</button>
-             <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-medium py-3 px-6 rounded-xl"><Facebook size={18} fill="currentColor" stroke="none" /> שתפו בפייסבוק</button>
+             <button className="flex items-center justify-center gap-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-medium py-3 px-6 rounded-xl"><InstagramIcon size={18}/> שתפו בסטורי באינסטגרם</button>
+             <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-medium py-3 px-6 rounded-xl"><FacebookIcon size={18} fill="currentColor" stroke="none" /> שתפו בפייסבוק</button>
              <button className="flex items-center justify-center gap-2 bg-slate-900 text-white font-medium py-3 px-6 rounded-xl"><Upload size={18} /> העתק קישור לתעודה</button>
           </div>
         </div>

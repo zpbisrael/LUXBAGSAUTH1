@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
@@ -18,6 +18,7 @@ import {
 import { 
   getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
 } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 // ==========================================
 // FIREBASE INITIALIZATION & CONFIGURATION
@@ -35,11 +36,12 @@ const userFirebaseConfig = {
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'luxury-bags-israel-prod';
 
-let app, auth, db;
+let app, auth, db, storage;
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  storage = getStorage(app);
 } catch (e) {
   console.error("Firebase init failed", e);
 }
@@ -157,7 +159,7 @@ function BagPartIcon({ type, className = "w-8 h-8" }) {
     case 'buckle-back': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M8 14v-4a4 4 0 0 1 8 0v4" /><rect x="6" y="14" width="12" height="4" rx="1" /></svg>;
     case 'metal-stamp': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><rect x="3" y="8" width="18" height="8" rx="1" /><circle cx="5.5" cy="12" r="0.5" fill="currentColor" /><circle cx="18.5" cy="12" r="0.5" fill="currentColor" /><path d="M9 14V10h2M12 10l1.5 4L15 10" opacity="0.6" strokeWidth="1" /></svg>;
     case 'date-code': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M7 4h10l3 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4z" /><path d="M8 12h8M8 16h5" strokeDasharray="2 2" opacity="0.5" /></svg>;
-    default: return <UploadCloud className={baseClasses} />;
+    default: return <Upload className={baseClasses} />;
   }
 }
 
@@ -273,7 +275,7 @@ export default function App() {
             {role === 'admin' ? (
               <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} />
             ) : currentView === 'new-request' ? (
-              <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} />
+              <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} user={user} />
             ) : currentView === 'business-pkgs' ? (
               <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} />
             ) : currentView === 'certificate-view' ? (
@@ -547,7 +549,7 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
   );
 }
 
-function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
+function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) {
   const [step, setStep] = useState(1);
   const [isCompressing, setIsCompressing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -559,6 +561,11 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
   const [paymentTrack, setPaymentTrack] = useState('regular');
   const [paypalLoaded, setPaypalLoaded] = useState(false);
+  
+  // Real Upload State
+  const [uploadedImages, setUploadedImages] = useState({});
+  const [uploadingPart, setUploadingPart] = useState(null);
+  const fileInputRef = useRef(null);
   
   useEffect(() => {
     const scriptId = 'paypal-sdk-script';
@@ -574,7 +581,30 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
     } else { setCouponMessage({ type: 'error', text: isRtl ? 'קוד שגוי' : 'Invalid code' }); setIsDiscountApplied(false); }
   };
 
-  const handleUploadClick = () => { setIsCompressing(true); setTimeout(() => setIsCompressing(false), 1200); };
+  const triggerFileInput = (partId) => {
+    setUploadingPart(partId);
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !user || !storage) return;
+    
+    setIsCompressing(true);
+    try {
+      const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${file.name}`);
+      await uploadBytesResumable(fileRef, file);
+      const downloadURL = await getDownloadURL(fileRef);
+      setUploadedImages(prev => ({ ...prev, [uploadingPart]: downloadURL }));
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert(isRtl ? "שגיאה בהעלאת התמונה. ודא שהאחסון פעיל בפיירבייס." : "Error uploading image.");
+    } finally {
+      setIsCompressing(false);
+      setUploadingPart(null);
+      e.target.value = null; 
+    }
+  };
 
   useEffect(() => {
     if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess) {
@@ -585,22 +615,33 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
          window.paypal.Buttons({
            createOrder: (d, actions) => actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] }),
            onApprove: (d, actions) => actions.order.capture().then(() => {
-                addRequest({ id: `REQ-${Math.floor(1000+Math.random()*9000)}`, brand, model: model || 'N/A', date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' });
+                const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+                addRequest({ 
+                  id: newReqId, brand, model: model || 'N/A', 
+                  date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, 
+                  image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
+                  images: uploadedImages 
+                });
                 setShowSuccess(true);
              }),
            onError: (err) => { console.error("PayPal Error:", err); alert("PayPal Error: Please try again."); }
          }).render('#paypal-button-container');
        }
     }
-  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model]);
+  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages]);
 
   const handlePaymentSuccessFree = () => {
     const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
-    addRequest({ id: newReqId, brand, model: model || 'N/A', date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' });
+    addRequest({ 
+      id: newReqId, brand, model: model || 'N/A', 
+      date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, 
+      image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
+      images: uploadedImages 
+    });
     setShowSuccess(true);
   };
 
-  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setStep(1); };
+  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
 
   if (showSuccess) {
     return (
@@ -627,11 +668,21 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
           </div>
         ) : step === 2 ? (
           <div className="space-y-6">
-            {isCompressing && (<div className="bg-blue-50 border border-blue-100 text-blue-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse"><RefreshCcw size={14} className="animate-spin" /> {isRtl ? 'מכווץ תמונות...' : 'Compressing...'}</div>)}
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+            {isCompressing && (<div className="bg-blue-50 border border-blue-100 text-blue-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse"><RefreshCcw size={14} className="animate-spin" /> {isRtl ? 'מעלה תמונה מאובטחת לשרת...' : 'Uploading securely...'}</div>)}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {BAG_PARTS.map(part => (<div key={part.id} onClick={handleUploadClick} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center text-center bg-slate-50 hover:border-teal-300 cursor-pointer"><BagPartIcon type={part.iconType} className="w-10 h-10 mb-2" /><span className="text-xs font-bold text-slate-700 mb-1">{part.id}</span></div>))}
+              {BAG_PARTS.map(part => (
+                <div key={part.id} onClick={() => triggerFileInput(part.id)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center text-center bg-slate-50 hover:border-teal-300 cursor-pointer overflow-hidden relative">
+                  {uploadedImages[part.id] ? (
+                    <img src={uploadedImages[part.id]} alt={part.id} className="w-full h-16 object-cover rounded-md mb-2" />
+                  ) : (
+                    <BagPartIcon type={part.iconType} className="w-10 h-10 mb-2" />
+                  )}
+                  <span className="text-xs font-bold text-slate-700 mb-1">{part.id}</span>
+                </div>
+              ))}
             </div>
-            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl">{t('back')}</button><button onClick={() => setStep(3)} className="flex-[2] bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl">{t('continue_track')}</button></div>
+            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0} className="flex-[2] bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl disabled:opacity-50">{t('continue_track')}</button></div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in">
@@ -708,6 +759,20 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
             <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr"><div className="text-slate-500 text-sm uppercase tracking-wider">Brand</div><div className="font-bold text-slate-800">{data.brand}</div><div className="text-slate-500 text-sm uppercase tracking-wider">Model</div><div className="font-bold text-slate-800">{data.model}</div><div className="text-slate-500 text-sm uppercase tracking-wider">Date Inspected</div><div className="font-bold text-slate-800">{data.date}</div></div>
             <p className="text-xs text-slate-500 italic text-center">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
           </div>
+          <div className="w-full mb-10 relative z-10">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {data.images && Object.entries(data.images).map(([part, url]) => (
+                 <div key={part} className="relative">
+                    <img src={url} alt={part} className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded" />
+                    <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded">{part}</span>
+                 </div>
+              ))}
+              {(!data.images || Object.keys(data.images).length === 0) && (
+                 <img src={data.image} className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded col-span-2" />
+              )}
+            </div>
+          </div>
           <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-8">
             <div className="text-left" dir="ltr"><CertificateStamp /></div>
             <div className="flex flex-col items-center"><div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-2"><QrCode size={64} className="text-slate-800" /></div><p className="text-[8px] text-slate-400 uppercase tracking-widest">Scan to Verify</p><p className="text-[10px] font-bold text-slate-800 mt-1">ID: {data.id}</p></div>
@@ -759,15 +824,6 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const sendPhotoRequest = () => { if (!selectedParts.length && !customMessage.trim()) return; setIsTimerRunning(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'waiting_for_customer' }); };
   const simulateCustomerUpload = () => { setSelectedParts([]); setCustomMessage(''); setIsTimerRunning(true); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing' }); };
   
-  const simulateCronJob = (type) => {
-    if(type === '48h') alert('סימולציה: מייל תזכורת 48 שעות נשלח בהצלחה ללקוח.');
-    if(type === '10d') {
-      alert('סימולציה: בקשה נסגרה אוטומטית עקב חוסר מענה 10 ימים (Time Out).');
-      updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' });
-      setSelectedReqId(null);
-    }
-  };
-
   const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
   if (!activeReq) {
@@ -821,6 +877,22 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
                 </div>
               </div>
             </div>
+            
+            {/* ADMIN IMAGE GALLERY */}
+            {activeReq.images && Object.keys(activeReq.images).length > 0 && (
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-5">
+                <h3 className="font-bold text-slate-800 mb-4">תמונות הלקוח ({Object.keys(activeReq.images).length})</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(activeReq.images).map(([part, url]) => (
+                    <div key={part} className="relative group">
+                       <img src={url} alt={part} className="w-full h-24 object-cover border border-slate-200 rounded" />
+                       <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm">{part}</span>
+                       <a href={url} target="_blank" className="absolute inset-0 bg-black/0 hover:bg-black/20 transition flex items-center justify-center opacity-0 group-hover:opacity-100"><Search className="text-white w-6 h-6" /></a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <div className="space-y-6">
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">

@@ -13,7 +13,7 @@ import { initializeApp } from 'firebase/app';
 import { 
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken,
-  GoogleAuthProvider, FacebookAuthProvider, signInWithPopup
+  GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, getRedirectResult
 } from 'firebase/auth';
 import { 
   getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
@@ -183,6 +183,7 @@ export default function App() {
   const [user, setUser] = useState(null); 
   const [role, setRole] = useState('client'); 
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [redirectError, setRedirectError] = useState('');
   const [currentView, setCurrentView] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [systemRequests, setSystemRequests] = useState([]);
@@ -195,6 +196,20 @@ export default function App() {
   const hideIsrael = geo.country !== 'IL'; 
 
   const handleLogout = () => { if(auth) signOut(auth); setUser(null); };
+
+  // Error catcher for redirect login flow (Mobile compatibility)
+  useEffect(() => {
+    if (!auth) return;
+    getRedirectResult(auth).catch((err) => {
+      console.error("Redirect Error:", err);
+      setShowLoginModal(true);
+      if (err.code === 'auth/unauthorized-domain') {
+        setRedirectError(isRtl ? "הדומיין לא מאושר. הוסף את הכתובת ב-Firebase -> Authentication -> Settings -> Authorized domains." : "Unauthorized domain. Add to Firebase settings.");
+      } else {
+        setRedirectError(isRtl ? `שגיאת התחברות: ${err.message}` : `Login Error: ${err.message}`);
+      }
+    });
+  }, [isRtl]);
 
   useEffect(() => {
     let sessionTimer;
@@ -260,7 +275,7 @@ export default function App() {
   }
 
   if (!user && showLoginModal) {
-    return <><GlobalStyles /><div dir={isRtl ? "rtl" : "ltr"} className="relative"><LoginScreen onBack={() => setShowLoginModal(false)} t={t} isRtl={isRtl} lang={lang} setLang={setLang} hideIsrael={hideIsrael} /></div></>;
+    return <><GlobalStyles /><div dir={isRtl ? "rtl" : "ltr"} className="relative"><LoginScreen onBack={() => setShowLoginModal(false)} t={t} isRtl={isRtl} lang={lang} setLang={setLang} hideIsrael={hideIsrael} initialError={redirectError} /></div></>;
   }
 
   return (
@@ -373,12 +388,12 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
 // ==========================================
 // LOGIN SCREEN
 // ==========================================
-function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
+function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael, initialError }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState(initialError || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAuthSubmit = async (e) => {
@@ -405,19 +420,11 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
     if (!auth) { alert("Firebase is not connected."); return; }
     setErrorMsg(''); setIsLoading(true);
     try {
-      await signInWithPopup(auth, provider);
+      // Use redirect instead of popup for strong mobile browser compatibility
+      await signInWithRedirect(auth, provider);
     } catch (err) {
-      console.error("Social login error:", err);
-      if (err.code === 'auth/popup-closed-by-user') {
-        setErrorMsg(isRtl ? "ההתחברות בוטלה על ידי המשתמש." : "Login cancelled.");
-      } else if (err.code === 'auth/unauthorized-domain') {
-        setErrorMsg(isRtl ? "הדומיין לא מאושר. הוסף את הכתובת הנוכחית ב-Firebase -> Authentication -> Settings -> Authorized domains." : "Unauthorized domain. Add to Firebase settings.");
-      } else if (err.code === 'auth/operation-not-allowed') {
-        setErrorMsg(isRtl ? "לא הפעלת את ההתחברות הזו ב-Firebase (Sign-in method)." : "Provider not enabled in Firebase.");
-      } else {
-        setErrorMsg(isRtl ? `שגיאה: ${err.message}` : `Login failed: ${err.message}`);
-      }
-    } finally {
+      console.error("Social login start error:", err);
+      setErrorMsg(isRtl ? `שגיאה בייזום ההתחברות: ${err.message}` : `Login initiation failed: ${err.message}`);
       setIsLoading(false);
     }
   };
@@ -461,7 +468,7 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
                 {isSignUp && <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('full_name')} />}
                 <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('email')} required />
                 <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('password')} required minLength="6" />
-                {errorMsg && <p className="text-red-500 text-xs font-bold">{errorMsg}</p>}
+                {errorMsg && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">{errorMsg}</div>}
                 <button type="submit" disabled={isLoading} className="w-full bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl shadow-md mt-2 disabled:opacity-50">{isLoading ? "..." : (isSignUp ? t('btn_signup') : t('btn_login'))}</button>
               </form>
             </>
@@ -471,7 +478,7 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
               <form onSubmit={handleAuthSubmit} className="space-y-4">
                 <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder="Admin Email" required />
                 <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder="Password" required />
-                {errorMsg && <p className="text-red-500 text-xs font-bold">{errorMsg}</p>}
+                {errorMsg && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">{errorMsg}</div>}
                 <button type="submit" disabled={isLoading} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-3.5 rounded-xl mt-2 hover:bg-black transition-colors disabled:opacity-50">{isLoading ? "..." : "Login to System"}</button>
               </form>
             </div>

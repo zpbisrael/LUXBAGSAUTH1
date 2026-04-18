@@ -354,6 +354,11 @@ export default function App() {
   const t = (key) => translations[lang]?.[key] || translations['en'][key] || key;
   const isRtl = lang === 'he' || lang === 'ar';
 
+  const handleLogout = () => { 
+    if(auth) signOut(auth); 
+    setUser(null); 
+  };
+
   useEffect(() => {
     let sessionTimer;
     if (user) {
@@ -395,7 +400,6 @@ export default function App() {
       }
     });
     return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -403,7 +407,7 @@ export default function App() {
     
     const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
     const unsubscribe = onSnapshot(requestsRef, (snapshot) => {
-      const allReqs = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
+      const allReqs = snapshot.docs.map(document => ({ firestoreId: document.id, ...document.data() }));
       allReqs.sort((a, b) => b.createdAt - a.createdAt);
       
       if (role === 'admin') {
@@ -416,14 +420,8 @@ export default function App() {
     });
     
     return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, role]);
 
-  const handleLogout = () => { 
-    if(auth) signOut(auth); 
-    setUser(null); 
-  };
-  
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
     const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
@@ -501,9 +499,7 @@ export default function App() {
           <div className="flex-1 overflow-y-auto flex flex-col">
             <div className="p-4 md:p-8 flex-1">
               {role === 'admin' ? (
-                currentView === 'dashboard' || currentView === 'auth-tool' ? 
-                  <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} /> : 
-                  <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} />
+                <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} />
               ) : (
                 currentView === 'dashboard' ? 
                   <ClientDashboard t={t} requests={systemRequests} setView={setCurrentView} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} /> : 
@@ -534,7 +530,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
     if (window.location.search.includes('dev=true')) {
       setShowDev(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applyGeoSettings = (region) => {
@@ -983,7 +978,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
              });
            },
            onApprove: (data, actions) => {
-             return actions.order.capture().then((details) => {
+             return actions.order.capture().then(() => {
                 const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
                 addRequest({ 
                   id: newReqId, brand, model: model || 'N/A', 
@@ -1373,10 +1368,25 @@ function AuthenticationTool({ requests, updateRequest }) {
 
   if (!activeReq) {
     const pendingRequests = requests.filter(r => r.status !== 'completed');
+    const pendingCount = pendingRequests.length;
     
     return (
       <div className="max-w-6xl mx-auto animate-in fade-in" dir="rtl">
-        <AdminDashboard requests={requests} />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+          <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
+            <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3>
+            <p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingCount}</p>
+            <p className="text-xs text-orange-600 mt-2 font-medium bg-orange-50 inline-block px-2 py-1 rounded"> דורש התייחסות </p>
+          </div>
+          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3>
+              <p className="text-xl md:text-2xl font-bold text-white flex items-center gap-2"><span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span></span>מערכת יציבה ופעילה</p>
+              <p className="text-xs text-teal-200 mt-2">הסוכנים פועלים כשורה ויש {requests.length} בקשות במערכת.</p>
+            </div>
+            <BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={true} />
+          </div>
+        </div>
 
         <h2 className="text-2xl font-bold text-slate-800 mb-6">תור משימות לבדיקה</h2>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1416,7 +1426,7 @@ function AuthenticationTool({ requests, updateRequest }) {
 
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={activeReq.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} className="w-16 h-16 rounded-xl border border-slate-200 object-cover" />
+          <img src={activeReq.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt="Bag" className="w-16 h-16 rounded-xl border border-slate-200 object-cover" />
           <div>
             <h2 className="font-bold text-slate-800 text-lg">בקשה {activeReq.id}</h2>
             <p className="text-sm text-slate-500">{activeReq.brand} • מסלול: <span className="font-bold text-red-500">{activeReq.paymentTrack}</span></p>

@@ -1,69 +1,24 @@
-import React, { useState, useEffect } from "react";
-import {
-  Lock,
-  User,
-  LogIn,
-  Search,
-  UploadCloud,
-  AlertCircle,
-  CheckCircle,
-  ChevronRight,
-  ChevronLeft,
-  MessageCircle,
-  Linkedin,
-  Send,
-  LayoutDashboard,
-  Menu,
-  X,
-  PlusCircle,
-  Clock,
-  Camera,
-  FileText,
-  Upload,
-  Mail,
-  QrCode,
-  ShieldCheck,
-  ShieldAlert,
-  Smartphone,
-  Check,
-  XCircle,
-  Timer,
-  PauseCircle,
-  ImagePlus,
-  PlayCircle,
-  LogOut,
-  ArrowRight,
-  Globe,
-  Briefcase,
-  RefreshCcw,
-  HandCoins,
-  Cpu,
-  Award,
-  Zap,
-} from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { 
+  Lock, User, LogIn, Search, UploadCloud, 
+  AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
+  MessageCircle, Linkedin, 
+  Send, LayoutDashboard, Menu, X, PlusCircle, 
+  Clock, Camera, FileText, Upload, Mail,
+  QrCode, ShieldCheck, ShieldAlert, Smartphone, Check, XCircle,
+  Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap
+} from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  signInAnonymously,
-  signInWithCustomToken,
-} from "firebase/auth";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  updateDoc,
-  doc,
-  onSnapshot,
-} from "firebase/firestore";
-
-// --- PAYPAL IMPORTS ---
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken
+} from 'firebase/auth';
+import { 
+  getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
+} from 'firebase/firestore';
 
 // ==========================================
 // FIREBASE INITIALIZATION & CONFIGURATION
@@ -75,15 +30,11 @@ const userFirebaseConfig = {
   storageBucket: "luxyry-bags-israel.firebasestorage.app",
   messagingSenderId: "894217543775",
   appId: "1:894217543775:web:fdafaf8b261cbf07a8fbea",
-  measurementId: "G-VTFX8ZBH7E",
+  measurementId: "G-VTFX8ZBH7E"
 };
 
-const firebaseConfig =
-  typeof __firebase_config !== "undefined"
-    ? JSON.parse(__firebase_config)
-    : userFirebaseConfig;
-const appId =
-  typeof __app_id !== "undefined" ? __app_id : "luxury-bags-israel-prod";
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'luxury-bags-israel-prod';
 
 let app, auth, db;
 try {
@@ -102,18 +53,16 @@ const translations = {
     nav_login: "התחברות",
     nav_start: "התחילו אימות",
     hero_title: "אפס פשרות.<br />אפס זיופים.",
-    hero_subtitle_il:
-      "הסטנדרט החדש של האימות בישראל.<br />טכנולוגיית AI בשירות מומחים אנושיים.",
-    hero_subtitle_global:
-      "הסטנדרט החדש של האימות בעולם.<br />טכנולוגיית AI בשירות מומחים אנושיים.",
+    hero_subtitle_il: "הסטנדרט החדש של האימות בישראל.<br />טכנולוגיית AI בשירות מומחים אנושיים.",
+    hero_subtitle_global: "הסטנדרט החדש של האימות בעולם.<br />טכנולוגיית AI בשירות מומחים אנושיים.",
     cta_primary: "אמתו את הפריט שלכם",
     cta_secondary: "איך זה עובד?",
     trusted_by: "אנו מאמתים את מותגי העל המובילים",
     why_us: "למה לבחור בנו?",
     why_1_title: "שילוב של AI ומומחים",
-    why_1_desc: 'החלטה סופית ע"י מומחה אנושי.',
+    why_1_desc: "החלטה סופית ע\"י מומחה אנושי.",
     why_2_title: "אחריות ואמינות",
-    why_2_desc: 'מוכר ע"י פלטפורמות כמו PayPal ו-eBay.',
+    why_2_desc: "מוכר ע\"י פלטפורמות כמו PayPal ו-eBay.",
     why_3_title: "מהירות חסרת תקדים",
     why_3_desc: "תעודה דיגיטלית תוך שעות ספורות.",
     how_title: "איך זה עובד?",
@@ -148,7 +97,7 @@ const translations = {
     brand: "מותג",
     item_type: "סוג הפריט",
     model: "דגם",
-    model_placeholder: "לדוגמה: Neverfull",
+    model_placeholder: "לדוגמה: Neverfull, Air Jordan 1",
     optional: "רשות",
     select_brand: "בחרו מותג...",
     select_type: "בחרו סוג...",
@@ -183,7 +132,7 @@ const translations = {
     success_title: "התשלום בוצע בהצלחה! 🎉",
     success_sub: "הבקשה הועברה לבדיקה. שלחנו לך מייל אישור.",
     btn_home: "מסך ראשי",
-    btn_another: "אימות נוסף",
+    btn_another: "אימות נוסף"
   },
   en: {
     nav_login: "Login",
@@ -268,431 +217,23 @@ const translations = {
     success_title: "Payment Successful! 🎉",
     success_sub: "Item is under review. Confirmation email sent.",
     btn_home: "Dashboard",
-    btn_another: "Authenticate Another",
-  },
-  es: {
-    nav_login: "Iniciar sesión",
-    nav_start: "Autenticar Ahora",
-    hero_title: "CERO COMPROMISOS.<br />CERO FALSIFICACIONES.",
-    hero_subtitle_global: "El nuevo estándar mundial en autenticación de lujo.",
-    hero_subtitle_il: "El nuevo estándar mundial en autenticación de lujo.",
-    cta_primary: "Verifica tu artículo",
-    cta_secondary: "¿Cómo funciona?",
-    trusted_by: "Autenticamos las marcas más prestigiosas del mundo",
-    why_us: "¿Por qué elegirnos?",
-    why_1_title: "IA + Expertos Humanos",
-    why_1_desc:
-      "Nuestro algoritmo escanea su artículo, pero el veredicto final siempre lo determina un experto.",
-    why_2_title: "Garantía Financiera",
-    why_2_desc:
-      "Nuestros certificados son reconocidos por plataformas de disputas como PayPal y eBay.",
-    why_3_title: "Velocidad sin precedentes",
-    why_3_desc: "Reciba un certificado oficial en horas, sin salir de casa.",
-    how_title: "¿Cómo funciona?",
-    how_1_title: "1. Subir Fotos",
-    how_1_desc:
-      "Seleccione la marca y el tipo, y suba las fotos siguiendo nuestras guías.",
-    how_2_title: "2. Análisis Profundo",
-    how_2_desc:
-      "Su artículo se somete a un escaneo y a una inspección rigurosa.",
-    how_3_title: "3. Obtener Certificado",
-    how_3_desc: "Reciba un certificado digital oficial que puede compartir.",
-    welcome: "Bienvenido de nuevo",
-    welcome_sub: "Inicie sesión para rastrear sus solicitudes.",
-    signup_title: "Crear una cuenta",
-    signup_sub: "Únase a nosotros y comience a autenticar.",
-    continue_google: "Continuar con Google",
-    continue_fb: "Continuar con Facebook",
-    continue_ig: "Continuar con Instagram",
-    no_account: "¿Aún no tienes una cuenta?",
-    have_account: "¿Ya tienes una cuenta?",
-    signup_free: "Regístrate gratis por correo",
-    login_here: "Inicia sesión aquí",
-    or_email: "o por correo electrónico",
-    full_name: "Nombre completo",
-    email: "Correo electrónico",
-    password: "Contraseña",
-    btn_login: "Iniciar sesión",
-    btn_signup: "Crear cuenta",
-    client_portal: "Portal del cliente",
-    my_checks: "Mis autenticaciones",
-    new_request: "Nueva solicitud",
-    hello: "Hola",
-    welcome_dash: "Bienvenido al sistema de autenticación.",
-    history: "Historial de autenticación",
-    brand: "Marca",
-    item_type: "Tipo de artículo",
-    model: "Modelo",
-    model_placeholder: "ej., Neverfull",
-    optional: "Opcional",
-    purchase_loc: "¿Dónde se compró?",
-    select_brand: "Seleccionar marca...",
-    select_type: "Seleccionar tipo...",
-    step_1: "Paso 1 de 3",
-    step_2: "Paso 2 de 3",
-    step_3: "Paso 3 de 3",
-    continue_photos: "Continuar con las fotos",
-    back: "Atrás",
-    continue_track: "Continuar al método de pago",
-    track_title: "Seleccionar método",
-    track_sub: "Elija su tiempo de respuesta preferido.",
-    track_reg: "Estándar",
-    track_fast: "Rápido",
-    track_exp: "Exprés",
-    hours_12: "12 Horas",
-    hours_6: "6 Horas",
-    hours_2: "2 Horas",
-    recommended: "Recomendado",
-    coupon_label: "Código de cupón",
-    coupon_placeholder: "Ingrese el código aquí",
-    apply: "Aplicar",
-    send_payment: "Pagar con PayPal",
-    send_free: "Enviar para revisión gratuita",
-    authentic: "Auténtico",
-    fake: "Falsificación",
-    pending_expert: "Bajo revisión...",
-    need_photos: "Se necesitan más fotos",
-    business_pkg: "¿Cliente de negocios? Ver paquetes",
-    pkg_title: "Paquetes de Autenticación",
-    pkg_sub: "Compre autenticaciones al por mayor y ahorre hasta un 20%.",
-    contact_sales: "Contactar a Ventas",
-    success_title: "¡Pago Exitoso! 🎉",
-    success_sub:
-      "Su artículo está bajo revisión experta. Le hemos enviado un correo de confirmación.",
-    btn_home: "Volver al Inicio",
-    btn_another: "Autenticar Otro Artículo",
-  },
-  ar: {
-    nav_login: "تسجيل الدخول",
-    nav_start: "ابدأ المصادقة",
-    hero_title: "صفر تنازلات.<br />صفر تزييف.",
-    hero_subtitle_global: "المعيار العالمي الجديد في مصادقة السلع الفاخرة.",
-    hero_subtitle_il: "المعيار العالمي الجديد في مصادقة السلع الفاخرة.",
-    cta_primary: "تحقق من حقيبتك",
-    cta_secondary: "كيف يعمل؟",
-    trusted_by: "نوثق أشهر الماركات العالمية",
-    why_us: "لماذا تختارنا؟",
-    why_1_title: "ذكاء اصطناعي + خبراء",
-    why_1_desc:
-      "تقوم الخوارزمية الخاصة بنا بفحص العنصر، ولكن يتم تحديد النتيجة النهائية دائمًا بواسطة خبير.",
-    why_2_title: "ضمان مالي",
-    why_2_desc: "شهاداتنا معترف بها عالميًا من قبل منصات مثل PayPal و eBay.",
-    why_3_title: "سرعة غير مسبوقة",
-    why_3_desc: "احصل على شهادة رسمية في غضون ساعات دون مغادرة منزلك.",
-    how_title: "كيفية العمل",
-    how_1_title: "1. ارفع الصور",
-    how_1_desc: "حدد الماركة والنوع، وارفع الصور حسب التعليمات.",
-    how_2_title: "2. تحليل عميق",
-    how_2_desc: "يخضع العنصر لفحص دقيق بواسطة فريقنا.",
-    how_3_title: "3. استلام الشهادة",
-    how_3_desc: "احصل على شهادة رقمية رسمية يمكنك مشاركتها.",
-    welcome: "مرحباً بك",
-    welcome_sub: "تسجيل الدخول لتتبع طلبات المصادقة الخاصة بك.",
-    signup_title: "إنشاء حساب جديد",
-    signup_sub: "انضم إلينا وابدأ في مصادقة حقائبك الفاخرة.",
-    continue_google: "المتابعة باستخدام Google",
-    continue_fb: "المتابعة باستخدام Facebook",
-    continue_ig: "المتابعة باستخدام Instagram",
-    no_account: "ليس لديك حساب؟",
-    have_account: "لديك حساب بالفعل؟",
-    signup_free: "سجل مجانًا عبر البريد",
-    login_here: "تسجيل الدخول هنا",
-    or_email: "أو عبر البريد الإلكتروني",
-    full_name: "الاسم الكامل",
-    email: "البريد الإلكتروني",
-    password: "كلمة المرور",
-    btn_login: "تسجيل الدخول",
-    btn_signup: "إنشاء حساب",
-    client_portal: "بوابة العملاء",
-    my_checks: "مصادقاتي",
-    new_request: "طلب جديد",
-    hello: "مرحباً",
-    welcome_dash: "مرحبًا بك في نظام المصادقة.",
-    history: "سجل المصادقة",
-    brand: "الماركة",
-    item_type: "نوع العنصر",
-    model: "الموديل",
-    model_placeholder: "مثال: Neverfull",
-    optional: "اختياري",
-    purchase_loc: "من أين تم الشراء؟",
-    select_brand: "اختر الماركة...",
-    select_type: "اختر نوع العنصر...",
-    step_1: "الخطوة 1 من 3",
-    step_2: "الخطوة 2 من 3",
-    step_3: "الخطوة 3 من 3",
-    continue_photos: "متابعة لتحميل الصور",
-    back: "رجوع",
-    continue_track: "متابعة لاختيار الباقة",
-    track_title: "اختر باقة المصادقة",
-    track_sub: "اختر سرعة المعالجة المفضلة لديك.",
-    track_reg: "قياسي",
-    track_fast: "سريع",
-    track_exp: "سريع جداً",
-    hours_12: "12 ساعة",
-    hours_6: "6 ساعات",
-    hours_2: "ساعتان",
-    recommended: "موصى به",
-    coupon_label: "كود الخصم",
-    coupon_placeholder: "أدخل الكود هنا",
-    apply: "تطبيق",
-    send_payment: "المتابعة للدفع",
-    send_free: "إرسال للفحص المجاني",
-    authentic: "أصلي",
-    fake: "مزيف",
-    pending_expert: "قيد فحص الخبراء...",
-    need_photos: "مطلوب صور إضافية",
-    business_pkg: "عميل أعمال؟ عرض باقاتنا",
-    pkg_title: "باقات المصادقة للأعمال",
-    pkg_sub: "اشترِ باقات مصادقة ووفر حتى 20٪.",
-    contact_sales: "تواصل مع المبيعات",
-    success_title: "تم الدفع بنجاح! 🎉",
-    success_sub: "العنصر الخاص بك الآن قيد الفحص. أرسلنا لك بريدًا للتأكيد.",
-    btn_home: "العودة للرئيسية",
-    btn_another: "فحص عنصر آخر",
-  },
-  zh: {
-    nav_login: "登录",
-    nav_start: "开始鉴定",
-    hero_title: "零妥协。<br />零假货。",
-    hero_subtitle_global: "全球奢侈品鉴定新标准。",
-    hero_subtitle_il: "全球奢侈品鉴定新标准。",
-    cta_primary: "验证您的物品",
-    cta_secondary: "怎么运作？",
-    trusted_by: "鉴定世界上最负盛名的品牌",
-    why_us: "为什么选择我们？",
-    why_1_title: "AI + 人类专家",
-    why_1_desc: "我们的算法扫描您的物品，但最终判定始终由人类专家决定。",
-    why_2_title: "财务保证",
-    why_2_desc: "我们的证书获得 PayPal 和 eBay 等平台的全球认可。",
-    why_3_title: "前所未有的速度",
-    why_3_desc: "只需几个小时即可收到官方数字证书，无需离开家。",
-    how_title: "怎么运作？",
-    how_1_title: "1. 上传照片",
-    how_1_desc: "选择品牌和类型，并按照指南上传照片。",
-    how_2_title: "2. 深度分析",
-    how_2_desc: "您的物品将接受严格的检查。",
-    how_3_title: "3. 获取证书",
-    how_3_desc: "收到可以分享的官方数字证书。",
-    welcome: "欢迎回来",
-    welcome_sub: "登录以跟踪您的请求。",
-    signup_title: "创建新账户",
-    signup_sub: "加入我们开始鉴定。",
-    continue_google: "使用 Google 继续",
-    continue_fb: "使用 Facebook 继续",
-    continue_ig: "使用 Instagram 继续",
-    no_account: "还没有账户？",
-    have_account: "已经有账户？",
-    signup_free: "免费注册",
-    login_here: "在此登录",
-    full_name: "全名",
-    email: "电子邮件",
-    password: "密码",
-    btn_login: "登录",
-    btn_signup: "创建账户",
-    client_portal: "客户门户",
-    my_checks: "我的鉴定",
-    new_request: "新请求",
-    hello: "你好",
-    welcome_dash: "欢迎使用鉴定系统。",
-    history: "鉴定历史",
-    brand: "品牌",
-    item_type: "物品类型",
-    model: "型号",
-    model_placeholder: "例如：Neverfull",
-    optional: "可选",
-    select_brand: "选择品牌...",
-    select_type: "选择类型...",
-    step_1: "第 1 步，共 3 步",
-    step_2: "第 2 步，共 3 步",
-    step_3: "第 3 步，共 3 步",
-    continue_photos: "继续上传照片",
-    back: "返回",
-    continue_track: "继续选择服务",
-    track_title: "选择鉴定服务",
-    track_sub: "选择您首选的处理时间。",
-    track_reg: "标准",
-    track_fast: "加急",
-    track_exp: "特急",
-    hours_12: "12 小时",
-    hours_6: "6 小时",
-    hours_2: "2 小时",
-    recommended: "推荐",
-    coupon_label: "优惠券",
-    coupon_placeholder: "在此输入代码",
-    apply: "应用",
-    send_payment: "前往付款",
-    send_free: "提交免费审核",
-    authentic: "正品",
-    fake: "仿品",
-    pending_expert: "专家审核中...",
-    need_photos: "需要更多照片",
-    business_pkg: "企业客户？查看套餐",
-    pkg_title: "企业鉴定套餐",
-    pkg_sub: "批量购买，最高可节省20%。",
-    contact_sales: "联系销售",
-    success_title: "支付成功！🎉",
-    success_sub: "您的物品正在接受审核。确认邮件已发送。",
-    btn_home: "返回主页",
-    btn_another: "鉴定另一件物品",
-  },
-  ru: {
-    nav_login: "Войти",
-    nav_start: "Начать проверку",
-    hero_title: "НОЛЬ КОМПРОМИССОВ.<br />НОЛЬ ПОДДЕЛОК.",
-    hero_subtitle_global: "Новый мировой стандарт аутентификации.",
-    hero_subtitle_il: "Новый мировой стандарт аутентификации.",
-    cta_primary: "Проверить вещь",
-    cta_secondary: "Как это работает?",
-    trusted_by: "Мы проверяем самые престижные бренды",
-    why_us: "Почему мы?",
-    why_1_title: "ИИ + Эксперты",
-    why_1_desc: "Алгоритм сканирует вещь, но решение всегда принимает эксперт.",
-    why_2_title: "Гарантия",
-    why_2_desc: "Наши сертификаты признаны PayPal и eBay.",
-    why_3_title: "Скорость",
-    why_3_desc: "Сертификат за несколько часов.",
-    how_title: "Как это работает?",
-    how_1_title: "1. Загрузите фото",
-    how_1_desc: "Выберите бренд и загрузите фото.",
-    how_2_title: "2. Анализ",
-    how_2_desc: "Ваша вещь проходит тщательную проверку.",
-    how_3_title: "3. Сертификат",
-    how_3_desc: "Получите цифровой сертификат.",
-    welcome: "Добро пожаловать",
-    welcome_sub: "Войдите, чтобы отслеживать запросы.",
-    signup_title: "Создать аккаунт",
-    signup_sub: "Начните аутентификацию.",
-    continue_google: "С Google",
-    continue_fb: "С Facebook",
-    continue_ig: "С Instagram",
-    no_account: "Нет аккаунта?",
-    have_account: "Уже есть аккаунт?",
-    signup_free: "Бесплатная регистрация",
-    login_here: "Войти здесь",
-    full_name: "Имя",
-    email: "Email",
-    password: "Пароль",
-    btn_login: "Войти",
-    btn_signup: "Создать",
-    client_portal: "Клиентский портал",
-    my_checks: "Мои проверки",
-    new_request: "Новый запрос",
-    hello: "Здравствуйте",
-    welcome_dash: "Добро пожаловать в систему.",
-    history: "История проверок",
-    brand: "Бренд",
-    item_type: "Тип",
-    model: "Модель",
-    model_placeholder: "например, Neverfull",
-    optional: "Необязательно",
-    select_brand: "Выберите бренд...",
-    select_type: "Выберите тип...",
-    step_1: "Шаг 1 из 3",
-    step_2: "Шаг 2 из 3",
-    step_3: "Шаг 3 из 3",
-    continue_photos: "Перейти к фото",
-    back: "Назад",
-    continue_track: "Выбрать тариф",
-    track_title: "Выберите тариф",
-    track_sub: "Выберите время выполнения.",
-    track_reg: "Стандарт",
-    track_fast: "Быстрый",
-    track_exp: "Экспресс",
-    hours_12: "12 Часов",
-    hours_6: "6 Часов",
-    hours_2: "2 Часа",
-    recommended: "Рекомендуется",
-    coupon_label: "Промокод",
-    coupon_placeholder: "Введите код",
-    apply: "Применить",
-    send_payment: "Перейти к оплате",
-    send_free: "Отправить бесплатно",
-    authentic: "Оригинал",
-    fake: "Подделка",
-    pending_expert: "На проверке...",
-    need_photos: "Нужно больше фото",
-    business_pkg: "Корпоративный клиент?",
-    pkg_title: "Пакеты для бизнеса",
-    pkg_sub: "Экономия до 20%.",
-    contact_sales: "Связаться с продажами",
-    success_title: "Оплата прошла успешно! 🎉",
-    success_sub: "Вещь на проверке. Email отправлен.",
-    btn_home: "На главную",
-    btn_another: "Проверить другую",
-  },
+    btn_another: "Authenticate Another"
+  }
 };
 
 // ==========================================
-// COMPONENTS (LOGOS & ICONS)
+// CUSTOM VECTOR GRAPHICS (LOGOS & ICONS)
 // ==========================================
 function BrandLogo({ className = "w-16 h-16", hideIsrael = false }) {
   return (
-    <svg
-      viewBox="0 0 200 200"
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="100" fill="#1c1c1c" />
-      <path
-        d="M55 70 L75 120 L125 120 L145 70 Z"
-        fill="none"
-        stroke="#d4af37"
-        strokeWidth="4"
-        strokeLinejoin="round"
-      />
-      <rect
-        x="75"
-        y="70"
-        width="50"
-        height="50"
-        fill="none"
-        stroke="#d4af37"
-        strokeWidth="4"
-      />
-      <path
-        d="M85 70 C85 45, 115 45, 115 70"
-        fill="none"
-        stroke="#d4af37"
-        strokeWidth="4"
-      />
-      <text
-        x="100"
-        y={hideIsrael ? "158" : "150"}
-        fill="#ffffff"
-        fontSize="18"
-        fontFamily="sans-serif"
-        fontWeight="600"
-        textAnchor="middle"
-        letterSpacing="2"
-      >
-        LUXURY BAGS
-      </text>
-      {!hideIsrael && (
-        <text
-          x="100"
-          y="167"
-          fill="#d4af37"
-          fontSize="11"
-          fontFamily="sans-serif"
-          fontWeight="bold"
-          textAnchor="middle"
-          letterSpacing="4"
-        >
-          ISRAEL
-        </text>
-      )}
-      <text
-        x="100"
-        y="184"
-        fill="#64748b"
-        fontSize="8"
-        fontFamily="sans-serif"
-        fontWeight="bold"
-        textAnchor="middle"
-        letterSpacing="1"
-      >
-        EST. 2016
-      </text>
+      <path d="M55 70 L75 120 L125 120 L145 70 Z" fill="none" stroke="#d4af37" strokeWidth="4" strokeLinejoin="round" />
+      <rect x="75" y="70" width="50" height="50" fill="none" stroke="#d4af37" strokeWidth="4" />
+      <path d="M85 70 C85 45, 115 45, 115 70" fill="none" stroke="#d4af37" strokeWidth="4" />
+      <text x="100" y={hideIsrael ? "158" : "150"} fill="#ffffff" fontSize="18" fontFamily="sans-serif" fontWeight="600" textAnchor="middle" letterSpacing="2">LUXURY BAGS</text>
+      {!hideIsrael && <text x="100" y="167" fill="#d4af37" fontSize="11" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle" letterSpacing="4">ISRAEL</text>}
+      <text x="100" y="184" fill="#64748b" fontSize="8" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle" letterSpacing="1">EST. 2016</text>
     </svg>
   );
 }
@@ -700,291 +241,121 @@ function BrandLogo({ className = "w-16 h-16", hideIsrael = false }) {
 function CertificateStamp() {
   return (
     <div className="relative w-24 h-24 flex items-center justify-center">
-      <div
-        className="absolute inset-0 border-4 border-slate-200 rounded-full animate-[spin_20s_linear_infinite] opacity-50"
-        style={{ borderStyle: "double" }}
-      ></div>
+      <div className="absolute inset-0 border-4 border-slate-200 rounded-full animate-[spin_20s_linear_infinite] opacity-50" style={{ borderStyle: 'double' }}></div>
       <div className="absolute inset-2 border border-slate-300 rounded-full"></div>
       <div className="text-center">
-        <p className="text-[8px] font-black tracking-widest text-slate-400 uppercase">
-          Certified By
-        </p>
-        <p className="text-[12px] font-serif font-black text-[#1c1c1c] tracking-wider mt-1">
-          LBI
-        </p>
-        <p className="text-[6px] font-bold text-[#d4af37] tracking-[0.2em] mt-1 uppercase">
-          Est. 2016
-        </p>
+        <p className="text-[8px] font-black tracking-widest text-slate-400 uppercase">Certified By</p>
+        <p className="text-[12px] font-serif font-black text-[#1c1c1c] tracking-wider mt-1">LBI</p>
+        <p className="text-[6px] font-bold text-[#d4af37] tracking-[0.2em] mt-1 uppercase">Est. 2016</p>
       </div>
     </div>
   );
 }
 
-function FacebookIcon({ className = "w-5 h-5" }) {
+function FacebookIcon({ className = "w-5 h-5", ...props }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
     </svg>
   );
 }
-function InstagramIcon({ className = "w-5 h-5" }) {
+
+function InstagramIcon({ className = "w-5 h-5", ...props }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
       <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
     </svg>
   );
 }
+
 function GoogleIcon({ className = "w-5 h-5" }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
+    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
     </svg>
   );
 }
 
 function BagPartIcon({ type, className = "w-8 h-8" }) {
   const baseClasses = `text-teal-600 ${className}`;
-  switch (type) {
-    case "front":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <path d="M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
-          <path d="M3 8l9 6 9-6" />
-          <circle cx="12" cy="14" r="1.5" fill="currentColor" />
-          <path
-            d="M6 8V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"
-            strokeDasharray="1 1"
-          />
-          <path
-            d="M3 13.5l4-2.5m-4 5.5l9-5.5M7.5 19l4.5-3m0-8L21 13.5m-9-5.5L21 19m-4.5 2l4.5-3"
-            opacity="0.3"
-          />
-        </svg>
-      );
-    case "inside":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <path d="M4 6h16l-2 14H6L4 6z" />
-          <path d="M4 6c0 2 16 2 16 0" opacity="0.5" />
-          <rect
-            x="9"
-            y="10"
-            width="6"
-            height="5"
-            rx="1"
-            strokeDasharray="1 1"
-          />
-        </svg>
-      );
-    case "base":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <path d="M4 8l16-4v12l-16 4V8z" />
-          <circle cx="7" cy="10" r="1" fill="currentColor" />
-          <circle cx="17" cy="7.5" r="1" fill="currentColor" />
-          <circle cx="7" cy="16.5" r="1" fill="currentColor" />
-          <circle cx="17" cy="14" r="1" fill="currentColor" />
-        </svg>
-      );
-    case "zipper":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <path d="M12 2v6" />
-          <rect x="10" y="8" width="4" height="6" rx="1" />
-          <circle cx="12" cy="16" r="1" />
-          <path d="M10 18h4M9 20h6M10 22h4" opacity="0.6" />{" "}
-        </svg>
-      );
-    case "buckle-front":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <rect x="6" y="8" width="12" height="8" rx="2" />
-          <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-          <path d="M12 12v3" />
-        </svg>
-      );
-    case "buckle-back":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <path d="M8 14v-4a4 4 0 0 1 8 0v4" />
-          <rect x="6" y="14" width="12" height="4" rx="1" />
-        </svg>
-      );
-    case "metal-stamp":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <rect x="3" y="8" width="18" height="8" rx="1" />
-          <circle cx="5.5" cy="12" r="0.5" fill="currentColor" />
-          <circle cx="18.5" cy="12" r="0.5" fill="currentColor" />
-          <path
-            d="M9 14V10h2M12 10l1.5 4L15 10"
-            opacity="0.6"
-            strokeWidth="1"
-          />
-        </svg>
-      );
-    case "date-code":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={baseClasses}
-        >
-          <path d="M7 4h10l3 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4z" />
-          <path d="M8 12h8M8 16h5" strokeDasharray="2 2" opacity="0.5" />
-        </svg>
-      );
-    default:
+  switch(type) {
+    case 'front': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" /><path d="M3 8l9 6 9-6" /><circle cx="12" cy="14" r="1.5" fill="currentColor" /><path d="M6 8V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3" strokeDasharray="1 1" /><path d="M3 13.5l4-2.5m-4 5.5l9-5.5M7.5 19l4.5-3m0-8L21 13.5m-9-5.5L21 19m-4.5 2l4.5-3" opacity="0.3" /></svg>;
+    case 'inside': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M4 6h16l-2 14H6L4 6z" /><path d="M4 6c0 2 16 2 16 0" opacity="0.5"/><rect x="9" y="10" width="6" height="5" rx="1" strokeDasharray="1 1" /></svg>;
+    case 'base': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M4 8l16-4v12l-16 4V8z" /><circle cx="7" cy="10" r="1" fill="currentColor" /><circle cx="17" cy="7.5" r="1" fill="currentColor" /><circle cx="7" cy="16.5" r="1" fill="currentColor" /><circle cx="17" cy="14" r="1" fill="currentColor" /></svg>;
+    case 'zipper': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M12 2v6" /><rect x="10" y="8" width="4" height="6" rx="1" /><circle cx="12" cy="16" r="1" /><path d="M10 18h4M9 20h6M10 22h4" opacity="0.6"/> </svg>;
+    case 'buckle-front': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><rect x="6" y="8" width="12" height="8" rx="2" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><path d="M12 12v3" /></svg>;
+    case 'buckle-back': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M8 14v-4a4 4 0 0 1 8 0v4" /><rect x="6" y="14" width="12" height="4" rx="1" /></svg>;
+    case 'metal-stamp': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><rect x="3" y="8" width="18" height="8" rx="1" /><circle cx="5.5" cy="12" r="0.5" fill="currentColor" /><circle cx="18.5" cy="12" r="0.5" fill="currentColor" /><path d="M9 14V10h2M12 10l1.5 4L15 10" opacity="0.6" strokeWidth="1" /></svg>;
+    case 'date-code': 
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M7 4h10l3 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4z" /><path d="M8 12h8M8 16h5" strokeDasharray="2 2" opacity="0.5" /></svg>;
+    default: 
       return <UploadCloud className={baseClasses} />;
   }
 }
 
+// ==========================================
+// SMART DATA & CONSTANTS
+// ==========================================
 const LUXURY_BRANDS = [
-  "Louis Vuitton",
-  "Chanel",
-  "Hermes",
-  "Dior",
-  "Gucci",
-  "Prada",
-  "Saint Laurent",
-  "Celine",
-  "Fendi",
-  "Balenciaga",
-  "Rolex",
-  "Cartier",
-];
-const ITEM_TYPES = [
-  "Bag/תיק",
-  "Clothing/בגד",
-  "Shoes/נעליים",
-  "Accessories/אקססוריז",
-  "Watch/שעון",
-];
-const BAG_PARTS = [
-  { id: "front", iconType: "front" },
-  { id: "inside", iconType: "inside" },
-  { id: "base", iconType: "base" },
-  { id: "date-code", iconType: "date-code" },
-  { id: "zipper", iconType: "zipper" },
-  { id: "buckle-front", iconType: "buckle-front" },
-  { id: "buckle-back", iconType: "buckle-back" },
-  { id: "metal-stamp", iconType: "metal-stamp" },
+  "Louis Vuitton", "Chanel", "Hermes", "Dior", "Gucci", 
+  "Prada", "Saint Laurent", "Celine", "Fendi", "Balenciaga", "Rolex", "Cartier"
 ];
 
+const ITEM_TYPES = [
+  "Bag/תיק", "Clothing/בגד", "Shoes/נעליים", "Accessories/אקססוריז", "Watch/שעון"
+];
+
+const BAG_PARTS = [
+  { id: 'front', iconType: 'front' }, 
+  { id: 'inside', iconType: 'inside' },
+  { id: 'base', iconType: 'base' }, 
+  { id: 'date-code', iconType: 'date-code' },
+  { id: 'zipper', iconType: 'zipper' }, 
+  { id: 'buckle-front', iconType: 'buckle-front' },
+  { id: 'buckle-back', iconType: 'buckle-back' }, 
+  { id: 'metal-stamp', iconType: 'metal-stamp' }
+];
+
+// ==========================================
+// GLOBAL TYPOGRAPHY (PREMIUM FONT)
+// ==========================================
 function GlobalStyles() {
   return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: `
+    <style dangerouslySetInnerHTML={{__html: `
       @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap');
       * { font-family: 'Assistant', system-ui, sans-serif !important; }
-    `,
-      }}
-    />
+    `}} />
   );
 }
 
 // ==========================================
-// MAIN APP
+// MAIN APP COMPONENT
 // ==========================================
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState("client");
+  const [user, setUser] = useState(null); 
+  const [role, setRole] = useState('client'); 
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [currentView, setCurrentView] = useState("dashboard");
+  const [currentView, setCurrentView] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [systemRequests, setSystemRequests] = useState([]);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
-  const [geo, setGeo] = useState({
-    country: "IL",
-    currency: "ILS",
-    symbol: "₪",
-  });
-  const [lang, setLang] = useState("he");
-  const t = (key) =>
-    translations[lang]?.[key] || translations["en"][key] || key;
-  const isRtl = lang === "he" || lang === "ar";
+  const [geo, setGeo] = useState({ country: 'IL', currency: 'ILS', symbol: '₪' });
+  const [lang, setLang] = useState('he');
+  
+  const t = (key) => translations[lang]?.[key] || translations['en'][key] || key;
+  const isRtl = lang === 'he' || lang === 'ar';
 
   useEffect(() => {
     let sessionTimer;
@@ -992,38 +363,36 @@ export default function App() {
       sessionTimer = setTimeout(() => {
         handleLogout();
         setShowLoginModal(true);
-        alert(
-          isRtl
-            ? "פג תוקף החיבור (שעתיים). אנא התחברו מחדש."
-            : "Session expired. Please log in again."
-        );
-      }, 7200000);
+        alert(isRtl ? 'פג תוקף החיבור (שעתיים). אנא התחברו מחדש.' : 'Session expired. Please log in again.');
+      }, 7200000); 
     }
     return () => clearTimeout(sessionTimer);
   }, [user, isRtl]);
 
   useEffect(() => {
     if (!auth) return;
+    
     const initCanvasAuth = async () => {
       try {
-        if (
-          typeof __initial_auth_token !== "undefined" &&
-          __initial_auth_token
-        ) {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
-        } else if (process.env.NODE_ENV === "development") {
+        } else if (process.env.NODE_ENV === 'development') {
           await signInAnonymously(auth);
         }
-      } catch (e) {}
+      } catch(e) { 
+        console.warn("Custom Auth Failed", e); 
+      }
     };
     initCanvasAuth();
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        if (currentUser.email && currentUser.email.includes("admin"))
-          setRole("admin");
-        else setRole("client");
+        if (currentUser.email && currentUser.email.includes('admin')) {
+          setRole('admin');
+        } else {
+          setRole('client');
+        }
         setShowLoginModal(false);
       }
     });
@@ -1032,62 +401,44 @@ export default function App() {
 
   useEffect(() => {
     if (!user || !db) return;
-    const requestsRef = collection(
-      db,
-      "artifacts",
-      appId,
-      "public",
-      "data",
-      "auth_requests"
-    );
+    
+    const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
     const unsubscribe = onSnapshot(requestsRef, (snapshot) => {
-      const allReqs = snapshot.docs.map((doc) => ({
-        firestoreId: doc.id,
-        ...doc.data(),
-      }));
+      const allReqs = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
       allReqs.sort((a, b) => b.createdAt - a.createdAt);
-      if (role === "admin") setSystemRequests(allReqs);
-      else
-        setSystemRequests(allReqs.filter((req) => req.clientId === user.uid));
+      
+      if (role === 'admin') {
+        setSystemRequests(allReqs);
+      } else {
+        setSystemRequests(allReqs.filter(req => req.clientId === user.uid));
+      }
+    }, (error) => {
+      console.error("Firestore Listen Error:", error);
     });
+    
     return () => unsubscribe();
   }, [user, role]);
 
-  const handleLogout = () => {
-    if (auth) signOut(auth);
-    setUser(null);
+  const handleLogout = () => { 
+    if(auth) signOut(auth); 
+    setUser(null); 
   };
-
-  const addRequest = async (newReqData) => {
+  
+  const addRequest = async (newReqData) => { 
     if (!user || !db) return;
-    const requestsRef = collection(
-      db,
-      "artifacts",
-      appId,
-      "public",
-      "data",
-      "auth_requests"
-    );
-    await addDoc(requestsRef, {
-      ...newReqData,
-      clientId: user.uid,
-      clientEmail: user.email || "Anonymous",
-      createdAt: Date.now(),
+    const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
+    await addDoc(requestsRef, { 
+      ...newReqData, 
+      clientId: user.uid, 
+      clientEmail: user.email || 'Anonymous', 
+      createdAt: Date.now() 
     });
-    setCurrentView("dashboard");
+    setCurrentView('dashboard'); 
   };
-
+  
   const updateRequest = async (firestoreId, updates) => {
     if (!user || !db) return;
-    const docRef = doc(
-      db,
-      "artifacts",
-      appId,
-      "public",
-      "data",
-      "auth_requests",
-      firestoreId
-    );
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_requests', firestoreId);
     await updateDoc(docRef, updates);
   };
 
@@ -1095,14 +446,14 @@ export default function App() {
     return (
       <>
         <GlobalStyles />
-        <LandingPage
-          t={t}
-          geo={geo}
-          isRtl={isRtl}
-          lang={lang}
-          setLang={setLang}
-          onGoToLogin={() => setShowLoginModal(true)}
-          setGeo={setGeo}
+        <LandingPage 
+          t={t} 
+          geo={geo} 
+          isRtl={isRtl} 
+          lang={lang} 
+          setLang={setLang} 
+          onGoToLogin={() => setShowLoginModal(true)} 
+          setGeo={setGeo} 
         />
       </>
     );
@@ -1113,22 +464,13 @@ export default function App() {
       <>
         <GlobalStyles />
         <div dir={isRtl ? "rtl" : "ltr"} className="relative">
-          <LoginScreen
-            onBack={() => setShowLoginModal(false)}
-            t={t}
-            geo={geo}
-            isRtl={isRtl}
-            lang={lang}
-            setLang={setLang}
-            onLogin={(r) => {
-              setUser({
-                uid: "123",
-                email: r === "admin" ? "admin@test.com" : "client@test.com",
-              });
-              setRole(r);
-              setShowLoginModal(false);
-              setCurrentView("dashboard");
-            }}
+          <LoginScreen 
+            onBack={() => setShowLoginModal(false)} 
+            t={t} 
+            geo={geo} 
+            isRtl={isRtl} 
+            lang={lang} 
+            setLang={setLang} 
           />
         </div>
       </>
@@ -1138,92 +480,40 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
-      <div
-        className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden"
-        dir={isRtl ? "rtl" : "ltr"}
-      >
+      <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
         {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
+          <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
         )}
-        <Sidebar
-          t={t}
-          currentView={currentView}
-          setCurrentView={(v) => {
-            setCurrentView(v);
-            setIsMobileMenuOpen(false);
-          }}
-          role={role}
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          onLogout={handleLogout}
-          geo={geo}
+        
+        <Sidebar 
+          t={t} 
+          currentView={currentView} 
+          setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} 
+          role={role} 
+          isOpen={isMobileMenuOpen} 
+          onClose={() => setIsMobileMenuOpen(false)} 
+          onLogout={handleLogout} 
+          geo={geo} 
         />
+        
         <main className="flex-1 flex flex-col h-screen w-full overflow-hidden">
-          <Header
-            toggleMenu={() => setIsMobileMenuOpen(true)}
-            role={role}
-            t={t}
-          />
+          <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
           <div className="flex-1 overflow-y-auto flex flex-col">
             <div className="p-4 md:p-8 flex-1">
-              {role === "admin" ? (
-                currentView === "dashboard" || currentView === "auth-tool" ? (
-                  <AuthenticationTool
-                    requests={systemRequests}
-                    updateRequest={updateRequest}
-                  />
-                ) : (
-                  <AuthenticationTool
-                    requests={systemRequests}
-                    updateRequest={updateRequest}
-                  />
-                )
-              ) : currentView === "dashboard" ? (
-                <ClientDashboard
-                  t={t}
-                  requests={systemRequests}
-                  setView={setCurrentView}
-                  onSelectCert={(req) => {
-                    setSelectedCertificate(req);
-                    setCurrentView("certificate-view");
-                  }}
-                />
-              ) : currentView === "new-request" ? (
-                <NewAuthenticationRequest
-                  t={t}
-                  geo={geo}
-                  isRtl={isRtl}
-                  addRequest={addRequest}
-                  setView={setCurrentView}
-                />
-              ) : currentView === "business-pkgs" ? (
-                <BusinessPackages
-                  t={t}
-                  geo={geo}
-                  isRtl={isRtl}
-                  setView={setCurrentView}
-                />
-              ) : currentView === "certificate-view" ? (
-                <DigitalCertificate
-                  data={selectedCertificate}
-                  onBack={() => setCurrentView("dashboard")}
-                  isClientView={true}
-                  t={t}
-                  isRtl={isRtl}
-                />
+              {role === 'admin' ? (
+                currentView === 'dashboard' || currentView === 'auth-tool' ? 
+                  <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} /> : 
+                  <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} />
               ) : (
-                <ClientDashboard
-                  t={t}
-                  requests={systemRequests}
-                  setView={setCurrentView}
-                  onSelectCert={(req) => {
-                    setSelectedCertificate(req);
-                    setCurrentView("certificate-view");
-                  }}
-                />
+                currentView === 'dashboard' ? 
+                  <ClientDashboard t={t} requests={systemRequests} setView={setCurrentView} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} /> : 
+                currentView === 'new-request' ? 
+                  <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} /> :
+                currentView === 'business-pkgs' ? 
+                  <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} /> :
+                currentView === 'certificate-view' ? 
+                  <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={true} t={t} isRtl={isRtl} /> :
+                  <ClientDashboard t={t} requests={systemRequests} setView={setCurrentView} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} />
               )}
             </div>
           </div>
@@ -1234,65 +524,33 @@ export default function App() {
 }
 
 // ==========================================
-// LANDING PAGE
+// MARKETING LANDING PAGE
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
-  const hideIsrael = geo.country !== "IL";
+  const hideIsrael = geo.country !== 'IL';
   const [showDev, setShowDev] = useState(false);
 
   useEffect(() => {
-    if (window.location.search.includes("dev=true")) {
+    if (window.location.search.includes('dev=true')) {
       setShowDev(true);
     }
   }, []);
 
   const applyGeoSettings = (region) => {
-    if (region === "IL") {
-      setGeo({ country: "IL", currency: "ILS", symbol: "₪" });
-      setLang("he");
-    } else if (region === "US") {
-      setGeo({ country: "US", currency: "USD", symbol: "$" });
-      setLang("en");
-    } else if (region === "FR") {
-      setGeo({ country: "FR", currency: "EUR", symbol: "€" });
-      setLang("en");
-    } else if (region === "AE") {
-      setGeo({ country: "AE", currency: "AED", symbol: "د.إ" });
-      setLang("ar");
-    }
+    if (region === 'IL') { setGeo({ country: 'IL', currency: 'ILS', symbol: '₪' }); setLang('he'); }
+    else if (region === 'US') { setGeo({ country: 'US', currency: 'USD', symbol: '$' }); setLang('en'); }
+    else if (region === 'FR') { setGeo({ country: 'FR', currency: 'EUR', symbol: '€' }); setLang('en'); }
+    else if (region === 'AE') { setGeo({ country: 'AE', currency: 'AED', symbol: 'د.إ' }); setLang('ar'); }
   };
 
   return (
-    <div
-      className="min-h-screen bg-slate-50 font-sans flex flex-col"
-      dir={isRtl ? "rtl" : "ltr"}
-    >
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col" dir={isRtl ? "rtl" : "ltr"}>
       {showDev && (
-        <div
-          className="fixed bottom-4 left-4 bg-white p-2 rounded-xl shadow-2xl border border-slate-200 z-50 text-xs flex gap-2 font-sans"
-          dir="ltr"
-        >
-          <Globe size={16} className="text-slate-400" />
-          <button
-            onClick={() => applyGeoSettings("IL")}
-            className="hover:text-teal-600 font-bold"
-          >
-            IL
-          </button>
-          |
-          <button
-            onClick={() => applyGeoSettings("US")}
-            className="hover:text-teal-600 font-bold"
-          >
-            US
-          </button>
-          |
-          <button
-            onClick={() => applyGeoSettings("AE")}
-            className="hover:text-teal-600 font-bold"
-          >
-            AE
-          </button>
+        <div className="fixed bottom-4 left-4 bg-white p-2 rounded-xl shadow-2xl border border-slate-200 z-50 text-xs flex gap-2 font-sans" dir="ltr">
+           <Globe size={16} className="text-slate-400"/>
+           <button onClick={() => applyGeoSettings('IL')} className="hover:text-teal-600 font-bold">IL</button>|
+           <button onClick={() => applyGeoSettings('US')} className="hover:text-teal-600 font-bold">US</button>|
+           <button onClick={() => applyGeoSettings('AE')} className="hover:text-teal-600 font-bold">AE</button>
         </div>
       )}
 
@@ -1302,124 +560,71 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
             <BrandLogo className="w-12 h-12" hideIsrael={hideIsrael} />
           </div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setLang(lang === "he" ? "en" : "he")}
-              className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <Globe size={14} /> {lang === "he" ? "EN" : "HE"}
+            <button onClick={() => setLang(lang === 'he' ? 'en' : 'he')} className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+              <Globe size={14} /> {lang === 'he' ? 'EN' : 'HE'}
             </button>
-            <button
-              onClick={onGoToLogin}
-              className="text-sm font-bold text-slate-600 hover:text-teal-700 transition-colors"
-            >
-              {t("nav_login")}
+            <button onClick={onGoToLogin} className="text-sm font-bold text-slate-600 hover:text-teal-700 transition-colors">
+              {t('nav_login')}
             </button>
-            <button
-              onClick={onGoToLogin}
-              className="bg-[#1c1c1c] text-[#d4af37] px-5 py-2.5 rounded-full text-sm font-bold hover:bg-black transition-colors shadow-lg shadow-black/10"
-            >
-              {t("nav_start")}
+            <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] px-5 py-2.5 rounded-full text-sm font-bold hover:bg-black transition-colors shadow-lg shadow-black/10">
+              {t('nav_start')}
             </button>
           </div>
         </div>
       </nav>
 
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-slate-900 overflow-hidden flex-1 flex flex-col justify-center">
-        <div
-          className="absolute inset-0 opacity-40 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=2000&q=80')",
-          }}
-        ></div>
+        <div className="absolute inset-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=2000&q=80')" }}></div>
         <div className="absolute inset-0 bg-gradient-to-b from-teal-950/80 to-slate-900/95 mix-blend-multiply"></div>
-
+        
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <h1
-            className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-xl"
-            dangerouslySetInnerHTML={{ __html: t("hero_title") }}
-          ></h1>
-          <p
-            className="text-lg md:text-xl text-teal-100 max-w-2xl mx-auto font-light leading-relaxed mb-10"
-            dangerouslySetInnerHTML={{
-              __html: hideIsrael
-                ? t("hero_subtitle_global")
-                : t("hero_subtitle_il"),
-            }}
-          ></p>
+          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-xl" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
+          <p className="text-lg md:text-xl text-teal-100 max-w-2xl mx-auto font-light leading-relaxed mb-10" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={onGoToLogin}
-              className="w-full sm:w-auto bg-[#d4af37] hover:bg-[#c4a130] text-[#1c1c1c] font-black px-8 py-4 rounded-full transition-transform active:scale-95 shadow-xl shadow-yellow-900/20 text-lg flex items-center justify-center gap-2"
-            >
-              <ShieldCheck size={24} /> {t("cta_primary")}
+            <button onClick={onGoToLogin} className="w-full sm:w-auto bg-[#d4af37] hover:bg-[#c4a130] text-[#1c1c1c] font-black px-8 py-4 rounded-full transition-transform active:scale-95 shadow-xl shadow-yellow-900/20 text-lg flex items-center justify-center gap-2">
+              <ShieldCheck size={24} /> {t('cta_primary')}
             </button>
-            <a
-              href="#how-it-works"
-              className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm font-bold px-8 py-4 rounded-full transition-colors text-lg"
-            >
-              {t("cta_secondary")}
+            <a href="#how-it-works" className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm font-bold px-8 py-4 rounded-full transition-colors text-lg">
+              {t('cta_secondary')}
             </a>
           </div>
         </div>
       </section>
 
       <section className="bg-white border-b border-slate-100 py-6 overflow-hidden">
-        <p className="text-center text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">
-          {t("trusted_by")}
-        </p>
+        <p className="text-center text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">{t('trusted_by')}</p>
         <div className="flex justify-center flex-wrap gap-8 md:gap-16 opacity-60 grayscale">
-          <span className="font-serif font-bold text-xl">LOUIS VUITTON</span>
-          <span className="font-serif font-bold text-xl">CHANEL</span>
-          <span className="font-serif font-bold text-xl">HERMÈS</span>
-          <span className="font-serif font-bold text-xl">DIOR</span>
-          <span className="font-serif font-bold text-xl">GUCCI</span>
-          <span className="font-serif font-bold text-xl">PRADA</span>
+           <span className="font-serif font-bold text-xl">LOUIS VUITTON</span>
+           <span className="font-serif font-bold text-xl">CHANEL</span>
+           <span className="font-serif font-bold text-xl">HERMÈS</span>
+           <span className="font-serif font-bold text-xl">DIOR</span>
+           <span className="font-serif font-bold text-xl">GUCCI</span>
+           <span className="font-serif font-bold text-xl">PRADA</span>
         </div>
       </section>
 
       <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl font-black text-slate-900 mb-4">
-              {t("why_us")}
-            </h2>
+            <h2 className="text-3xl font-black text-slate-900 mb-4">{t('why_us')}</h2>
             <div className="w-24 h-1 bg-teal-600 mx-auto rounded-full"></div>
           </div>
-
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6">
-                <Cpu size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
-                {t("why_1_title")}
-              </h3>
-              <p className="text-slate-600 leading-relaxed">
-                {t("why_1_desc")}
-              </p>
+              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6"><Cpu size={28} /></div>
+              <h3 className="text-xl font-bold text-slate-800 mb-3">{t('why_1_title')}</h3>
+              <p className="text-slate-600 leading-relaxed">{t('why_1_desc')}</p>
             </div>
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6">
-                <Award size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
-                {t("why_2_title")}
-              </h3>
-              <p className="text-slate-600 leading-relaxed">
-                {t("why_2_desc")}
-              </p>
+              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6"><Award size={28} /></div>
+              <h3 className="text-xl font-bold text-slate-800 mb-3">{t('why_2_title')}</h3>
+              <p className="text-slate-600 leading-relaxed">{t('why_2_desc')}</p>
             </div>
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6">
-                <Zap size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
-                {t("why_3_title")}
-              </h3>
-              <p className="text-slate-600 leading-relaxed">
-                {t("why_3_desc")}
-              </p>
+              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6"><Zap size={28} /></div>
+              <h3 className="text-xl font-bold text-slate-800 mb-3">{t('why_3_title')}</h3>
+              <p className="text-slate-600 leading-relaxed">{t('why_3_desc')}</p>
             </div>
           </div>
         </div>
@@ -1428,67 +633,40 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
       <section id="how-it-works" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl font-black text-slate-900 mb-4">
-              {t("how_title")}
-            </h2>
+            <h2 className="text-3xl font-black text-slate-900 mb-4">{t('how_title')}</h2>
             <div className="w-24 h-1 bg-teal-600 mx-auto rounded-full"></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-            <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-slate-100 -z-10"></div>
-            <div className="text-center relative z-10">
-              <div className="w-24 h-24 mx-auto bg-slate-900 text-white rounded-full flex items-center justify-center mb-6 shadow-xl">
-                <Camera size={32} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
-                {t("how_1_title")}
-              </h3>
-              <p className="text-slate-600">{t("how_1_desc")}</p>
-            </div>
-            <div className="text-center relative z-10">
-              <div className="w-24 h-24 mx-auto bg-slate-900 text-white rounded-full flex items-center justify-center mb-6 shadow-xl">
-                <Search size={32} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
-                {t("how_2_title")}
-              </h3>
-              <p className="text-slate-600">{t("how_2_desc")}</p>
-            </div>
-            <div className="text-center relative z-10">
-              <div className="w-24 h-24 mx-auto bg-[#d4af37] text-[#1c1c1c] rounded-full flex items-center justify-center mb-6 shadow-xl">
-                <FileText size={32} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
-                {t("how_3_title")}
-              </h3>
-              <p className="text-slate-600">{t("how_3_desc")}</p>
-            </div>
+             <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-slate-100 -z-10"></div>
+             <div className="text-center relative z-10">
+                <div className="w-24 h-24 mx-auto bg-slate-900 text-white rounded-full flex items-center justify-center mb-6 shadow-xl"><Camera size={32} /></div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{t('how_1_title')}</h3>
+                <p className="text-slate-600">{t('how_1_desc')}</p>
+             </div>
+             <div className="text-center relative z-10">
+                <div className="w-24 h-24 mx-auto bg-slate-900 text-white rounded-full flex items-center justify-center mb-6 shadow-xl"><Search size={32} /></div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{t('how_2_title')}</h3>
+                <p className="text-slate-600">{t('how_2_desc')}</p>
+             </div>
+             <div className="text-center relative z-10">
+                <div className="w-24 h-24 mx-auto bg-[#d4af37] text-[#1c1c1c] rounded-full flex items-center justify-center mb-6 shadow-xl"><FileText size={32} /></div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{t('how_3_title')}</h3>
+                <p className="text-slate-600">{t('how_3_desc')}</p>
+             </div>
           </div>
-
+          
           <div className="mt-16 text-center">
-            <button
-              onClick={onGoToLogin}
-              className="bg-teal-800 hover:bg-teal-900 text-white font-bold px-10 py-4 rounded-full shadow-lg transition-colors text-lg"
-            >
-              {t("nav_start")}{" "}
-              <ArrowRight
-                size={20}
-                className={`inline ${isRtl ? "rotate-180 mr-2" : "ml-2"}`}
-              />
+            <button onClick={onGoToLogin} className="bg-teal-800 hover:bg-teal-900 text-white font-bold px-10 py-4 rounded-full shadow-lg transition-colors text-lg">
+               {t('nav_start')} <ArrowRight size={20} className={`inline ${isRtl ? 'rotate-180 mr-2' : 'ml-2'}`} />
             </button>
           </div>
         </div>
       </section>
-
+      
       <footer className="bg-[#1c1c1c] text-slate-400 py-10 text-center text-sm">
-        <BrandLogo
-          className="w-16 h-16 mx-auto mb-4 opacity-50 grayscale"
-          hideIsrael={hideIsrael}
-        />
-        <p>
-          &copy; {new Date().getFullYear()} LUXURY BAGS
-          {hideIsrael ? "" : " ISRAEL"}. All rights reserved.
-        </p>
+         <BrandLogo className="w-16 h-16 mx-auto mb-4 opacity-50 grayscale" hideIsrael={hideIsrael} />
+         <p>&copy; {new Date().getFullYear()} LUXURY BAGS{hideIsrael ? '' : ' ISRAEL'}. All rights reserved.</p>
       </footer>
     </div>
   );
@@ -1497,25 +675,25 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
 // ==========================================
 // LOGIN SCREEN
 // ==========================================
-function LoginScreen({ onLogin, onBack, t, geo, isRtl, lang, setLang }) {
+function LoginScreen({ onBack, t, geo, isRtl, lang, setLang }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const hideIsrael = geo.country !== "IL";
+  const hideIsrael = geo.country !== 'IL';
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    if (!auth && onLogin) {
-      // Fallback for dev if Firebase isn't set up yet
-      onLogin(showAdminLogin ? "admin" : "client");
+    if (!auth) {
+      alert("Firebase is not connected. Please check your config.");
       return;
     }
-    setErrorMsg("");
+    
+    setErrorMsg('');
     setIsLoading(true);
 
     try {
@@ -1526,11 +704,7 @@ function LoginScreen({ onLogin, onBack, t, geo, isRtl, lang, setLang }) {
       }
     } catch (err) {
       console.error(err);
-      setErrorMsg(
-        isRtl
-          ? "שגיאה בפרטי ההתחברות. נסה שנית."
-          : "Invalid credentials. Please try again."
-      );
+      setErrorMsg(isRtl ? "שגיאה בפרטי ההתחברות. נסה שנית." : "Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -1538,194 +712,91 @@ function LoginScreen({ onLogin, onBack, t, geo, isRtl, lang, setLang }) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white relative overflow-x-hidden">
-      <div className={`absolute top-6 ${isRtl ? "right-6" : "left-6"} z-50`}>
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold text-sm bg-white/80 px-3 py-1.5 rounded-full shadow-sm"
-        >
-          <ChevronLeft size={16} className={isRtl ? "rotate-180" : ""} /> חזרה
-          לאתר
-        </button>
+      
+      <div className={`absolute top-6 ${isRtl ? 'right-6' : 'left-6'} z-50`}>
+         <button onClick={onBack} className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold text-sm bg-white/80 px-3 py-1.5 rounded-full shadow-sm">
+            <ChevronLeft size={16} className={isRtl ? 'rotate-180' : ''} /> חזרה לאתר
+         </button>
       </div>
 
-      <div className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50`}>
-        <button
-          onClick={() => setLang(lang === "he" ? "en" : "he")}
+      <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-50`}>
+        <button 
+          onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
           className="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-slate-200 md:border-white/30 text-slate-800 md:text-white px-4 py-2 rounded-full font-bold text-xs shadow-sm hover:bg-white/30 transition-all"
         >
-          <Globe size={14} /> {lang === "he" ? "EN" : "עברית"}
+          <Globe size={14} /> {lang === 'he' ? 'EN' : 'עברית'}
         </button>
       </div>
 
       <div className="hidden md:flex md:w-1/2 relative bg-slate-900 items-center justify-center overflow-hidden pt-12">
-        <div
-          className="absolute inset-0 opacity-40 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=1200&q=80')",
-          }}
-        ></div>
+        <div className="absolute inset-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=1200&q=80')" }}></div>
         <div className="absolute inset-0 bg-teal-950/70 mix-blend-multiply"></div>
         <div className="relative z-10 flex flex-col items-center text-center p-12 animate-in fade-in duration-1000">
-          <BrandLogo
-            className="w-40 h-40 mb-8 drop-shadow-2xl"
-            hideIsrael={hideIsrael}
-          />
-          <h1
-            className="text-4xl lg:text-6xl font-black text-white mb-4 leading-tight tracking-tighter drop-shadow-lg"
-            dangerouslySetInnerHTML={{ __html: t("hero_title") }}
-          ></h1>
-          <p
-            className="text-teal-100 text-lg max-w-md font-light leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: hideIsrael
-                ? t("hero_subtitle_global")
-                : t("hero_subtitle_il"),
-            }}
-          ></p>
+          <BrandLogo className="w-40 h-40 mb-8 drop-shadow-2xl" hideIsrael={hideIsrael} />
+          <h1 className="text-4xl lg:text-6xl font-black text-white mb-4 leading-tight tracking-tighter drop-shadow-lg" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
+          <p className="text-teal-100 text-lg max-w-md font-light leading-relaxed" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
         </div>
       </div>
 
       <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-24 bg-white relative">
         <div className="md:hidden flex flex-col items-center mb-10 mt-12">
           <BrandLogo className="w-24 h-24 mb-4" hideIsrael={hideIsrael} />
-          <h1
-            className="text-3xl font-black text-slate-900 text-center tracking-tight leading-tight"
-            dangerouslySetInnerHTML={{ __html: t("hero_title") }}
-          ></h1>
+          <h1 className="text-3xl font-black text-slate-900 text-center tracking-tight leading-tight" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
         </div>
 
         <div className="w-full max-w-sm mx-auto animate-in slide-in-from-bottom-8 fade-in duration-700">
           {!showAdminLogin ? (
             <>
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                  {isSignUp ? t("signup_title") : t("welcome")}
-                </h2>
-                <p className="text-slate-500 text-sm">
-                  {isSignUp ? t("signup_sub") : t("welcome_sub")}
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">{isSignUp ? t('signup_title') : t('welcome')}</h2>
+                <p className="text-slate-500 text-sm">{isSignUp ? t('signup_sub') : t('welcome_sub')}</p>
               </div>
 
               <div className="space-y-3 mb-4">
-                <button
-                  type="button"
-                  className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3 transition-colors"
-                >
-                  <GoogleIcon className="w-5 h-5" /> {t("continue_google")}
+                <button type="button" className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3 transition-colors">
+                  <GoogleIcon className="w-5 h-5" /> {t('continue_google')}
                 </button>
-                <button
-                  type="button"
-                  className="w-full bg-[#1877F2] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-[#1864D9] flex items-center justify-center gap-3 transition-colors"
-                >
-                  <FacebookIcon className="w-5 h-5" /> {t("continue_fb")}
+                <button type="button" className="w-full bg-[#1877F2] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-[#1864D9] flex items-center justify-center gap-3 transition-colors">
+                  <FacebookIcon className="w-5 h-5" /> {t('continue_fb')}
                 </button>
-                <button
-                  type="button"
-                  className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
-                >
-                  <InstagramIcon className="w-5 h-5" /> {t("continue_ig")}
+                <button type="button" className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-3">
+                  <InstagramIcon className="w-5 h-5" /> {t('continue_ig')}
                 </button>
               </div>
 
               <div className="text-center mb-6">
-                <span className="text-sm text-slate-500">
-                  {isSignUp ? t("have_account") : t("no_account")}{" "}
-                </span>
-                <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className={`text-sm text-teal-700 font-bold hover:underline ${
-                    isRtl ? "mr-1.5" : "ml-1.5"
-                  }`}
-                >
-                  {isSignUp ? t("login_here") : t("signup_free")}
+                <span className="text-sm text-slate-500">{isSignUp ? t('have_account') : t('no_account')} </span>
+                <button onClick={() => setIsSignUp(!isSignUp)} className={`text-sm text-teal-700 font-bold hover:underline ${isRtl ? 'mr-1.5' : 'ml-1.5'}`}>
+                  {isSignUp ? t('login_here') : t('signup_free')}
                 </button>
               </div>
 
               <div className="relative flex items-center py-2 mb-6">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink-0 mx-4 text-slate-400 text-sm">
-                  {t("or_email")}
-                </span>
-                <div className="flex-grow border-t border-slate-200"></div>
+                <div className="flex-grow border-t border-slate-200"></div><span className="flex-shrink-0 mx-4 text-slate-400 text-sm">{t('or_email')}</span><div className="flex-grow border-t border-slate-200"></div>
               </div>
 
               <form onSubmit={handleAuthSubmit} className="space-y-4">
-                {isSignUp && (
-                  <input
-                    type="text"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4"
-                    placeholder={t("full_name")}
-                  />
-                )}
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4"
-                  placeholder={t("email")}
-                  required
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4"
-                  placeholder={t("password")}
-                  required
-                />
-                {errorMsg && (
-                  <p className="text-red-500 text-xs font-bold">{errorMsg}</p>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl shadow-md mt-2 disabled:opacity-50"
-                >
-                  {isLoading
-                    ? "..."
-                    : isSignUp
-                    ? t("btn_signup")
-                    : t("btn_login")}
+                {isSignUp && <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('full_name')} />}
+                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('email')} required />
+                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('password')} required />
+                {errorMsg && <p className="text-red-500 text-xs font-bold">{errorMsg}</p>}
+                <button type="submit" disabled={isLoading} className="w-full bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl shadow-md mt-2 disabled:opacity-50">
+                  {isLoading ? "..." : (isSignUp ? t('btn_signup') : t('btn_login'))}
                 </button>
               </form>
             </>
           ) : (
             <div className="animate-in fade-in zoom-in-95">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                  Admin / Team Access
-                </h2>
-                <p className="text-slate-500 text-sm">
-                  Secured AI & Backoffice Gateway
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Admin / Team Access</h2>
+                <p className="text-slate-500 text-sm">Secured AI & Backoffice Gateway</p>
               </div>
               <form onSubmit={handleAuthSubmit} className="space-y-4">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4"
-                  placeholder="Admin Email"
-                  required
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4"
-                  placeholder="Password"
-                  required
-                />
-                {errorMsg && (
-                  <p className="text-red-500 text-xs font-bold">{errorMsg}</p>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-3.5 rounded-xl mt-2 hover:bg-black transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? "..." : "Login to System"}
+                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder="Admin Email" required />
+                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder="Password" required />
+                {errorMsg && <p className="text-red-500 text-xs font-bold">{errorMsg}</p>}
+                <button type="submit" disabled={isLoading} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-3.5 rounded-xl mt-2 hover:bg-black transition-colors disabled:opacity-50">
+                   {isLoading ? "..." : "Login to System"}
                 </button>
               </form>
             </div>
@@ -1733,10 +804,7 @@ function LoginScreen({ onLogin, onBack, t, geo, isRtl, lang, setLang }) {
         </div>
 
         <div className="absolute bottom-6 left-0 right-0 text-center">
-          <button
-            onClick={() => setShowAdminLogin(!showAdminLogin)}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-          >
+          <button onClick={() => setShowAdminLogin(!showAdminLogin)} className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
             {showAdminLogin ? "Back to Client Login" : "Admin / Team Login"}
           </button>
         </div>
@@ -1748,92 +816,38 @@ function LoginScreen({ onLogin, onBack, t, geo, isRtl, lang, setLang }) {
 // ==========================================
 // SHARED UI COMPONENTS
 // ==========================================
-function Sidebar({
-  t,
-  currentView,
-  setCurrentView,
-  role,
-  isOpen,
-  onClose,
-  onLogout,
-  geo,
-}) {
+function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogout, geo }) {
   const adminMenu = [
-    {
-      id: "dashboard",
-      label: "Admin Dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    { id: "auth-tool", label: "תור משימות לבדיקה", icon: <Search size={20} /> },
+    { id: 'dashboard', label: 'Admin Dashboard', icon: <LayoutDashboard size={20} /> },
+    { id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Search size={20} /> }
   ];
   const clientMenu = [
-    {
-      id: "dashboard",
-      label: t("my_checks"),
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      id: "new-request",
-      label: t("new_request"),
-      icon: <PlusCircle size={20} />,
-    },
+    { id: 'dashboard', label: t('my_checks'), icon: <LayoutDashboard size={20} /> },
+    { id: 'new-request', label: t('new_request'), icon: <PlusCircle size={20} /> },
   ];
-  const menuItems = role === "admin" ? adminMenu : clientMenu;
-  const hideIsrael = geo.country !== "IL";
+  const menuItems = role === 'admin' ? adminMenu : clientMenu;
+  const hideIsrael = geo.country !== 'IL';
 
   return (
-    <aside
-      className={`fixed md:static inset-y-0 ${
-        t("hello") === "שלום" ? "right-0" : "left-0"
-      } w-72 md:w-64 bg-[#1c1c1c] text-slate-300 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
-        isOpen
-          ? "translate-x-0"
-          : t("hello") === "שלום"
-          ? "translate-x-full md:translate-x-0"
-          : "-translate-x-full md:translate-x-0"
-      }`}
-    >
+    <aside className={`fixed md:static inset-y-0 ${t('hello') === 'שלום' ? 'right-0' : 'left-0'} w-72 md:w-64 bg-[#1c1c1c] text-slate-300 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : (t('hello') === 'שלום' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0')}`}>
       <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-black/20">
         <div className="flex items-center gap-3">
           <BrandLogo className="w-10 h-10" hideIsrael={hideIsrael} />
-          <div>
-            <p className="text-[10px] tracking-[0.2em] text-[#d4af37] uppercase font-bold">
-              {role === "admin" ? "Agent Network" : "Client Portal"}
-            </p>
-          </div>
+          <div><p className="text-[10px] tracking-[0.2em] text-[#d4af37] uppercase font-bold">{role === 'admin' ? 'Agent Network' : 'Client Portal'}</p></div>
         </div>
-        <button onClick={onClose} className="md:hidden p-2">
-          <X size={24} />
-        </button>
+        <button onClick={onClose} className="md:hidden p-2"><X size={24} /></button>
       </div>
-
+      
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setCurrentView(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${
-              currentView === item.id
-                ? "bg-teal-800/40 border border-teal-700/50 text-teal-400 shadow-sm"
-                : "hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            {item.icon}{" "}
-            <span className="font-medium text-sm">{item.label}</span>
+        {menuItems.map(item => (
+          <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${currentView === item.id ? 'bg-teal-800/40 border border-teal-700/50 text-teal-400 shadow-sm' : 'hover:bg-white/5 hover:text-white'}`}>
+            {item.icon} <span className="font-medium text-sm">{item.label}</span>
           </button>
         ))}
       </nav>
       <div className="p-4 border-t border-slate-800 bg-black/20">
         <div className="flex items-center justify-between">
-          <button
-            onClick={onLogout}
-            className="text-slate-500 hover:text-red-400 p-2 transition-colors"
-          >
-            <LogOut
-              size={18}
-              className={t("hello") === "שלום" ? "transform rotate-180" : ""}
-            />
-          </button>
+          <button onClick={onLogout} className="text-slate-500 hover:text-red-400 p-2 transition-colors"><LogOut size={18} className={t('hello')==='שלום' ? 'transform rotate-180' : ''} /></button>
         </div>
       </div>
     </aside>
@@ -1844,15 +858,8 @@ function Header({ toggleMenu, role, t }) {
   return (
     <header className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shadow-sm sticky top-0 z-30">
       <div className="flex items-center gap-3">
-        <button
-          onClick={toggleMenu}
-          className="md:hidden text-slate-600 p-1 rounded-lg"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="text-lg font-bold text-slate-800 hidden md:block">
-          {role === "admin" ? "System Admin / AI Core" : t("client_portal")}
-        </h1>
+        <button onClick={toggleMenu} className="md:hidden text-slate-600 p-1 rounded-lg"><Menu size={24} /></button>
+        <h1 className="text-lg font-bold text-slate-800 hidden md:block">{role === 'admin' ? 'System Admin / AI Core' : t('client_portal')}</h1>
       </div>
     </header>
   );
@@ -1866,100 +873,41 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
     <div className="space-y-6 max-w-lg mx-auto md:max-w-4xl animate-in fade-in duration-500">
       <div className="bg-teal-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10">
-          <h2 className="text-xl md:text-2xl font-bold mb-1">
-            {t("hello")}! 👋
-          </h2>
-          <p className="text-teal-100 text-sm mb-6 opacity-90">
-            {t("welcome_dash")}
-          </p>
-          <button
-            onClick={() => setView("new-request")}
-            className="bg-[#d4af37] text-[#1c1c1c] font-bold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm w-full md:w-auto justify-center hover:bg-[#c4a130] transition-colors"
-          >
-            <PlusCircle size={18} /> {t("new_request")}
+          <h2 className="text-xl md:text-2xl font-bold mb-1">{t('hello')}! 👋</h2>
+          <p className="text-teal-100 text-sm mb-6 opacity-90">{t('welcome_dash')}</p>
+          <button onClick={() => setView('new-request')} className="bg-[#d4af37] text-[#1c1c1c] font-bold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm w-full md:w-auto justify-center hover:bg-[#c4a130] transition-colors">
+            <PlusCircle size={18} /> {t('new_request')}
           </button>
         </div>
       </div>
 
       <div>
-        <h3 className="text-slate-800 font-bold mb-4 flex items-center gap-2">
-          <Clock size={18} className="text-teal-700" /> {t("history")}
-        </h3>
+        <h3 className="text-slate-800 font-bold mb-4 flex items-center gap-2"><Clock size={18} className="text-teal-700" /> {t('history')}</h3>
         <div className="space-y-4">
-          {requests.map((req) => (
-            <div
-              key={req.firestoreId || req.id}
-              onClick={() => req.status === "completed" && onSelectCert(req)}
-              className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${
-                req.status === "completed"
-                  ? "cursor-pointer hover:shadow-md active:scale-[0.99] border-green-200"
-                  : "opacity-90"
-              }`}
-            >
-              <img
-                src={
-                  req.image ||
-                  "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80"
-                }
-                alt={req.brand}
-                className="w-16 h-16 rounded-xl object-cover"
-              />
+          {requests.map(req => (
+            <div key={req.firestoreId || req.id} onClick={() => req.status === 'completed' && onSelectCert(req)} className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${req.status === 'completed' ? 'cursor-pointer hover:shadow-md active:scale-[0.99] border-green-200' : 'opacity-90'}`}>
+              <img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-16 h-16 rounded-xl object-cover" />
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-1">
-                  <h4 className="font-bold text-slate-800 text-sm truncate">
-                    {req.brand}
-                  </h4>
+                  <h4 className="font-bold text-slate-800 text-sm truncate">{req.brand}</h4>
                   <span className="text-[10px] text-slate-400">{req.date}</span>
                 </div>
-                <p className="text-xs text-slate-500 truncate mb-2">
-                  {req.model} • {req.id}
-                </p>
-                {req.status === "completed" ? (
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${
-                      req.result === "authentic"
-                        ? "bg-green-50 text-green-700 border-green-100"
-                        : req.result === "refunded"
-                        ? "bg-slate-100 text-slate-600 border-slate-300"
-                        : "bg-red-50 text-red-700 border-red-100"
-                    }`}
-                  >
-                    {req.result === "authentic" ? (
-                      <>
-                        <CheckCircle size={12} /> {t("authentic")}
-                      </>
-                    ) : req.result === "refunded" ? (
-                      <>
-                        <X size={12} /> בוטל / לא ניתן לאימות
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={12} /> {t("fake")}
-                      </>
-                    )}
+                <p className="text-xs text-slate-500 truncate mb-2">{req.model} • {req.id}</p>
+                {req.status === 'completed' ? (
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                    {req.result === 'authentic' ? <><CheckCircle size={12} /> {t('authentic')}</> : req.result === 'refunded' ? <><X size={12}/> בוטל / לא ניתן לאימות</> : <><XCircle size={12} /> {t('fake')}</>}
                   </span>
-                ) : req.status === "waiting_for_customer" ? (
-                  <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[10px] font-bold border border-amber-100">
-                    <AlertCircle size={12} /> {t("need_photos")}
-                  </span>
+                ) : req.status === 'waiting_for_customer' ? (
+                  <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[10px] font-bold border border-amber-100"><AlertCircle size={12} /> {t('need_photos')}</span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold border border-slate-200">
-                    <Clock size={12} /> {t("pending_expert")}
-                  </span>
+                  <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold border border-slate-200"><Clock size={12} /> {t('pending_expert')}</span>
                 )}
               </div>
-              <ChevronRight
-                size={20}
-                className={`text-slate-300 ${
-                  t("hello") === "שלום" ? "" : "transform rotate-180"
-                }`}
-              />
+              <ChevronRight size={20} className={`text-slate-300 ${t('hello') === 'שלום' ? '' : 'transform rotate-180'}`} />
             </div>
           ))}
           {requests.length === 0 && (
-            <p className="text-center text-slate-500 text-sm py-10">
-              No requests yet.
-            </p>
+            <p className="text-center text-slate-500 text-sm py-10">No requests yet.</p>
           )}
         </div>
       </div>
@@ -1972,37 +920,37 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
-  const [brand, setBrand] = useState("");
-  const [itemType, setItemType] = useState("");
-  const [model, setModel] = useState("");
-
-  const [couponCode, setCouponCode] = useState("");
+  
+  const [brand, setBrand] = useState('');
+  const [itemType, setItemType] = useState('');
+  const [model, setModel] = useState('');
+  
+  const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState(null);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
 
   const prices = {
-    regular: geo.currency === "ILS" ? 99 : 29,
-    fast: geo.currency === "ILS" ? 129 : 39,
-    express: geo.currency === "ILS" ? 149 : 49,
+    regular: geo.currency === 'ILS' ? 99 : 29,
+    fast: geo.currency === 'ILS' ? 129 : 39,
+    express: geo.currency === 'ILS' ? 149 : 49,
   };
-  const [paymentTrack, setPaymentTrack] = useState("regular");
+  const [paymentTrack, setPaymentTrack] = useState('regular');
 
   // Load PayPal Script Dynamically with LIVE CLIENT ID
   const [paypalLoaded, setPaypalLoaded] = useState(false);
-
+  
   useEffect(() => {
-    const scriptId = "paypal-sdk-script";
+    const scriptId = 'paypal-sdk-script';
     const existingScript = document.getElementById(scriptId);
-
+    
     if (existingScript) {
       setPaypalLoaded(true);
       return;
     }
 
-    const script = document.createElement("script");
+    const script = document.createElement('script');
     script.id = scriptId;
-    const currency = geo.currency === "ILS" ? "ILS" : "USD";
+    const currency = geo.currency === 'ILS' ? 'ILS' : 'USD';
     script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${currency}`;
     script.async = true;
     script.onload = () => setPaypalLoaded(true);
@@ -2010,18 +958,12 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   }, [geo.currency]);
 
   const handleApplyCoupon = () => {
-    const validCodes = ["LUXBAGFREE", "LUXBAGCHECK", "LUXBAGQA"];
+    const validCodes = ['LUXBAGFREE', 'LUXBAGCHECK', 'LUXBAGQA'];
     if (validCodes.includes(couponCode.trim().toUpperCase())) {
-      setCouponMessage({
-        type: "success",
-        text: isRtl ? "קופון אומת בהצלחה!" : "Coupon applied successfully!",
-      });
+      setCouponMessage({ type: 'success', text: isRtl ? 'קופון אומת בהצלחה!' : 'Coupon applied successfully!' });
       setIsDiscountApplied(true);
     } else {
-      setCouponMessage({
-        type: "error",
-        text: isRtl ? "קוד שגוי" : "Invalid code",
-      });
+      setCouponMessage({ type: 'error', text: isRtl ? 'קוד שגוי' : 'Invalid code' });
       setIsDiscountApplied(false);
     }
   };
@@ -2032,70 +974,47 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   };
 
   const handlePaymentSuccess = () => {
-    const newReqId = `REQ-${Math.floor(1000 + Math.random() * 9000)}`;
-    addRequest({
-      id: newReqId,
-      brand,
-      model: model || "N/A",
-      date: new Date().toLocaleDateString("en-GB"),
-      status: "pending",
-      paymentTrack,
-      image:
-        "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80",
+    const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+    addRequest({ 
+      id: newReqId, 
+      brand, 
+      model: model || 'N/A', 
+      date: new Date().toLocaleDateString('en-GB'), 
+      status: 'pending', 
+      paymentTrack, 
+      image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' 
     });
     setShowSuccess(true);
   };
 
   // Render PayPal Buttons once script is loaded
   useEffect(() => {
-    if (
-      paypalLoaded &&
-      window.paypal &&
-      !isDiscountApplied &&
-      step === 3 &&
-      !showSuccess
-    ) {
-      const container = document.getElementById("paypal-button-container");
-      if (container) {
-        container.innerHTML = ""; // Clear previous instances
-        window.paypal
-          .Buttons({
-            createOrder: (data, actions) => {
-              return actions.order.create({
-                purchase_units: [
-                  { amount: { value: prices[paymentTrack].toString() } },
-                ],
-              });
-            },
-            onApprove: (data, actions) => {
-              return actions.order.capture().then((details) => {
+    if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess) {
+       const container = document.getElementById('paypal-button-container');
+       if (container) {
+         container.innerHTML = ''; // Clear previous instances
+         window.paypal.Buttons({
+           createOrder: (data, actions) => {
+             return actions.order.create({
+               purchase_units: [{ amount: { value: prices[paymentTrack].toString() } }]
+             });
+           },
+           onApprove: (data, actions) => {
+             return actions.order.capture().then((details) => {
                 handlePaymentSuccess();
-              });
-            },
-            onError: (err) => {
-              console.error("PayPal Error:", err);
-              alert("PayPal Error: Please contact support if this continues.");
-            },
-          })
-          .render("#paypal-button-container");
-      }
+             });
+           },
+           onError: (err) => {
+             console.error("PayPal Error:", err);
+             alert("PayPal Error: Please contact support if this continues.");
+           }
+         }).render('#paypal-button-container');
+       }
     }
-  }, [
-    paypalLoaded,
-    isDiscountApplied,
-    step,
-    paymentTrack,
-    prices,
-    showSuccess,
-  ]);
+  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, prices, showSuccess]);
 
   const handleReset = () => {
-    setBrand("");
-    setItemType("");
-    setModel("");
-    setCouponCode("");
-    setIsDiscountApplied(false);
-    setPaymentTrack("regular");
+    setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular');
     setShowSuccess(false);
     setStep(1);
   };
@@ -2106,25 +1025,15 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
         <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle className="w-12 h-12 text-green-500" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 mb-3">
-          {t("success_title")}
-        </h2>
-        <p className="text-slate-600 mb-8 leading-relaxed max-w-sm mx-auto">
-          {t("success_sub")}
-        </p>
-
+        <h2 className="text-2xl font-black text-slate-800 mb-3">{t('success_title')}</h2>
+        <p className="text-slate-600 mb-8 leading-relaxed max-w-sm mx-auto">{t('success_sub')}</p>
+        
         <div className="space-y-3">
-          <button
-            onClick={() => setView("dashboard")}
-            className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors shadow-md"
-          >
-            {t("btn_home")}
+          <button onClick={() => setView('dashboard')} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors shadow-md">
+            {t('btn_home')}
           </button>
-          <button
-            onClick={handleReset}
-            className="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-100 transition-colors"
-          >
-            {t("btn_another")} <PlusCircle size={18} className="inline ml-1" />
+          <button onClick={handleReset} className="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-100 transition-colors">
+            {t('btn_another')} <PlusCircle size={18} className="inline ml-1" />
           </button>
         </div>
       </div>
@@ -2135,226 +1044,104 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
     <div className="max-w-lg mx-auto md:max-w-3xl bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in fade-in pb-6">
       <div className="bg-slate-50 p-4 border-b border-slate-100">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-bold text-slate-800">{t("new_request")}</h2>
-          <span className="text-xs font-medium text-teal-800 bg-teal-100 px-2 py-1 rounded-full">
-            {step === 1 ? t("step_1") : step === 2 ? t("step_2") : t("step_3")}
-          </span>
+          <h2 className="font-bold text-slate-800">{t('new_request')}</h2>
+          <span className="text-xs font-medium text-teal-800 bg-teal-100 px-2 py-1 rounded-full">{step === 1 ? t('step_1') : step === 2 ? t('step_2') : t('step_3')}</span>
         </div>
       </div>
 
       <div className="p-5 md:p-8">
         {step === 1 ? (
           <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("brand")} <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-teal-700"
-              >
-                <option value="">{t("select_brand")}</option>
-                {LUXURY_BRANDS.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
+             <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('brand')} <span className="text-red-500">*</span></label>
+              <select value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-teal-700">
+                <option value="">{t('select_brand')}</option>
+                {LUXURY_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("item_type")} <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={itemType}
-                onChange={(e) => setItemType(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-teal-700"
-              >
-                <option value="">{t("select_type")}</option>
-                {ITEM_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type.split("/")[isRtl ? 1 : 0]}
-                  </option>
-                ))}
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('item_type')} <span className="text-red-500">*</span></label>
+              <select value={itemType} onChange={(e) => setItemType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-teal-700">
+                <option value="">{t('select_type')}</option>
+                {ITEM_TYPES.map(type => <option key={type} value={type}>{type.split('/')[isRtl ? 1 : 0]}</option>)}
               </select>
             </div>
             {brand && itemType && (
               <div className="animate-in fade-in slide-in-from-top-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  {t("model")}{" "}
-                  <span className="text-slate-400 font-normal text-xs">
-                    ({t("optional")})
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder={t("model_placeholder")}
+                <label className="block text-sm font-medium text-slate-700 mb-2">{t('model')} <span className="text-slate-400 font-normal text-xs">({t('optional')})</span></label>
+                <input 
+                  type="text" 
+                  value={model} 
+                  onChange={(e) => setModel(e.target.value)} 
+                  placeholder={t('model_placeholder')}
                   className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-teal-700"
                 />
               </div>
             )}
-            <button
-              onClick={() => setStep(2)}
-              disabled={!brand || !itemType}
-              className="w-full mt-6 bg-teal-800 hover:bg-teal-900 transition-colors text-white font-bold py-3.5 rounded-xl disabled:opacity-50"
-            >
-              {t("continue_photos")}
-            </button>
+            <button onClick={() => setStep(2)} disabled={!brand || !itemType} className="w-full mt-6 bg-teal-800 hover:bg-teal-900 transition-colors text-white font-bold py-3.5 rounded-xl disabled:opacity-50">{t('continue_photos')}</button>
           </div>
         ) : step === 2 ? (
           <div className="space-y-6">
             {isCompressing && (
               <div className="bg-blue-50 border border-blue-100 text-blue-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
-                <RefreshCcw size={14} className="animate-spin" />
-                {isRtl
-                  ? "מכווץ תמונות (חוסך נתונים, שומר על 4K למאמת)..."
-                  : "Compressing images (saving data, preserving 4K)..."}
+                <RefreshCcw size={14} className="animate-spin" /> 
+                {isRtl ? 'מכווץ תמונות (חוסך נתונים, שומר על 4K למאמת)...' : 'Compressing images (saving data, preserving 4K)...'}
               </div>
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {BAG_PARTS.map((part) => (
-                <div
-                  key={part.id}
-                  onClick={handleUploadClick}
-                  className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center text-center bg-slate-50 hover:border-teal-300 transition-colors cursor-pointer"
-                >
-                  <BagPartIcon
-                    type={part.iconType}
-                    className="w-10 h-10 mb-2"
-                  />
-                  <span className="text-xs font-bold text-slate-700 mb-1">
-                    {part.id}
-                  </span>
+              {BAG_PARTS.map(part => (
+                <div key={part.id} onClick={handleUploadClick} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center text-center bg-slate-50 hover:border-teal-300 transition-colors cursor-pointer">
+                  <BagPartIcon type={part.iconType} className="w-10 h-10 mb-2" />
+                  <span className="text-xs font-bold text-slate-700 mb-1">{part.id}</span>
                 </div>
               ))}
             </div>
             <div className="pt-6 flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors"
-              >
-                {t("back")}
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                className="flex-[2] bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl transition-colors"
-              >
-                {t("continue_track")}
-              </button>
+              <button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button>
+              <button onClick={() => setStep(3)} className="flex-[2] bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl transition-colors">{t('continue_track')}</button>
             </div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in">
             <div className="mb-2">
-              <h3 className="text-lg font-bold text-slate-800">
-                {t("track_title")}
-              </h3>
-              <p className="text-sm text-slate-500">{t("track_sub")}</p>
+              <h3 className="text-lg font-bold text-slate-800">{t('track_title')}</h3>
+              <p className="text-sm text-slate-500">{t('track_sub')}</p>
             </div>
 
             <div className="space-y-4">
-              <TrackOption
-                id="regular"
-                title={t("track_reg")}
-                hours={t("hours_12")}
-                price={prices.regular}
-                geo={geo}
-                current={paymentTrack}
-                onSelect={setPaymentTrack}
-              />
-              <TrackOption
-                id="fast"
-                title={t("track_fast")}
-                hours={t("hours_6")}
-                price={prices.fast}
-                geo={geo}
-                current={paymentTrack}
-                onSelect={setPaymentTrack}
-                highlight="text-orange-500"
-              />
-              <TrackOption
-                id="express"
-                title={t("track_exp")}
-                hours={t("hours_2")}
-                price={prices.express}
-                geo={geo}
-                current={paymentTrack}
-                onSelect={setPaymentTrack}
-                tag={t("recommended")}
-                highlight="text-red-500"
-              />
+              <TrackOption id="regular" title={t('track_reg')} hours={t('hours_12')} price={prices.regular} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
+              <TrackOption id="fast" title={t('track_fast')} hours={t('hours_6')} price={prices.fast} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-orange-500" />
+              <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={prices.express} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} tag={t('recommended')} highlight="text-red-500" />
             </div>
 
             <div className="bg-slate-50 p-4 rounded-xl text-sm border border-slate-100 mt-4">
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                {t("coupon_label")}
-              </label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">{t('coupon_label')}</label>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value);
-                    setCouponMessage(null);
-                  }}
-                  placeholder={t("coupon_placeholder")}
-                  className="flex-1 bg-white border border-slate-200 rounded-lg py-2.5 px-3 uppercase text-sm outline-none focus:border-teal-600"
-                  disabled={isDiscountApplied}
-                />
-                <button
-                  onClick={handleApplyCoupon}
-                  disabled={!couponCode || isDiscountApplied}
-                  className="bg-slate-800 text-white font-bold py-2.5 px-5 rounded-lg disabled:opacity-50 hover:bg-slate-900 transition-colors"
-                >
-                  {t("apply")}
-                </button>
+                <input type="text" value={couponCode} onChange={(e) => { setCouponCode(e.target.value); setCouponMessage(null); }} placeholder={t('coupon_placeholder')} className="flex-1 bg-white border border-slate-200 rounded-lg py-2.5 px-3 uppercase text-sm outline-none focus:border-teal-600" disabled={isDiscountApplied} />
+                <button onClick={handleApplyCoupon} disabled={!couponCode || isDiscountApplied} className="bg-slate-800 text-white font-bold py-2.5 px-5 rounded-lg disabled:opacity-50 hover:bg-slate-900 transition-colors">{t('apply')}</button>
               </div>
-              {couponMessage && (
-                <p
-                  className={`mt-2 text-xs font-bold ${
-                    couponMessage.type === "success"
-                      ? "text-green-600"
-                      : "text-red-500"
-                  }`}
-                >
-                  {couponMessage.text}
-                </p>
-              )}
+              {couponMessage && <p className={`mt-2 text-xs font-bold ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>{couponMessage.text}</p>}
             </div>
 
             <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors mb-2"
-              >
-                {t("back")}
-              </button>
-
+              <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors mb-2">{t('back')}</button>
+              
               {isDiscountApplied ? (
-                <button
-                  onClick={handlePaymentSuccess}
-                  className="w-full bg-teal-800 text-white font-bold py-3.5 rounded-xl hover:bg-teal-900 transition-colors"
-                >
-                  {t("send_free")}
+                <button onClick={handlePaymentSuccess} className="w-full bg-teal-800 text-white font-bold py-3.5 rounded-xl hover:bg-teal-900 transition-colors">
+                  {t('send_free')}
                 </button>
               ) : (
                 <div className="relative z-0 min-h-[150px]">
                   {!paypalLoaded && (
                     <div className="flex items-center justify-center p-8">
-                      <RefreshCcw className="animate-spin text-slate-400" />
+                       <RefreshCcw className="animate-spin text-slate-400" />
                     </div>
                   )}
                   <div id="paypal-button-container" className="w-full"></div>
                 </div>
               )}
-              <button
-                onClick={() => setView("business-pkgs")}
-                className="text-sm font-bold text-teal-700 hover:underline mt-2 text-center flex items-center justify-center gap-2"
-              >
-                <Briefcase size={16} /> {t("business_pkg")}
+              <button onClick={() => setView('business-pkgs')} className="text-sm font-bold text-teal-700 hover:underline mt-2 text-center flex items-center justify-center gap-2">
+                <Briefcase size={16} /> {t('business_pkg')}
               </button>
             </div>
           </div>
@@ -2364,58 +1151,19 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   );
 }
 
-function TrackOption({
-  id,
-  title,
-  hours,
-  price,
-  geo,
-  current,
-  onSelect,
-  tag,
-  highlight = "text-slate-500",
-}) {
+function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
   const isSelected = current === id;
   return (
-    <div
-      onClick={() => onSelect(id)}
-      className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-        isSelected
-          ? "border-teal-600 bg-teal-50"
-          : "border-slate-200 bg-white hover:border-teal-300"
-      }`}
-    >
+    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-white hover:border-teal-300'}`}>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div
-            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-              isSelected ? "border-teal-600" : "border-slate-300"
-            }`}
-          >
-            {isSelected && (
-              <div className="w-2.5 h-2.5 rounded-full bg-teal-600"></div>
-            )}
-          </div>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-teal-600' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-teal-600"></div>}</div>
           <div>
-            <span className="font-bold text-slate-800 flex items-center gap-2">
-              {title}{" "}
-              {tag && (
-                <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase">
-                  {tag}
-                </span>
-              )}
-            </span>
-            <span
-              className={`text-sm flex items-center gap-1 mt-1 ${highlight}`}
-            >
-              <Clock size={14} /> {hours}
-            </span>
+            <span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase">{tag}</span>}</span>
+            <span className={`text-sm flex items-center gap-1 mt-1 ${highlight}`}><Clock size={14} /> {hours}</span>
           </div>
         </div>
-        <span className="font-black text-xl text-teal-800" dir="ltr">
-          {geo.symbol}
-          {price}
-        </span>
+        <span className="font-black text-xl text-teal-800" dir="ltr">{geo.symbol}{price}</span>
       </div>
     </div>
   );
@@ -2424,67 +1172,31 @@ function TrackOption({
 // --- BUSINESS PACKAGES VIEW ---
 function BusinessPackages({ t, geo, isRtl, setView }) {
   const packages = [
-    {
-      title: "Bronze",
-      checks: 10,
-      free: 2,
-      discount: "15%",
-      price: geo.currency === "ILS" ? 850 : 250,
-    },
-    {
-      title: "Silver",
-      checks: 50,
-      free: 10,
-      discount: "17%",
-      price: geo.currency === "ILS" ? 4150 : 1200,
-    },
-    {
-      title: "Gold",
-      checks: 100,
-      free: 25,
-      discount: "20%",
-      price: geo.currency === "ILS" ? 7900 : 2300,
-    },
+    { title: 'Bronze', checks: 10, free: 2, discount: '15%', price: geo.currency === 'ILS' ? 850 : 250 },
+    { title: 'Silver', checks: 50, free: 10, discount: '17%', price: geo.currency === 'ILS' ? 4150 : 1200 },
+    { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
   ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in">
-      <button
-        onClick={() => setView("new-request")}
-        className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"
-      >
-        <ChevronLeft size={18} className={isRtl ? "rotate-180" : ""} />{" "}
-        {t("back")}
+      <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800">
+        <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}
       </button>
       <div className="text-center mb-10">
         <Briefcase className="w-16 h-16 mx-auto text-teal-700 mb-4" />
-        <h2 className="text-3xl font-black text-slate-800 mb-2">
-          {t("pkg_title")}
-        </h2>
-        <p className="text-slate-500 max-w-lg mx-auto">{t("pkg_sub")}</p>
+        <h2 className="text-3xl font-black text-slate-800 mb-2">{t('pkg_title')}</h2>
+        <p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p>
       </div>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {packages.map((pkg, idx) => (
-          <div
-            key={idx}
-            className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col"
-          >
-            <div className="absolute top-4 right-4 bg-teal-100 text-teal-800 text-xs font-black px-2 py-1 rounded">
-              - {pkg.discount}
-            </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-1">
-              {pkg.title} Pack
-            </h3>
-            <p className="text-slate-500 text-sm mb-6">
-              {pkg.checks} Authentications + {pkg.free} Free
-            </p>
-            <div className="text-3xl font-black text-teal-800 mb-6" dir="ltr">
-              {geo.symbol}
-              {pkg.price}
-            </div>
+          <div key={idx} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col">
+            <div className="absolute top-4 right-4 bg-teal-100 text-teal-800 text-xs font-black px-2 py-1 rounded">- {pkg.discount}</div>
+            <h3 className="text-xl font-bold text-slate-800 mb-1">{pkg.title} Pack</h3>
+            <p className="text-slate-500 text-sm mb-6">{pkg.checks} Authentications + {pkg.free} Free</p>
+            <div className="text-3xl font-black text-teal-800 mb-6" dir="ltr">{geo.symbol}{pkg.price}</div>
             <button className="mt-auto w-full bg-[#1c1c1c] hover:bg-black text-[#d4af37] font-bold py-3 rounded-xl transition-colors">
-              {t("contact_sales")}
+              {t('contact_sales')}
             </button>
           </div>
         ))}
@@ -2493,104 +1205,40 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
   );
 }
 
+
 // --- DIGITAL CERTIFICATE ---
 function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
-  if (!data) return null;
-  const isAuthentic = data.result === "authentic";
+  if(!data) return null;
+  const isAuthentic = data.result === 'authentic';
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-12 animate-in zoom-in-95">
-      <button
-        onClick={onBack}
-        className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"
-      >
-        <ChevronLeft size={18} className={isRtl ? "rotate-180" : ""} />{" "}
-        {t("back")}
-      </button>
+      <button onClick={onBack} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
       <div className="bg-white border-[12px] border-[#1c1c1c] p-2 shadow-2xl relative">
         <div className="border-[3px] border-[#d4af37] p-8 md:p-12 relative flex flex-col items-center text-center overflow-hidden">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-5 pointer-events-none" />
           <div className="mb-8 relative z-10">
             <BrandLogo className="w-24 h-24 mx-auto mb-4" hideIsrael={true} />
-            <h1 className="text-2xl md:text-4xl font-serif tracking-widest text-[#1c1c1c] uppercase mb-2">
-              Certificate of Authentication
-            </h1>
-            <p className="text-[#d4af37] font-bold tracking-[0.3em] text-sm uppercase">
-              Luxury Bags Israel
-            </p>
+            <h1 className="text-2xl md:text-4xl font-serif tracking-widest text-[#1c1c1c] uppercase mb-2">Certificate of Authentication</h1>
+            <p className="text-[#d4af37] font-bold tracking-[0.3em] text-sm uppercase">Luxury Bags Israel</p>
           </div>
-          <div
-            className={`w-full py-4 mb-8 border-y-2 relative z-10 ${
-              isAuthentic
-                ? "border-green-200 bg-green-50/80 text-green-800"
-                : "border-red-200 bg-red-50/80 text-red-800"
-            }`}
-          >
-            <h2 className="text-xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
-              {isAuthentic ? (
-                <>
-                  <ShieldCheck size={32} /> Authentic
-                </>
-              ) : (
-                <>
-                  <ShieldAlert size={32} /> Counterfeit
-                </>
-              )}
-            </h2>
+          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50/80 text-green-800' : 'border-red-200 bg-red-50/80 text-red-800'}`}>
+            <h2 className="text-xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><ShieldCheck size={32} /> Authentic</> : <><ShieldAlert size={32} /> Counterfeit</>}</h2>
           </div>
           <div className="w-full max-w-lg mb-10 relative z-10">
-            <div
-              className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4"
-              dir="ltr"
-            >
-              <div className="text-slate-500 text-sm uppercase tracking-wider">
-                Brand
-              </div>
-              <div className="font-bold text-slate-800">{data.brand}</div>
-              <div className="text-slate-500 text-sm uppercase tracking-wider">
-                Model
-              </div>
-              <div className="font-bold text-slate-800">{data.model}</div>
-              <div className="text-slate-500 text-sm uppercase tracking-wider">
-                Date Inspected
-              </div>
-              <div className="font-bold text-slate-800">{data.date}</div>
+            <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
+              <div className="text-slate-500 text-sm uppercase tracking-wider">Brand</div><div className="font-bold text-slate-800">{data.brand}</div>
+              <div className="text-slate-500 text-sm uppercase tracking-wider">Model</div><div className="font-bold text-slate-800">{data.model}</div>
+              <div className="text-slate-500 text-sm uppercase tracking-wider">Date Inspected</div><div className="font-bold text-slate-800">{data.date}</div>
             </div>
-            <p className="text-xs text-slate-500 italic text-center">
-              This item has been rigorously inspected by our experts combining
-              decades of human experience and advanced AI protocols.
-            </p>
+            <p className="text-xs text-slate-500 italic text-center">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
           </div>
           <div className="w-full mb-10 relative z-10">
-            <h3
-              className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left"
-              dir="ltr"
-            >
-              Inspected Elements
-            </h3>
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <img
-                src={
-                  data.image ||
-                  "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80"
-                }
-                alt="Front"
-                className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=200&q=80"
-                alt="Hardware"
-                className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80"
-                alt="Date Code"
-                className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?auto=format&fit=crop&w=200&q=80"
-                alt="Zipper"
-                className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded"
-              />
+              <img src={data.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt="Front" className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded" />
+              <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=200&q=80" alt="Hardware" className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded" />
+              <img src="https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80" alt="Date Code" className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded" />
+              <img src="https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?auto=format&fit=crop&w=200&q=80" alt="Zipper" className="w-full h-24 md:h-32 object-cover border border-slate-200 rounded" />
             </div>
           </div>
           <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-8">
@@ -2598,50 +1246,29 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
               <CertificateStamp />
             </div>
             <div className="flex flex-col items-center">
-              <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-2">
-                <QrCode size={64} className="text-slate-800" />
-              </div>
-              <p className="text-[8px] text-slate-400 uppercase tracking-widest">
-                Scan to Verify
-              </p>
-              <p className="text-[10px] font-bold text-slate-800 mt-1">
-                ID: {data.id}
-              </p>
+              <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-2"><QrCode size={64} className="text-slate-800" /></div>
+              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Scan to Verify</p>
+              <p className="text-[10px] font-bold text-slate-800 mt-1">ID: {data.id}</p>
             </div>
           </div>
         </div>
       </div>
-
+      
       {!isClientView && (
-        <div className="flex justify-end pt-4">
-          <button className="bg-[#1c1c1c] text-[#d4af37] px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-black transition-colors">
-            הדפס / יצא ל-PDF
-          </button>
-        </div>
+        <div className="flex justify-end pt-4"><button className="bg-[#1c1c1c] text-[#d4af37] px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-black transition-colors">הדפס / יצא ל-PDF</button></div>
       )}
 
       {isClientView && isAuthentic && (
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mt-6 text-center animate-in fade-in slide-in-from-bottom-4">
-          <h3 className="font-bold text-slate-800 text-lg mb-2">
-            איזה יופי, הפריט מקורי! 🎉
-          </h3>
+          <h3 className="font-bold text-slate-800 text-lg mb-2">איזה יופי, הפריט מקורי! 🎉</h3>
           <p className="text-slate-600 text-sm mb-6">
-            שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט
-            בביטחון מלא. <br />
-            סמנו אותנו ונוכל לשתף גם!{" "}
-            <span className="font-bold text-teal-700">@LuxuryBagsIsrael</span>
+            שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. <br/>
+            סמנו אותנו ונוכל לשתף גם! <span className="font-bold text-teal-700">@LuxuryBagsIsrael</span>
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <button className="flex items-center justify-center gap-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-medium py-3 px-6 rounded-xl hover:opacity-90 transition-opacity">
-              <InstagramIcon size={18} /> שתפו בסטורי באינסטגרם
-            </button>
-            <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-medium py-3 px-6 rounded-xl hover:bg-[#1864D9] transition-colors">
-              <FacebookIcon size={18} fill="currentColor" stroke="none" /> שתפו
-              בפייסבוק
-            </button>
-            <button className="flex items-center justify-center gap-2 bg-slate-900 text-white font-medium py-3 px-6 rounded-xl hover:bg-black transition-colors">
-              <Upload size={18} /> העתק קישור לתעודה
-            </button>
+             <button className="flex items-center justify-center gap-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-medium py-3 px-6 rounded-xl hover:opacity-90 transition-opacity"><InstagramIcon size={18}/> שתפו בסטורי באינסטגרם</button>
+             <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-medium py-3 px-6 rounded-xl hover:bg-[#1864D9] transition-colors"><FacebookIcon size={18} fill="currentColor" stroke="none" /> שתפו בפייסבוק</button>
+             <button className="flex items-center justify-center gap-2 bg-slate-900 text-white font-medium py-3 px-6 rounded-xl hover:bg-black transition-colors"><Upload size={18} /> העתק קישור לתעודה</button>
           </div>
         </div>
       )}
@@ -2653,46 +1280,23 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
 // ADMIN VIEWS (BACKOFFICE & AI)
 // ==========================================
 function AdminDashboard({ requests }) {
-  const pendingCount = requests.filter((r) => r.status !== "completed").length;
-
+  const pendingCount = requests.filter(r => r.status !== 'completed').length;
+  
   return (
-    <div
-      className="space-y-6 max-w-6xl mx-auto animate-in fade-in duration-500"
-      dir="rtl"
-    >
+    <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in duration-500" dir="rtl">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-          <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">
-            בקשות ממתינות לבדיקה
-          </h3>
-          <p className="text-2xl md:text-3xl font-bold text-slate-800">
-            {pendingCount}
-          </p>
-          <p className="text-xs text-orange-600 mt-2 font-medium bg-orange-50 inline-block px-2 py-1 rounded">
-            {" "}
-            דורש התייחסות{" "}
-          </p>
+          <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3>
+          <p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingCount}</p>
+          <p className="text-xs text-orange-600 mt-2 font-medium bg-orange-50 inline-block px-2 py-1 rounded"> דורש התייחסות </p>
         </div>
         <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden">
           <div className="relative z-10">
-            <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">
-              סטטוס מנוע AI Core
-            </h3>
-            <p className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-              <span className="flex h-3 w-3 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-              </span>
-              מערכת יציבה ופעילה
-            </p>
-            <p className="text-xs text-teal-200 mt-2">
-              הסוכנים פועלים כשורה ויש {requests.length} בקשות במערכת.
-            </p>
+            <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3>
+            <p className="text-xl md:text-2xl font-bold text-white flex items-center gap-2"><span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span></span>מערכת יציבה ופעילה</p>
+            <p className="text-xs text-teal-200 mt-2">הסוכנים פועלים כשורה ויש {requests.length} בקשות במערכת.</p>
           </div>
-          <BrandLogo
-            className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4"
-            hideIsrael={true}
-          />
+          <BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={true} />
         </div>
       </div>
     </div>
@@ -2701,28 +1305,26 @@ function AdminDashboard({ requests }) {
 
 function AuthenticationTool({ requests, updateRequest }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
-
+  
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [finalVerdict, setFinalVerdict] = useState(null);
-
-  const [timeLeft, setTimeLeft] = useState(7200);
+  const [finalVerdict, setFinalVerdict] = useState(null); 
+  
+  const [timeLeft, setTimeLeft] = useState(7200); 
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   const [selectedParts, setSelectedParts] = useState([]);
-  const [customMessage, setCustomMessage] = useState("");
-
+  const [customMessage, setCustomMessage] = useState('');
+  
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
+  const [cancelReason, setCancelReason] = useState('');
 
-  const activeReq = requests.find(
-    (r) => r.id === selectedReqId || r.firestoreId === selectedReqId
-  );
+  const activeReq = requests.find(r => r.id === selectedReqId || r.firestoreId === selectedReqId);
 
   useEffect(() => {
     let interval = null;
     if (isTimerRunning && timeLeft > 0) {
-      interval = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+      interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (!isTimerRunning && timeLeft !== 0) {
       clearInterval(interval);
     }
@@ -2733,31 +1335,23 @@ function AuthenticationTool({ requests, updateRequest }) {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return `${h.toString().padStart(2, "0")}:${m
-      .toString()
-      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   const startReviewing = (req) => {
     setSelectedReqId(req.firestoreId || req.id);
-    setTimeLeft(
-      req.paymentTrack === "express"
-        ? 7200
-        : req.paymentTrack === "fast"
-        ? 21600
-        : 43200
-    );
-    if (req.status !== "waiting_for_customer") setIsTimerRunning(true);
+    setTimeLeft(req.paymentTrack === 'express' ? 7200 : req.paymentTrack === 'fast' ? 21600 : 43200);
+    if(req.status !== 'waiting_for_customer') setIsTimerRunning(true);
   };
 
   const simulateAIAnalysis = () => {
     setIsAnalyzing(true);
     setTimeout(() => {
       setIsAnalyzing(false);
-      updateRequest(activeReq.firestoreId || activeReq.id, {
-        status: "reviewing",
+      updateRequest(activeReq.firestoreId || activeReq.id, { 
+        status: 'reviewing',
         aiDraftResponse: `על בסיס ניתוח תמונות של ${activeReq.brand} ${activeReq.model}, מנוע ה-AI מזהה פונט לא תקני בחותמת התאריך. נדרשת החלטת מומחה סופית.`,
-        confidence: 88,
+        confidence: 88
       });
     }, 2000);
   };
@@ -2766,117 +1360,65 @@ function AuthenticationTool({ requests, updateRequest }) {
     setIsTimerRunning(false);
     setFinalVerdict(verdict);
     setShowNotificationModal(true);
-    updateRequest(activeReq.firestoreId || activeReq.id, {
-      status: "completed",
-      result: verdict,
-    });
+    updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: verdict });
   };
 
   const handleCancelAndRefund = () => {
     setIsTimerRunning(false);
     setShowCancelModal(false);
-    alert(
-      `במערכת האמיתית: שולח ללקוח הודעה "${cancelReason}", מבטל ומזכה כספית.`
-    );
-    updateRequest(activeReq.firestoreId || activeReq.id, {
-      status: "completed",
-      result: "refunded",
-    });
+    alert(`במערכת האמיתית: שולח ללקוח הודעה "${cancelReason}", מבטל ומזכה כספית.`);
+    updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' });
     setSelectedReqId(null);
   };
 
   const sendPhotoRequest = () => {
-    if (selectedParts.length === 0 && customMessage.trim() === "") return;
+    if (selectedParts.length === 0 && customMessage.trim() === '') return;
     setIsTimerRunning(false);
-    updateRequest(activeReq.firestoreId || activeReq.id, {
-      status: "waiting_for_customer",
-    });
+    updateRequest(activeReq.firestoreId || activeReq.id, { status: 'waiting_for_customer' });
   };
 
   const simulateCustomerUpload = () => {
     setSelectedParts([]);
-    setCustomMessage("");
+    setCustomMessage('');
     setIsTimerRunning(true);
-    updateRequest(activeReq.firestoreId || activeReq.id, {
-      status: "reviewing",
-    });
+    updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing' });
   };
-
+  
   const simulateCronJob = (type) => {
-    if (type === "48h")
-      alert("סימולציה: מייל תזכורת 48 שעות נשלח בהצלחה ללקוח.");
-    if (type === "10d") {
-      alert("סימולציה: בקשה נסגרה אוטומטית עקב חוסר מענה 10 ימים (Time Out).");
-      updateRequest(activeReq.firestoreId || activeReq.id, {
-        status: "completed",
-        result: "refunded",
-      });
+    if(type === '48h') alert('סימולציה: מייל תזכורת 48 שעות נשלח בהצלחה ללקוח.');
+    if(type === '10d') {
+      alert('סימולציה: בקשה נסגרה אוטומטית עקב חוסר מענה 10 ימים (Time Out).');
+      updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' });
       setSelectedReqId(null);
     }
-  };
+  }
 
-  const togglePartSelection = (id) =>
-    setSelectedParts((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
+  const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
   if (!activeReq) {
-    const pendingRequests = requests.filter((r) => r.status !== "completed");
+    const pendingRequests = requests.filter(r => r.status !== 'completed');
     return (
       <div className="max-w-4xl mx-auto animate-in fade-in" dir="rtl">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">
-          תור משימות לבדיקה
-        </h2>
+        <h2 className="text-2xl font-bold text-slate-800 mb-6">תור משימות לבדיקה</h2>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {pendingRequests.length === 0 ? (
-            <p className="p-8 text-center text-slate-500">
-              אין בקשות פתוחות. הכל נבדק!
-            </p>
+            <p className="p-8 text-center text-slate-500">אין בקשות פתוחות. הכל נבדק!</p>
           ) : (
             <div className="divide-y divide-slate-100">
-              {pendingRequests.map((req) => (
-                <div
-                  key={req.firestoreId || req.id}
-                  onClick={() => startReviewing(req)}
-                  className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors group"
-                >
+              {pendingRequests.map(req => (
+                <div key={req.firestoreId || req.id} onClick={() => startReviewing(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={
-                        req.image ||
-                        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80"
-                      }
-                      alt={req.brand}
-                      className="w-12 h-12 rounded object-cover border border-slate-200"
-                    />
+                    <img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-12 h-12 rounded object-cover border border-slate-200" />
                     <div>
-                      <h4 className="font-bold text-slate-800 text-sm">
-                        {req.brand}{" "}
-                        <span className="text-xs text-slate-500 font-normal">
-                          {req.model}
-                        </span>
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        {req.id} • מסלול:{" "}
-                        <span className="font-bold">{req.paymentTrack}</span>
-                      </p>
+                      <h4 className="font-bold text-slate-800 text-sm">{req.brand} <span className="text-xs text-slate-500 font-normal">{req.model}</span></h4>
+                      <p className="text-xs text-slate-500">{req.id} • מסלול: <span className="font-bold">{req.paymentTrack}</span></p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span
-                      className={`text-[10px] px-2 py-1 rounded-full font-bold ${
-                        req.status === "waiting_for_customer"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-blue-50 text-blue-700"
-                      }`}
-                    >
-                      {req.status === "waiting_for_customer"
-                        ? "ממתין לתמונות"
-                        : "ממתין ל-AI"}
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold ${req.status === 'waiting_for_customer' ? 'bg-amber-100 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
+                      {req.status === 'waiting_for_customer' ? 'ממתין לתמונות' : 'ממתין ל-AI'}
                     </span>
-                    <button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                      פתח תיק <ArrowRight size={14} className="inline ml-1" />
-                    </button>
+                    <button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">פתח תיק <ArrowRight size={14} className="inline ml-1"/></button>
                   </div>
                 </div>
               ))}
@@ -2888,143 +1430,64 @@ function AuthenticationTool({ requests, updateRequest }) {
   }
 
   return (
-    <div
-      className="max-w-5xl mx-auto space-y-6 pb-6 animate-in fade-in duration-500"
-      dir="rtl"
-    >
-      <button
-        onClick={() => setSelectedReqId(null)}
-        className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-2"
-      >
+    <div className="max-w-5xl mx-auto space-y-6 pb-6 animate-in fade-in duration-500" dir="rtl">
+      <button onClick={() => setSelectedReqId(null)} className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-2">
         <ChevronRight size={18} /> חזור לתור המשימות
       </button>
 
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img
-            src={
-              activeReq.image ||
-              "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80"
-            }
-            className="w-16 h-16 rounded-xl border border-slate-200 object-cover"
-          />
+          <img src={activeReq.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} className="w-16 h-16 rounded-xl border border-slate-200 object-cover" />
           <div>
-            <h2 className="font-bold text-slate-800 text-lg">
-              בקשה {activeReq.id}
-            </h2>
-            <p className="text-sm text-slate-500">
-              {activeReq.brand} • מסלול:{" "}
-              <span className="font-bold text-red-500">
-                {activeReq.paymentTrack}
-              </span>
-            </p>
+            <h2 className="font-bold text-slate-800 text-lg">בקשה {activeReq.id}</h2>
+            <p className="text-sm text-slate-500">{activeReq.brand} • מסלול: <span className="font-bold text-red-500">{activeReq.paymentTrack}</span></p>
           </div>
         </div>
-        <div
-          className={`flex items-center gap-3 px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 shadow-inner transition-colors ${
-            activeReq.status === "waiting_for_customer"
-              ? "bg-amber-50 text-amber-600 border-amber-200"
-              : "bg-slate-900 text-teal-400 border-slate-800"
-          }`}
-        >
+        <div className={`flex items-center gap-3 px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 shadow-inner transition-colors ${activeReq.status === 'waiting_for_customer' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-slate-900 text-teal-400 border-slate-800'}`}>
           <span dir="ltr">{formatTime(timeLeft)}</span>
-          {activeReq.status === "waiting_for_customer" ? (
-            <PauseCircle size={24} className="text-amber-500" />
-          ) : (
-            <Timer size={24} className="text-teal-400 animate-pulse" />
-          )}
+          {activeReq.status === 'waiting_for_customer' ? <PauseCircle size={24} className="text-amber-500" /> : <Timer size={24} className="text-teal-400 animate-pulse" />}
         </div>
       </div>
 
-      {activeReq.status === "pending" && (
+      {activeReq.status === 'pending' && (
         <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-800 mb-2">
-            שלב 1: סריקת מערכת AI
-          </h2>
-          <p className="text-sm text-slate-500 mb-6">
-            לחצו להפעלת סריקת תמונות וקבלת המלצה ממנוע ה-AI.
-          </p>
-          <button
-            onClick={simulateAIAnalysis}
-            disabled={isAnalyzing}
-            className={`w-full md:w-auto px-6 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all text-sm ${
-              isAnalyzing
-                ? "bg-slate-100 text-slate-400"
-                : "bg-teal-800 hover:bg-teal-900 text-white shadow-md"
-            }`}
-          >
-            {isAnalyzing ? (
-              <>
-                <span className="animate-spin h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full"></span>{" "}
-                מנתח אלמנטים...
-              </>
-            ) : (
-              <>
-                <Search className="h-4 w-4" /> הפעל סריקת AI
-              </>
-            )}
+          <h2 className="text-xl font-bold text-slate-800 mb-2">שלב 1: סריקת מערכת AI</h2>
+          <p className="text-sm text-slate-500 mb-6">לחצו להפעלת סריקת תמונות וקבלת המלצה ממנוע ה-AI.</p>
+          <button onClick={simulateAIAnalysis} disabled={isAnalyzing} className={`w-full md:w-auto px-6 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 transition-all text-sm ${isAnalyzing ? 'bg-slate-100 text-slate-400' : 'bg-teal-800 hover:bg-teal-900 text-white shadow-md'}`}>
+            {isAnalyzing ? <><span className="animate-spin h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full"></span> מנתח אלמנטים...</> : <><Search className="h-4 w-4" /> הפעל סריקת AI</>}
           </button>
         </div>
       )}
 
-      {(activeReq.status === "reviewing" ||
-        activeReq.status === "waiting_for_customer") && (
+      {(activeReq.status === 'reviewing' || activeReq.status === 'waiting_for_customer') && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="bg-[#1c1c1c] p-4 text-white flex justify-between items-center">
-                <h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]">
-                  <CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI
-                </h3>
-                <span className="bg-white/10 text-white px-3 py-1 rounded-full text-xs border border-white/20">
-                  ודאות: {activeReq.confidence}%
-                </span>
+                <h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]"><CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI</h3>
+                <span className="bg-white/10 text-white px-3 py-1 rounded-full text-xs border border-white/20">ודאות: {activeReq.confidence}%</span>
               </div>
               <div className="p-5 md:p-6 space-y-6">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">
-                    המלצת המערכת
-                  </h4>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-700 text-sm whitespace-pre-wrap">
-                    {activeReq.aiDraftResponse}
-                  </div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-700 text-sm whitespace-pre-wrap">{activeReq.aiDraftResponse}</div>
                 </div>
                 <div className="border-t border-slate-100 pt-6">
-                  <h4 className="font-black text-slate-800 mb-4 text-lg">
-                    החלטת מומחה סופית והנפקת תעודה
-                  </h4>
+                  <h4 className="font-black text-slate-800 mb-4 text-lg">החלטת מומחה סופית והנפקת תעודה</h4>
                   <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <button
-                      onClick={() => handleIssueCertificate("authentic")}
-                      disabled={activeReq.status === "waiting_for_customer"}
-                      className="flex-1 py-4 bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
+                    <button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                       <ShieldCheck size={20} /> אשר פריט כמקורי
                     </button>
-                    <button
-                      onClick={() => handleIssueCertificate("fake")}
-                      disabled={activeReq.status === "waiting_for_customer"}
-                      className="flex-1 py-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800 font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
+                    <button onClick={() => handleIssueCertificate('fake')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800 font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                       <ShieldAlert size={20} /> פסול כמזויף
                     </button>
                   </div>
-
+                  
                   {/* Cancel / Refund / Escalate */}
                   <div className="flex gap-4 border-t border-slate-100 pt-4 mt-2">
-                    <button
-                      onClick={() => alert("הבקשה הועברה לבדיקת מנהל בכיר.")}
-                      className="text-xs font-bold text-blue-600 hover:underline"
-                    >
-                      לא בטוח? העבר לבדיקת מומחה בכיר
-                    </button>
-                    <span className="text-slate-300">|</span>
-                    <button
-                      onClick={() => setShowCancelModal(true)}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline"
-                    >
-                      לא ניתן לאימות? בטל וזכה לקוח
-                    </button>
+                     <button onClick={() => alert('הבקשה הועברה לבדיקת מנהל בכיר.')} className="text-xs font-bold text-blue-600 hover:underline">לא בטוח? העבר לבדיקת מומחה בכיר</button>
+                     <span className="text-slate-300">|</span>
+                     <button onClick={() => setShowCancelModal(true)} className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline">לא ניתן לאימות? בטל וזכה לקוח</button>
                   </div>
                 </div>
               </div>
@@ -3034,116 +1497,48 @@ function AuthenticationTool({ requests, updateRequest }) {
           <div className="space-y-6">
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
               <div className="bg-slate-50 p-4 border-b border-slate-100">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <ImagePlus size={18} className="text-teal-600" /> ניהול תמונות
-                  מול לקוח
-                </h3>
+                <h3 className="font-bold text-slate-800 flex items-center gap-2"><ImagePlus size={18} className="text-teal-600" /> ניהול תמונות מול לקוח</h3>
               </div>
               <div className="p-5">
-                {activeReq.status === "reviewing" &&
-                  !selectedParts.length &&
-                  !customMessage && (
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500">
-                        <Camera size={28} />
-                      </div>
-                      <h4 className="font-bold text-slate-800 mb-2">
-                        תמונות חסרות/מטושטשות?
-                      </h4>
-                      <button
-                        onClick={() => setCustomMessage(" ")}
-                        className="w-full py-3 bg-amber-100 text-amber-800 hover:bg-amber-200 font-bold rounded-xl text-sm transition-colors"
-                      >
-                        פתח בקשת השלמה
-                      </button>
-                    </div>
-                  )}
-
-                {activeReq.status === "reviewing" && customMessage !== "" && (
+                {activeReq.status === 'reviewing' && !selectedParts.length && !customMessage && (
+                  <div className="text-center">
+                     <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500"><Camera size={28} /></div>
+                     <h4 className="font-bold text-slate-800 mb-2">תמונות חסרות/מטושטשות?</h4>
+                     <button onClick={() => setCustomMessage(' ')} className="w-full py-3 bg-amber-100 text-amber-800 hover:bg-amber-200 font-bold rounded-xl text-sm transition-colors">פתח בקשת השלמה</button>
+                  </div>
+                )}
+                
+                {activeReq.status === 'reviewing' && customMessage !== '' && (
                   <div className="animate-in slide-in-from-right-4 duration-300">
-                    <p className="text-xs font-bold text-slate-600 mb-3">
-                      סמן איזה אזור הלקוח נדרש לצלם שוב:
-                    </p>
+                    <p className="text-xs font-bold text-slate-600 mb-3">סמן איזה אזור הלקוח נדרש לצלם שוב:</p>
                     <div className="grid grid-cols-4 gap-2 mb-4">
-                      {BAG_PARTS.map((part) => (
-                        <div
-                          key={part.id}
-                          onClick={() => togglePartSelection(part.id)}
-                          className={`aspect-square rounded-lg border-2 flex items-center justify-center cursor-pointer transition-all ${
-                            selectedParts.includes(part.id)
-                              ? "border-teal-500 bg-teal-50 text-teal-600"
-                              : "border-slate-200 bg-white text-slate-400 hover:border-teal-200"
-                          }`}
-                        >
-                          <BagPartIcon
-                            type={part.iconType}
-                            className="w-6 h-6"
-                          />
-                        </div>
+                      {BAG_PARTS.map(part => (
+                        <div key={part.id} onClick={() => togglePartSelection(part.id)} className={`aspect-square rounded-lg border-2 flex items-center justify-center cursor-pointer transition-all ${selectedParts.includes(part.id) ? 'border-teal-500 bg-teal-50 text-teal-600' : 'border-slate-200 bg-white text-slate-400 hover:border-teal-200'}`}><BagPartIcon type={part.iconType} className="w-6 h-6" /></div>
                       ))}
                     </div>
-                    <textarea
-                      placeholder="הערה מפורטת ללקוח..."
-                      value={customMessage}
-                      onChange={(e) => setCustomMessage(e.target.value)}
-                      className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-teal-500 resize-none mb-3"
-                    ></textarea>
+                    <textarea placeholder="הערה מפורטת ללקוח..." value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-teal-500 resize-none mb-3"></textarea>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => setCustomMessage("")}
-                        className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-lg hover:bg-slate-200"
-                      >
-                        ביטול
-                      </button>
-                      <button
-                        onClick={sendPhotoRequest}
-                        disabled={selectedParts.length === 0}
-                        className="flex-[2] py-2 bg-teal-800 text-white font-bold text-xs rounded-lg hover:bg-teal-900 disabled:opacity-50"
-                      >
-                        שלח ללקוח והקפא זמן
-                      </button>
+                      <button onClick={() => setCustomMessage('')} className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-lg hover:bg-slate-200">ביטול</button>
+                      <button onClick={sendPhotoRequest} disabled={selectedParts.length === 0} className="flex-[2] py-2 bg-teal-800 text-white font-bold text-xs rounded-lg hover:bg-teal-900 disabled:opacity-50">שלח ללקוח והקפא זמן</button>
                     </div>
                   </div>
                 )}
 
-                {activeReq.status === "waiting_for_customer" && (
+                {activeReq.status === 'waiting_for_customer' && (
                   <div className="animate-in slide-in-from-top-4 duration-300 text-center">
-                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500 animate-pulse">
-                      <Clock size={28} />
-                    </div>
-                    <h4 className="font-bold text-amber-600 mb-2">
-                      ממתין לתמונות מהלקוח
-                    </h4>
-                    <p className="text-xs text-slate-500 mb-4">
-                      שעון העצר (SLA) הוקפא ונשלחה הודעה.
-                    </p>
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500 animate-pulse"><Clock size={28} /></div>
+                     <h4 className="font-bold text-amber-600 mb-2">ממתין לתמונות מהלקוח</h4>
+                     <p className="text-xs text-slate-500 mb-4">שעון העצר (SLA) הוקפא ונשלחה הודעה.</p>
+                     
+                     <div className="flex justify-center gap-2 mb-6">
+                        <button onClick={()=>simulateCronJob('48h')} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">דמה תזכורת 48h</button>
+                        <button onClick={()=>simulateCronJob('10d')} className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">דמה ביטול 10 ימים</button>
+                     </div>
 
-                    <div className="flex justify-center gap-2 mb-6">
-                      <button
-                        onClick={() => simulateCronJob("48h")}
-                        className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200"
-                      >
-                        דמה תזכורת 48h
-                      </button>
-                      <button
-                        onClick={() => simulateCronJob("10d")}
-                        className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100"
-                      >
-                        דמה ביטול 10 ימים
-                      </button>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-4 mt-4">
-                      <p className="text-[10px] text-slate-400 mb-2 uppercase tracking-wider">
-                        סימולציית לקוח העלה
-                      </p>
-                      <button
-                        onClick={simulateCustomerUpload}
-                        className="w-full py-3 bg-slate-800 text-white hover:bg-slate-900 font-bold rounded-xl text-sm transition-colors flex justify-center items-center gap-2"
-                      >
-                        <PlayCircle size={16} /> הלקוח העלה תמונות
-                      </button>
-                    </div>
+                     <div className="border-t border-slate-100 pt-4 mt-4">
+                       <p className="text-[10px] text-slate-400 mb-2 uppercase tracking-wider">סימולציית לקוח העלה</p>
+                       <button onClick={simulateCustomerUpload} className="w-full py-3 bg-slate-800 text-white hover:bg-slate-900 font-bold rounded-xl text-sm transition-colors flex justify-center items-center gap-2"><PlayCircle size={16} /> הלקוח העלה תמונות</button>
+                     </div>
                   </div>
                 )}
               </div>
@@ -3156,129 +1551,43 @@ function AuthenticationTool({ requests, updateRequest }) {
       {showCancelModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <HandCoins size={20} className="text-slate-500" /> ביטול בקשה
-              וזיכוי לקוח
-            </h3>
-            <p className="text-sm text-slate-500 mb-4">
-              פעולה זו תסגור את הבקשה, תזכה את הלקוח ותשלח לו הודעת ביטול
-              מסודרת.
-            </p>
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="הזן סיבה להחזר (יופיע ללקוח)... למשל: התמונות אינן מספיקות גם לאחר ניסיון שני."
-              className="w-full h-24 border border-slate-200 rounded-lg p-3 text-sm mb-4 outline-none focus:border-slate-400"
-            ></textarea>
+            <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><HandCoins size={20} className="text-slate-500"/> ביטול בקשה וזיכוי לקוח</h3>
+            <p className="text-sm text-slate-500 mb-4">פעולה זו תסגור את הבקשה, תזכה את הלקוח ותשלח לו הודעת ביטול מסודרת.</p>
+            <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="הזן סיבה להחזר (יופיע ללקוח)... למשל: התמונות אינן מספיקות גם לאחר ניסיון שני." className="w-full h-24 border border-slate-200 rounded-lg p-3 text-sm mb-4 outline-none focus:border-slate-400"></textarea>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold rounded-lg hover:bg-slate-200"
-              >
-                חזור
-              </button>
-              <button
-                onClick={handleCancelAndRefund}
-                disabled={!cancelReason}
-                className="flex-1 py-2 bg-slate-900 text-white font-bold rounded-lg disabled:opacity-50 hover:bg-black"
-              >
-                בצע זיכוי
-              </button>
+              <button onClick={()=>setShowCancelModal(false)} className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold rounded-lg hover:bg-slate-200">חזור</button>
+              <button onClick={handleCancelAndRefund} disabled={!cancelReason} className="flex-1 py-2 bg-slate-900 text-white font-bold rounded-lg disabled:opacity-50 hover:bg-black">בצע זיכוי</button>
             </div>
           </div>
         </div>
       )}
 
-      {showNotificationModal && (
-        <ClientNotificationModal
-          verdict={finalVerdict}
-          reqId={activeReq.id}
-          onClose={() => {
-            setShowNotificationModal(false);
-            setSelectedReqId(null);
-          }}
-        />
-      )}
+      {showNotificationModal && <ClientNotificationModal verdict={finalVerdict} reqId={activeReq.id} onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} />}
     </div>
   );
 }
 
 function ClientNotificationModal({ verdict, reqId, onClose }) {
-  const isAuthentic = verdict === "authentic";
-  const themeClasses = isAuthentic
-    ? "from-green-500 to-emerald-600 bg-green-50 border-green-200 text-green-900"
-    : "from-slate-600 to-red-800 bg-red-50 border-red-200 text-red-900";
+  const isAuthentic = verdict === 'authentic';
+  const themeClasses = isAuthentic ? 'from-green-500 to-emerald-600 bg-green-50 border-green-200 text-green-900' : 'from-slate-600 to-red-800 bg-red-50 border-red-200 text-red-900';
 
   return (
-    <div
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      dir="rtl"
-    >
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" dir="rtl">
       <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-        <div
-          className={`bg-gradient-to-r ${themeClasses
-            .split(" ")
-            .slice(0, 2)
-            .join(" ")} p-4 text-white flex justify-between items-center`}
-        >
-          <div className="flex items-center gap-2 font-bold">
-            <Smartphone size={20} /> סימולציית הודעה ללקוח
-          </div>
-          <button onClick={onClose} className="text-white/80 hover:text-white">
-            <X size={20} />
-          </button>
+        <div className={`bg-gradient-to-r ${themeClasses.split(' ').slice(0, 2).join(' ')} p-4 text-white flex justify-between items-center`}>
+          <div className="flex items-center gap-2 font-bold"><Smartphone size={20} /> סימולציית הודעה ללקוח</div>
+          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
         </div>
         <div className="p-6 bg-slate-100 flex justify-center">
           <div className="bg-white w-full rounded-[2rem] border-8 border-slate-800 h-[450px] overflow-y-auto shadow-inner relative flex flex-col">
-            <div
-              className="bg-slate-800 text-white text-[10px] py-1 px-4 flex justify-between rounded-t-xl"
-              dir="ltr"
-            >
-              <span>09:41</span>
-              <span>100% 🔋</span>
-            </div>
+            <div className="bg-slate-800 text-white text-[10px] py-1 px-4 flex justify-between rounded-t-xl" dir="ltr"><span>09:41</span><span>100% 🔋</span></div>
             <div className="p-4 flex-1">
-              <div className="flex items-center gap-2 mb-4 text-xs font-bold text-slate-500 border-b border-slate-100 pb-2">
-                <Mail size={14} /> Inbox
-              </div>
-              <div
-                className={`rounded-xl border ${
-                  isAuthentic
-                    ? "bg-green-50 border-green-100"
-                    : "bg-rose-50 border-rose-100"
-                } p-5 text-center`}
-              >
-                <BrandLogo
-                  className="w-12 h-12 mx-auto mb-4 drop-shadow-md"
-                  hideIsrael={true}
-                />
-                <h3
-                  className={`text-lg font-black mb-2 ${
-                    isAuthentic ? "text-green-800" : "text-slate-800"
-                  }`}
-                >
-                  {isAuthentic
-                    ? "חדשות מצוינות, הפריט אושר!"
-                    : "עדכון לגבי אימות הפריט"}
-                </h3>
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                  בדיקת הבקשה {reqId} הסתיימה.
-                  <br />
-                  <br />
-                  {isAuthentic
-                    ? "לאחר בחינה קפדנית, אנו שמחים לאשר כי הפריט הינו מקורי לחלוטין (Authentic)."
-                    : "לאחר בחינה קפדנית, זיהינו אי-התאמות בסטנדרט הייצור. הפריט נפסל כמזויף (Counterfeit)."}
-                </p>
-                <button
-                  onClick={onClose}
-                  className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex justify-center items-center gap-2 ${
-                    isAuthentic
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-slate-800 hover:bg-slate-900"
-                  }`}
-                >
-                  <FileText size={16} /> סגור והמשך לעבוד
-                </button>
+              <div className="flex items-center gap-2 mb-4 text-xs font-bold text-slate-500 border-b border-slate-100 pb-2"><Mail size={14} /> Inbox</div>
+              <div className={`rounded-xl border ${isAuthentic ? 'bg-green-50 border-green-100' : 'bg-rose-50 border-rose-100'} p-5 text-center`}>
+                <BrandLogo className="w-12 h-12 mx-auto mb-4 drop-shadow-md" hideIsrael={true} />
+                <h3 className={`text-lg font-black mb-2 ${isAuthentic ? 'text-green-800' : 'text-slate-800'}`}>{isAuthentic ? 'חדשות מצוינות, הפריט אושר!' : 'עדכון לגבי אימות הפריט'}</h3>
+                <p className="text-sm text-slate-600 mb-6 leading-relaxed">בדיקת הבקשה {reqId} הסתיימה.<br/><br/>{isAuthentic ? 'לאחר בחינה קפדנית, אנו שמחים לאשר כי הפריט הינו מקורי לחלוטין (Authentic).' : 'לאחר בחינה קפדנית, זיהינו אי-התאמות בסטנדרט הייצור. הפריט נפסל כמזויף (Counterfeit).'}</p>
+                <button onClick={onClose} className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex justify-center items-center gap-2 ${isAuthentic ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-800 hover:bg-slate-900'}`}><FileText size={16} /> סגור והמשך לעבוד</button>
               </div>
             </div>
           </div>

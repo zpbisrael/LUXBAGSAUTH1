@@ -5,14 +5,14 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Facebook, Instagram
 } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken
+  createUserWithEmailAndPassword, signOut, signInAnonymously
 } from 'firebase/auth';
 import { 
   getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
@@ -21,7 +21,7 @@ import {
 // ==========================================
 // FIREBASE INITIALIZATION & CONFIGURATION
 // ==========================================
-const userFirebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyBvvH0iqqzzm23gDy-1RpBWcHhtgisRhKw",
   authDomain: "luxyry-bags-israel.firebaseapp.com",
   projectId: "luxyry-bags-israel",
@@ -31,8 +31,7 @@ const userFirebaseConfig = {
   measurementId: "G-VTFX8ZBH7E"
 };
 
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'luxury-bags-israel-prod';
+const appId = 'luxury-bags-israel-prod';
 
 let app, auth, db;
 try {
@@ -48,10 +47,57 @@ try {
 // ==========================================
 const translations = {
   he: {
-    nav_login: "התחברות", nav_start: "התחילו אימות", hero_title: "אפס פשרות.<br />אפס זיופים.", hero_subtitle_il: "הסטנדרט החדש של האימות בישראל.<br />טכנולוגיית AI בשירות מומחים אנושיים.", hero_subtitle_global: "הסטנדרט החדש של האימות בעולם.<br />טכנולוגיית AI בשירות מומחים אנושיים.", cta_primary: "אמתו את הפריט שלכם", cta_secondary: "איך זה עובד?", trusted_by: "אנו מאמתים את מותגי העל המובילים", why_us: "למה לבחור בנו?", why_1_title: "שילוב של AI ומומחים", why_1_desc: "החלטה סופית ע\"י מומחה אנושי.", why_2_title: "אחריות ואמינות", why_2_desc: "מוכר ע\"י פלטפורמות כמו PayPal ו-eBay.", why_3_title: "מהירות חסרת תקדים", why_3_desc: "תעודה דיגיטלית תוך שעות ספורות.", how_title: "איך זה עובד?", how_1_title: "1. צלמו והעלו", how_1_desc: "העלו תמונות לפי ההנחיות.", how_2_title: "2. ניתוח מעמיק", how_2_desc: "סריקה ובדיקה קפדנית.", how_3_title: "3. קבלת תעודה", how_3_desc: "תעודה רשמית אותה תוכלו לשתף.", welcome: "ברוכים הבאים", welcome_sub: "התחברו כדי לעקוב אחר הבקשות.", signup_title: "יצירת חשבון", signup_sub: "הצטרפו והתחילו לאמת.", continue_google: "המשך עם Google", continue_fb: "המשך עם Facebook", continue_ig: "המשך עם Instagram", no_account: "אין חשבון?", have_account: "כבר יש חשבון?", signup_free: "הירשמו בחינם", login_here: "התחברו כאן", full_name: "שם מלא", email: "כתובת אימייל", password: "סיסמה", btn_login: "התחבר", btn_signup: "צור חשבון", client_portal: "אזור לקוחות", my_checks: "הבדיקות שלי", new_request: "בקשה חדשה", hello: "שלום", welcome_dash: "ברוך הבא למערכת האימות.", history: "היסטוריית בדיקות", brand: "מותג", item_type: "סוג הפריט", model: "דגם", model_placeholder: "לדוגמה: Neverfull", optional: "רשות", select_brand: "בחרו מותג...", select_type: "בחרו סוג...", step_1: "שלב 1 מתוך 3", step_2: "שלב 2 מתוך 3", step_3: "שלב 3 מתוך 3", continue_photos: "להעלאת תמונות", back: "חזור", continue_track: "לבחירת מסלול", track_title: "בחירת מסלול", track_sub: "בחרו את מהירות הטיפול.", track_reg: "בדיקה רגילה", track_fast: "בדיקה מהירה", track_exp: "אקספרס", hours_12: "12 שעות", hours_6: "6 שעות", hours_2: "שעתיים", recommended: "מומלץ", coupon_label: "קוד קופון", coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם", authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות", business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.", contact_sales: "צרו קשר להזמנה", success_title: "התשלום בוצע בהצלחה! 🎉", success_sub: "הבקשה הועברה לבדיקה. שלחנו לך מייל אישור.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
+    nav_login: "התחברות", nav_start: "התחילו אימות", hero_title: "אפס פשרות.<br />אפס זיופים.",
+    hero_subtitle_il: "הסטנדרט החדש של האימות בישראל.<br />טכנולוגיית AI בשירות מומחים אנושיים.",
+    hero_subtitle_global: "הסטנדרט החדש של האימות בעולם.<br />טכנולוגיית AI בשירות מומחים אנושיים.",
+    cta_primary: "אמתו את הפריט שלכם", cta_secondary: "איך זה עובד?", trusted_by: "אנו מאמתים את מותגי העל המובילים",
+    why_us: "למה לבחור בנו?", why_1_title: "שילוב של AI ומומחים", why_1_desc: "החלטה סופית ע\"י מומחה אנושי.",
+    why_2_title: "אחריות ואמינות", why_2_desc: "מוכר ע\"י פלטפורמות כמו PayPal ו-eBay.", why_3_title: "מהירות חסרת תקדים",
+    why_3_desc: "תעודה דיגיטלית תוך שעות ספורות.", how_title: "איך זה עובד?", how_1_title: "1. צלמו והעלו",
+    how_1_desc: "העלו תמונות לפי ההנחיות.", how_2_title: "2. ניתוח מעמיק", how_2_desc: "סריקה ובדיקה קפדנית.",
+    how_3_title: "3. קבלת תעודה", how_3_desc: "תעודה רשמית אותה תוכלו לשתף.", welcome: "ברוכים הבאים",
+    welcome_sub: "התחברו כדי לעקוב אחר הבקשות.", signup_title: "יצירת חשבון", signup_sub: "הצטרפו והתחילו לאמת.",
+    continue_google: "המשך עם Google", continue_fb: "המשך עם Facebook", continue_ig: "המשך עם Instagram",
+    no_account: "אין חשבון?", have_account: "כבר יש חשבון?", signup_free: "הירשמו בחינם", login_here: "התחברו כאן",
+    full_name: "שם מלא", email: "כתובת אימייל", password: "סיסמה", btn_login: "התחבר", btn_signup: "צור חשבון",
+    client_portal: "אזור לקוחות", my_checks: "הבדיקות שלי", new_request: "בקשה חדשה", hello: "שלום",
+    welcome_dash: "ברוך הבא למערכת האימות.", history: "היסטוריית בדיקות", brand: "מותג", item_type: "סוג הפריט",
+    model: "דגם", model_placeholder: "לדוגמה: Neverfull", optional: "רשות", select_brand: "בחרו מותג...",
+    select_type: "בחרו סוג...", step_1: "שלב 1 מתוך 3", step_2: "שלב 2 מתוך 3", step_3: "שלב 3 מתוך 3",
+    continue_photos: "להעלאת תמונות", back: "חזור", continue_track: "לבחירת מסלול", track_title: "בחירת מסלול",
+    track_sub: "בחרו את מהירות הטיפול.", track_reg: "בדיקה רגילה", track_fast: "בדיקה מהירה", track_exp: "אקספרס",
+    hours_12: "12 שעות", hours_6: "6 שעות", hours_2: "שעתיים", recommended: "מומלץ", coupon_label: "קוד קופון",
+    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם",
+    authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
+    business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
+    contact_sales: "צרו קשר להזמנה", success_title: "התשלום בוצע בהצלחה! 🎉",
+    success_sub: "הבקשה הועברה לבדיקה. שלחנו לך מייל אישור.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
   },
   en: {
-    nav_login: "Login", nav_start: "Start Authentication", hero_title: "ZERO COMPROMISE.<br />ZERO FAKES.", hero_subtitle_il: "The new global standard in luxury authentication.", hero_subtitle_global: "The new global standard in luxury authentication.", cta_primary: "Verify Your Item", cta_secondary: "How it works?", trusted_by: "Authenticating prestigious brands", why_us: "Why Choose Us?", why_1_title: "AI + Experts", why_1_desc: "Final verdict by a human expert.", why_2_title: "Guaranteed", why_2_desc: "Recognized by PayPal and eBay.", why_3_title: "Speed", why_3_desc: "Digital certificate in hours.", how_title: "How It Works?", how_1_title: "1. Upload", how_1_desc: "Upload photos.", how_2_title: "2. Analysis", how_2_desc: "Rigorous inspection.", how_3_title: "3. Certificate", how_3_desc: "Receive official certificate.", welcome: "Welcome Back", welcome_sub: "Log in to track requests.", signup_title: "Create Account", signup_sub: "Start authenticating.", continue_google: "Continue with Google", continue_fb: "Continue with Facebook", continue_ig: "Continue with Instagram", no_account: "No account?", have_account: "Have an account?", signup_free: "Sign up free", login_here: "Log in here", full_name: "Full Name", email: "Email", password: "Password", btn_login: "Log In", btn_signup: "Create Account", client_portal: "Client Portal", my_checks: "My Authentications", new_request: "New Request", hello: "Hello", welcome_dash: "Welcome to the system.", history: "History", brand: "Brand", item_type: "Item Type", model: "Model", model_placeholder: "e.g., Neverfull", optional: "Optional", select_brand: "Select brand...", select_type: "Select type...", step_1: "Step 1 of 3", step_2: "Step 2 of 3", step_3: "Step 3 of 3", continue_photos: "Continue to Photos", back: "Back", continue_track: "Continue to Track", track_title: "Select Track", track_sub: "Choose turnaround time.", track_reg: "Standard", track_fast: "Fast Track", track_exp: "Express", hours_12: "12 Hours", hours_6: "6 Hours", hours_2: "2 Hours", recommended: "Recommended", coupon_label: "Coupon Code", coupon_placeholder: "Enter code", apply: "Apply", send_payment: "Pay with PayPal", send_free: "Submit Free", authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed", business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.", contact_sales: "Contact Sales", success_title: "Payment Successful! 🎉", success_sub: "Item is under review. Confirmation email sent.", btn_home: "Dashboard", btn_another: "Authenticate Another"
+    nav_login: "Login", nav_start: "Start Authentication", hero_title: "ZERO COMPROMISE.<br />ZERO FAKES.",
+    hero_subtitle_il: "The new global standard in luxury authentication.", hero_subtitle_global: "The new global standard in luxury authentication.",
+    cta_primary: "Verify Your Item", cta_secondary: "How it works?", trusted_by: "Authenticating prestigious brands",
+    why_us: "Why Choose Us?", why_1_title: "AI + Experts", why_1_desc: "Final verdict by a human expert.",
+    why_2_title: "Guaranteed", why_2_desc: "Recognized by PayPal and eBay.", why_3_title: "Speed",
+    why_3_desc: "Digital certificate in hours.", how_title: "How It Works?", how_1_title: "1. Upload",
+    how_1_desc: "Upload photos.", how_2_title: "2. Analysis", how_2_desc: "Rigorous inspection.",
+    how_3_title: "3. Certificate", how_3_desc: "Receive official certificate.", welcome: "Welcome Back",
+    welcome_sub: "Log in to track requests.", signup_title: "Create Account", signup_sub: "Start authenticating.",
+    continue_google: "Continue with Google", continue_fb: "Continue with Facebook", continue_ig: "Continue with Instagram",
+    no_account: "No account?", have_account: "Have an account?", signup_free: "Sign up free", login_here: "Log in here",
+    full_name: "Full Name", email: "Email", password: "Password", btn_login: "Log In", btn_signup: "Create Account",
+    client_portal: "Client Portal", my_checks: "My Authentications", new_request: "New Request", hello: "Hello",
+    welcome_dash: "Welcome to the system.", history: "History", brand: "Brand", item_type: "Item Type",
+    model: "Model", model_placeholder: "e.g., Neverfull", optional: "Optional", select_brand: "Select brand...",
+    select_type: "Select type...", step_1: "Step 1 of 3", step_2: "Step 2 of 3", step_3: "Step 3 of 3",
+    continue_photos: "Continue to Photos", back: "Back", continue_track: "Continue to Track", track_title: "Select Track",
+    track_sub: "Choose turnaround time.", track_reg: "Standard", track_fast: "Fast Track", track_exp: "Express",
+    hours_12: "12 Hours", hours_6: "6 Hours", hours_2: "2 Hours", recommended: "Recommended", coupon_label: "Coupon Code",
+    coupon_placeholder: "Enter code", apply: "Apply", send_payment: "Pay with PayPal", send_free: "Submit Free",
+    authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed",
+    business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.",
+    contact_sales: "Contact Sales", success_title: "Payment Successful! 🎉",
+    success_sub: "Item is under review. Confirmation email sent.", btn_home: "Dashboard", btn_another: "Authenticate Another"
   }
 };
 
@@ -83,18 +129,6 @@ function CertificateStamp() {
         <p className="text-[6px] font-bold text-[#d4af37] tracking-[0.2em] mt-1 uppercase">Est. 2016</p>
       </div>
     </div>
-  );
-}
-
-function FacebookIcon({ className = "w-5 h-5", ...props }) {
-  return (
-    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-  );
-}
-
-function InstagramIcon({ className = "w-5 h-5", ...props }) {
-  return (
-    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
   );
 }
 
@@ -148,6 +182,7 @@ export default function App() {
   
   const t = (key) => translations[lang]?.[key] || translations['en'][key] || key;
   const isRtl = lang === 'he' || lang === 'ar';
+  const hideIsrael = geo.country !== 'IL'; // Consolidated hideIsrael logic
 
   const handleLogout = () => { if(auth) signOut(auth); setUser(null); };
 
@@ -167,9 +202,7 @@ export default function App() {
     if (!auth) return;
     const initCanvasAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development') {
           await signInAnonymously(auth);
         }
       } catch(e) { console.warn("Auth Failed", e); }
@@ -211,11 +244,11 @@ export default function App() {
   };
 
   if (!user && !showLoginModal) {
-    return <><GlobalStyles /><LandingPage t={t} geo={geo} isRtl={isRtl} lang={lang} setLang={setLang} onGoToLogin={() => setShowLoginModal(true)} setGeo={setGeo} /></>;
+    return <><GlobalStyles /><LandingPage t={t} geo={geo} isRtl={isRtl} lang={lang} setLang={setLang} onGoToLogin={() => setShowLoginModal(true)} setGeo={setGeo} hideIsrael={hideIsrael} /></>;
   }
 
   if (!user && showLoginModal) {
-    return <><GlobalStyles /><div dir={isRtl ? "rtl" : "ltr"} className="relative"><LoginScreen onBack={() => setShowLoginModal(false)} t={t} geo={geo} isRtl={isRtl} lang={lang} setLang={setLang} /></div></>;
+    return <><GlobalStyles /><div dir={isRtl ? "rtl" : "ltr"} className="relative"><LoginScreen onBack={() => setShowLoginModal(false)} t={t} isRtl={isRtl} lang={lang} setLang={setLang} hideIsrael={hideIsrael} /></div></>;
   }
 
   return (
@@ -223,12 +256,12 @@ export default function App() {
       <GlobalStyles />
       <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
         {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
-        <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} geo={geo} />
+        <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} hideIsrael={hideIsrael} />
         <main className="flex-1 flex flex-col h-screen w-full overflow-hidden">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
           <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8">
             {role === 'admin' ? (
-              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} />
+              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} />
             ) : currentView === 'new-request' ? (
               <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} />
             ) : currentView === 'business-pkgs' ? (
@@ -248,10 +281,8 @@ export default function App() {
 // ==========================================
 // MARKETING LANDING PAGE
 // ==========================================
-function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
-  const hideIsrael = geo.country !== 'IL';
+function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael }) {
   const [showDev, setShowDev] = useState(false);
-
   useEffect(() => { if (window.location.search.includes('dev=true')) setShowDev(true); }, []);
 
   const applyGeoSettings = (region) => {
@@ -331,7 +362,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
 // ==========================================
 // LOGIN SCREEN
 // ==========================================
-function LoginScreen({ onBack, t, geo, isRtl, lang, setLang }) {
+function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -366,14 +397,14 @@ function LoginScreen({ onBack, t, geo, isRtl, lang, setLang }) {
         <div className="absolute inset-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=1200&q=80')" }}></div>
         <div className="absolute inset-0 bg-teal-950/70 mix-blend-multiply"></div>
         <div className="relative z-10 flex flex-col items-center text-center p-12 animate-in fade-in duration-1000">
-          <BrandLogo className="w-40 h-40 mb-8 drop-shadow-2xl" hideIsrael={geo.country !== 'IL'} />
+          <BrandLogo className="w-40 h-40 mb-8 drop-shadow-2xl" hideIsrael={hideIsrael} />
           <h1 className="text-4xl lg:text-6xl font-black text-white mb-4 leading-tight tracking-tighter drop-shadow-lg" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
-          <p className="text-teal-100 text-lg max-w-md font-light leading-relaxed" dangerouslySetInnerHTML={{ __html: geo.country !== 'IL' ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
+          <p className="text-teal-100 text-lg max-w-md font-light leading-relaxed" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
         </div>
       </div>
       <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-24 bg-white relative">
         <div className="md:hidden flex flex-col items-center mb-10 mt-12">
-          <BrandLogo className="w-24 h-24 mb-4" hideIsrael={geo.country !== 'IL'} />
+          <BrandLogo className="w-24 h-24 mb-4" hideIsrael={hideIsrael} />
           <h1 className="text-3xl font-black text-slate-900 text-center tracking-tight leading-tight" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
         </div>
         <div className="w-full max-w-sm mx-auto animate-in slide-in-from-bottom-8 fade-in duration-700">
@@ -419,14 +450,14 @@ function LoginScreen({ onBack, t, geo, isRtl, lang, setLang }) {
 // ==========================================
 // SHARED UI COMPONENTS
 // ==========================================
-function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogout, geo }) {
+function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogout, hideIsrael }) {
   const adminMenu = [{ id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Search size={20} /> }];
   const clientMenu = [{ id: 'dashboard', label: t('my_checks'), icon: <LayoutDashboard size={20} /> }, { id: 'new-request', label: t('new_request'), icon: <PlusCircle size={20} /> }];
   const menuItems = role === 'admin' ? adminMenu : clientMenu;
   return (
     <aside className={`fixed md:static inset-y-0 ${t('hello') === 'שלום' ? 'right-0' : 'left-0'} w-72 md:w-64 bg-[#1c1c1c] text-slate-300 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : (t('hello') === 'שלום' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0')}`}>
       <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-black/20">
-        <div className="flex items-center gap-3"><BrandLogo className="w-10 h-10" hideIsrael={geo.country !== 'IL'} /><div><p className="text-[10px] tracking-[0.2em] text-[#d4af37] uppercase font-bold">{role === 'admin' ? 'Agent Network' : 'Client Portal'}</p></div></div>
+        <div className="flex items-center gap-3"><BrandLogo className="w-10 h-10" hideIsrael={hideIsrael} /><div><p className="text-[10px] tracking-[0.2em] text-[#d4af37] uppercase font-bold">{role === 'admin' ? 'Agent Network' : 'Client Portal'}</p></div></div>
         <button onClick={onClose} className="md:hidden p-2"><X size={24} /></button>
       </div>
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -644,8 +675,8 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mt-6 text-center animate-in fade-in slide-in-from-bottom-4">
           <h3 className="font-bold text-slate-800 text-lg mb-2">איזה יופי, הפריט מקורי! 🎉</h3>
           <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
-             <button className="flex items-center justify-center gap-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-medium py-3 px-6 rounded-xl"><InstagramIcon size={18}/> שתפו בסטורי באינסטגרם</button>
-             <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-medium py-3 px-6 rounded-xl"><FacebookIcon size={18} fill="currentColor" stroke="none" /> שתפו בפייסבוק</button>
+             <button className="flex items-center justify-center gap-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-medium py-3 px-6 rounded-xl"><Instagram size={18}/> שתפו בסטורי באינסטגרם</button>
+             <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-medium py-3 px-6 rounded-xl"><Facebook size={18} fill="currentColor" stroke="none" /> שתפו בפייסבוק</button>
              <button className="flex items-center justify-center gap-2 bg-slate-900 text-white font-medium py-3 px-6 rounded-xl"><Upload size={18} /> העתק קישור לתעודה</button>
           </div>
         </div>
@@ -654,7 +685,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl }) {
   );
 }
 
-function AuthenticationTool({ requests, updateRequest }) {
+function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -690,7 +721,7 @@ function AuthenticationTool({ requests, updateRequest }) {
       <div className="max-w-6xl mx-auto animate-in fade-in" dir="rtl">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
           <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1"><h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3><p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingRequests.length}</p></div>
-          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden"><div className="relative z-10"><h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3><p className="text-xl md:text-2xl font-bold flex items-center gap-2">מערכת יציבה ופעילה</p></div><BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={true} /></div>
+          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden"><div className="relative z-10"><h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3><p className="text-xl md:text-2xl font-bold flex items-center gap-2">מערכת יציבה ופעילה</p></div><BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={hideIsrael} /></div>
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-6">תור משימות לבדיקה</h2>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -769,12 +800,12 @@ function AuthenticationTool({ requests, updateRequest }) {
           </div>
         </div>
       )}
-      {showNotificationModal && <ClientNotificationModal verdict={finalVerdict} reqId={activeReq.id} onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} />}
+      {showNotificationModal && <ClientNotificationModal verdict={finalVerdict} reqId={activeReq.id} onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} hideIsrael={hideIsrael} />}
     </div>
   );
 }
 
-function ClientNotificationModal({ verdict, reqId, onClose }) {
+function ClientNotificationModal({ verdict, reqId, onClose, hideIsrael }) {
   const isAuthentic = verdict === 'authentic';
   const themeClasses = isAuthentic ? 'from-green-500 to-emerald-600 bg-green-50 border-green-200 text-green-900' : 'from-slate-600 to-red-800 bg-red-50 border-red-200 text-red-900';
 
@@ -791,7 +822,7 @@ function ClientNotificationModal({ verdict, reqId, onClose }) {
             <div className="p-4 flex-1">
               <div className="flex items-center gap-2 mb-4 text-xs font-bold text-slate-500 border-b border-slate-100 pb-2"><Mail size={14} /> Inbox</div>
               <div className={`rounded-xl border ${isAuthentic ? 'bg-green-50 border-green-100' : 'bg-rose-50 border-rose-100'} p-5 text-center`}>
-                <BrandLogo className="w-12 h-12 mx-auto mb-4 drop-shadow-md" hideIsrael={true} />
+                <BrandLogo className="w-12 h-12 mx-auto mb-4 drop-shadow-md" hideIsrael={hideIsrael} />
                 <h3 className={`text-lg font-black mb-2 ${isAuthentic ? 'text-green-800' : 'text-slate-800'}`}>{isAuthentic ? 'חדשות מצוינות, הפריט אושר!' : 'עדכון לגבי אימות הפריט'}</h3>
                 <p className="text-sm text-slate-600 mb-6 leading-relaxed">בדיקת הבקשה {reqId} הסתיימה.<br/><br/>{isAuthentic ? 'לאחר בחינה קפדנית, אנו שמחים לאשר כי הפריט הינו מקורי לחלוטין (Authentic).' : 'זיהינו אי-התאמות בסטנדרט הייצור. הפריט נפסל כמזויף.'}</p>
                 <button onClick={onClose} className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex justify-center items-center gap-2 ${isAuthentic ? 'bg-green-600' : 'bg-slate-800'}`}><FileText size={16} /> סגור</button>

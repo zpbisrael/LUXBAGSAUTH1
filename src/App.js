@@ -12,7 +12,8 @@ import {
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken
+  createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken,
+  GoogleAuthProvider, FacebookAuthProvider, signInWithPopup
 } from 'firebase/auth';
 import { 
   getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
@@ -397,6 +398,23 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
     }
   };
 
+  const handleSocialLogin = async (provider) => {
+    if (!auth) { alert("Firebase is not connected."); return; }
+    setErrorMsg(''); setIsLoading(true);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setErrorMsg(isRtl ? "ההתחברות בוטלה על ידי המשתמש." : "Login cancelled.");
+      } else {
+        setErrorMsg(isRtl ? "שגיאה בהתחברות. ודא שהפעלת אפשרות זו ב-Firebase Console." : "Login failed. Make sure provider is enabled in Firebase Console.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white relative overflow-x-hidden">
       <div className={`absolute top-6 ${isRtl ? 'right-6' : 'left-6'} z-50`}>
@@ -424,9 +442,8 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
             <>
               <div className="mb-8"><h2 className="text-2xl font-bold text-slate-900 mb-2">{isSignUp ? t('signup_title') : t('welcome')}</h2><p className="text-slate-500 text-sm">{isSignUp ? t('signup_sub') : t('welcome_sub')}</p></div>
               <div className="space-y-3 mb-4">
-                <button type="button" onClick={() => alert(isRtl ? 'חיבור עם גוגל יופעל בקרוב' : 'Google login coming soon')} className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3"><GoogleIcon className="w-5 h-5" /> {t('continue_google')}</button>
-                <button type="button" onClick={() => alert(isRtl ? 'חיבור עם פייסבוק יופעל בקרוב' : 'Facebook login coming soon')} className="w-full bg-[#1877F2] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-[#1864D9] flex items-center justify-center gap-3 transition-colors"><FacebookIcon className="w-5 h-5" /> {t('continue_fb')}</button>
-                <button type="button" onClick={() => alert(isRtl ? 'חיבור עם אינסטגרם יופעל בקרוב' : 'Instagram login coming soon')} className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-3"><InstagramIcon className="w-5 h-5" /> {t('continue_ig')}</button>
+                <button type="button" onClick={() => handleSocialLogin(new GoogleAuthProvider())} className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3"><GoogleIcon className="w-5 h-5" /> {t('continue_google')}</button>
+                <button type="button" onClick={() => handleSocialLogin(new FacebookAuthProvider())} className="w-full bg-[#1877F2] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-[#1864D9] flex items-center justify-center gap-3 transition-colors"><FacebookIcon className="w-5 h-5" /> {t('continue_fb')}</button>
               </div>
               <div className="text-center mb-6">
                 <span className="text-sm text-slate-500">{isSignUp ? t('have_account') : t('no_account')} </span>
@@ -737,6 +754,17 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const sendPhotoRequest = () => { if (!selectedParts.length && !customMessage.trim()) return; setIsTimerRunning(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'waiting_for_customer' }); };
   const simulateCustomerUpload = () => { setSelectedParts([]); setCustomMessage(''); setIsTimerRunning(true); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing' }); };
   
+  const simulateCronJob = (type) => {
+    if(type === '48h') alert('סימולציה: מייל תזכורת 48 שעות נשלח בהצלחה ללקוח.');
+    if(type === '10d') {
+      alert('סימולציה: בקשה נסגרה אוטומטית עקב חוסר מענה 10 ימים (Time Out).');
+      updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' });
+      setSelectedReqId(null);
+    }
+  };
+
+  const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
+
   if (!activeReq) {
     const pendingRequests = requests.filter(r => r.status !== 'completed');
     return (

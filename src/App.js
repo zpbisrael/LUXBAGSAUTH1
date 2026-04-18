@@ -1,18 +1,18 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
+  Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
-  QrCode, Shield, AlertTriangle, Smartphone, XCircle,
-  PauseCircle, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, Cpu, Award, Zap
+  QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
+  Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap
 } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, signOut, signInAnonymously
+  createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken
 } from 'firebase/auth';
 import { 
   getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
@@ -21,7 +21,7 @@ import {
 // ==========================================
 // FIREBASE INITIALIZATION & CONFIGURATION
 // ==========================================
-const firebaseConfig = {
+const userFirebaseConfig = {
   apiKey: "AIzaSyBvvH0iqqzzm23gDy-1RpBWcHhtgisRhKw",
   authDomain: "luxyry-bags-israel.firebaseapp.com",
   projectId: "luxyry-bags-israel",
@@ -31,7 +31,8 @@ const firebaseConfig = {
   measurementId: "G-VTFX8ZBH7E"
 };
 
-const appId = 'luxury-bags-israel-prod';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'luxury-bags-israel-prod';
 
 let app, auth, db;
 try {
@@ -167,7 +168,7 @@ function BagPartIcon({ type, className = "w-8 h-8" }) {
     case 'buckle-back': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M8 14v-4a4 4 0 0 1 8 0v4" /><rect x="6" y="14" width="12" height="4" rx="1" /></svg>;
     case 'metal-stamp': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><rect x="3" y="8" width="18" height="8" rx="1" /><circle cx="5.5" cy="12" r="0.5" fill="currentColor" /><circle cx="18.5" cy="12" r="0.5" fill="currentColor" /><path d="M9 14V10h2M12 10l1.5 4L15 10" opacity="0.6" strokeWidth="1" /></svg>;
     case 'date-code': return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={baseClasses}><path d="M7 4h10l3 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4z" /><path d="M8 12h8M8 16h5" strokeDasharray="2 2" opacity="0.5" /></svg>;
-    default: return <Upload className={baseClasses} />;
+    default: return <UploadCloud className={baseClasses} />;
   }
 }
 
@@ -623,7 +624,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
             <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
               <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl">{t('back')}</button>
               {isDiscountApplied ? (
-                <button onClick={() => { addRequest({ id: `REQ-FREE`, brand, model, date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' }); setShowSuccess(true); }} className="w-full bg-teal-800 text-white font-bold py-3.5 rounded-xl">{t('send_free')}</button>
+                <button onClick={handlePaymentSuccessFree} className="w-full bg-teal-800 text-white font-bold py-3.5 rounded-xl hover:bg-teal-900 transition-colors">{t('send_free')}</button>
               ) : (<div className="relative z-0 min-h-[150px]">{!paypalLoaded && <div className="flex justify-center p-8"><RefreshCcw className="animate-spin text-slate-400" /></div>}<div id="paypal-button-container" className="w-full"></div></div>)}
               <button onClick={() => setView('business-pkgs')} className="text-sm font-bold text-teal-700 hover:underline mt-2 flex justify-center items-center gap-2"><Briefcase size={16} /> {t('business_pkg')}</button>
             </div>
@@ -733,6 +734,17 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const sendPhotoRequest = () => { if (!selectedParts.length && !customMessage.trim()) return; setIsTimerRunning(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'waiting_for_customer' }); };
   const simulateCustomerUpload = () => { setSelectedParts([]); setCustomMessage(''); setIsTimerRunning(true); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing' }); };
   
+  const simulateCronJob = (type) => {
+    if(type === '48h') alert('סימולציה: מייל תזכורת 48 שעות נשלח בהצלחה ללקוח.');
+    if(type === '10d') {
+      alert('סימולציה: בקשה נסגרה אוטומטית עקב חוסר מענה 10 ימים (Time Out).');
+      updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' });
+      setSelectedReqId(null);
+    }
+  };
+
+  const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
+
   if (!activeReq) {
     const pendingRequests = requests.filter(r => r.status !== 'completed');
     return (
@@ -779,7 +791,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
                 <div><h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4><div className="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-wrap">{activeReq.aiDraftResponse}</div></div>
                 <div className="border-t border-slate-100 pt-6">
                   <h4 className="font-black text-slate-800 mb-4 text-lg">החלטת מומחה סופית</h4>
-                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50">אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50">פסול כמזויף</button></div>
+                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50"><ShieldCheck className="inline mr-2"/>אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50"><ShieldAlert className="inline mr-2"/>פסול כמזויף</button></div>
                   <div className="flex gap-4 border-t border-slate-100 pt-4 mt-2"><button onClick={() => setShowCancelModal(true)} className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline">לא ניתן לאימות? בטל וזכה לקוח</button></div>
                 </div>
               </div>

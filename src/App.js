@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
+  Search, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
@@ -133,28 +133,16 @@ function CertificateStamp() {
   );
 }
 
-function FacebookIcon({ className = "w-5 h-5", ...props }) {
-  return (
-    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-    </svg>
-  );
+function FacebookIcon({ className = "w-5 h-5" }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
 }
 
-function InstagramIcon({ className = "w-5 h-5", ...props }) {
-  return (
-    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-    </svg>
-  );
+function InstagramIcon({ className = "w-5 h-5" }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
 }
 
 function GoogleIcon({ className = "w-5 h-5" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
-  );
+  return <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>;
 }
 
 function BagPartIcon({ type, className = "w-8 h-8" }) {
@@ -221,7 +209,9 @@ export default function App() {
     if (!auth) return;
     const initCanvasAuth = async () => {
       try {
-        if (process.env.NODE_ENV === 'development') {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else if (process.env.NODE_ENV === 'development') {
           await signInAnonymously(auth);
         }
       } catch(e) { console.warn("Auth Failed", e); }
@@ -307,7 +297,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
   const applyGeoSettings = (region) => {
     if (region === 'IL') { setGeo({ country: 'IL', currency: 'ILS', symbol: '₪' }); setLang('he'); }
     else if (region === 'US') { setGeo({ country: 'US', currency: 'USD', symbol: '$' }); setLang('en'); }
-    else if (region === 'FR') { setGeo({ country: 'FR', currency: 'EUR', symbol: '€' }); setLang('en'); }
     else if (region === 'AE') { setGeo({ country: 'AE', currency: 'AED', symbol: 'د.إ' }); setLang('ar'); }
   };
 
@@ -391,14 +380,18 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    if (!auth) { alert("Firebase is not connected. Please check your config."); return; }
+    if (!auth) { alert("Firebase is not connected."); return; }
     setErrorMsg(''); setIsLoading(true);
     try {
       if (isSignUp && !showAdminLogin) await createUserWithEmailAndPassword(auth, email, password);
       else await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
       console.error(err);
-      setErrorMsg(isRtl ? "שגיאה בפרטי ההתחברות. נסה שנית." : "Invalid credentials. Please try again.");
+      let msg = isRtl ? "שגיאה בפרטי ההתחברות. נסה שנית." : "Invalid credentials. Please try again.";
+      if (err.code === 'auth/email-already-in-use') msg = isRtl ? "האימייל הזה כבר רשום במערכת, נסה להתחבר." : "Email already in use, please log in.";
+      if (err.code === 'auth/weak-password') msg = isRtl ? "הסיסמה חלשה מדי (נדרשים לפחות 6 תווים)." : "Password is too weak (min 6 chars).";
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') msg = isRtl ? "אימייל או סיסמה שגויים." : "Invalid email or password.";
+      setErrorMsg(msg);
     } finally {
       setIsLoading(false);
     }
@@ -431,7 +424,9 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
             <>
               <div className="mb-8"><h2 className="text-2xl font-bold text-slate-900 mb-2">{isSignUp ? t('signup_title') : t('welcome')}</h2><p className="text-slate-500 text-sm">{isSignUp ? t('signup_sub') : t('welcome_sub')}</p></div>
               <div className="space-y-3 mb-4">
-                <button type="button" className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3"><GoogleIcon className="w-5 h-5" /> {t('continue_google')}</button>
+                <button type="button" onClick={() => alert(isRtl ? 'חיבור עם גוגל יופעל בקרוב' : 'Google login coming soon')} className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3"><GoogleIcon className="w-5 h-5" /> {t('continue_google')}</button>
+                <button type="button" onClick={() => alert(isRtl ? 'חיבור עם פייסבוק יופעל בקרוב' : 'Facebook login coming soon')} className="w-full bg-[#1877F2] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:bg-[#1864D9] flex items-center justify-center gap-3 transition-colors"><FacebookIcon className="w-5 h-5" /> {t('continue_fb')}</button>
+                <button type="button" onClick={() => alert(isRtl ? 'חיבור עם אינסטגרם יופעל בקרוב' : 'Instagram login coming soon')} className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white font-medium py-3 px-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-3"><InstagramIcon className="w-5 h-5" /> {t('continue_ig')}</button>
               </div>
               <div className="text-center mb-6">
                 <span className="text-sm text-slate-500">{isSignUp ? t('have_account') : t('no_account')} </span>
@@ -441,7 +436,7 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
               <form onSubmit={handleAuthSubmit} className="space-y-4">
                 {isSignUp && <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('full_name')} />}
                 <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('email')} required />
-                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('password')} required />
+                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4" placeholder={t('password')} required minLength="6" />
                 {errorMsg && <p className="text-red-500 text-xs font-bold">{errorMsg}</p>}
                 <button type="submit" disabled={isLoading} className="w-full bg-teal-800 hover:bg-teal-900 text-white font-bold py-3.5 rounded-xl shadow-md mt-2 disabled:opacity-50">{isLoading ? "..." : (isSignUp ? t('btn_signup') : t('btn_login'))}</button>
               </form>
@@ -577,12 +572,20 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
     }
   }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model]);
 
+  const handlePaymentSuccessFree = () => {
+    const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+    addRequest({ id: newReqId, brand, model: model || 'N/A', date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80' });
+    setShowSuccess(true);
+  };
+
+  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setStep(1); };
+
   if (showSuccess) {
     return (
       <div className="max-w-lg mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in zoom-in-95 text-center p-10">
         <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle className="w-12 h-12 text-green-500" /></div>
         <h2 className="text-2xl font-black text-slate-800 mb-3">{t('success_title')}</h2><p className="text-slate-600 mb-8">{t('success_sub')}</p>
-        <div className="space-y-3"><button onClick={() => setView('dashboard')} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl">{t('btn_home')}</button><button onClick={() => {setStep(1); setShowSuccess(false);}} className="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl">{t('btn_another')} <PlusCircle size={18} className="inline ml-1" /></button></div>
+        <div className="space-y-3"><button onClick={() => setView('dashboard')} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl">{t('btn_home')}</button><button onClick={handleReset} className="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl">{t('btn_another')} <PlusCircle size={18} className="inline ml-1" /></button></div>
       </div>
     );
   }
@@ -678,7 +681,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
         <div className="border-[3px] border-[#d4af37] p-8 md:p-12 relative flex flex-col items-center text-center overflow-hidden">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-5 pointer-events-none" />
           <div className="mb-8 relative z-10"><BrandLogo className="w-24 h-24 mx-auto mb-4" hideIsrael={hideIsrael} /><h1 className="text-2xl md:text-4xl font-serif tracking-widest text-[#1c1c1c] uppercase mb-2">Certificate of Authentication</h1><p className="text-[#d4af37] font-bold tracking-[0.3em] text-sm uppercase">Luxury Bags Israel</p></div>
-          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50/80 text-green-800' : 'border-red-200 bg-red-50/80 text-red-800'}`}><h2 className="text-xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><Shield size={32} /> Authentic</> : <><AlertTriangle size={32} /> Counterfeit</>}</h2></div>
+          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50/80 text-green-800' : 'border-red-200 bg-red-50/80 text-red-800'}`}><h2 className="text-xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><ShieldCheck size={32} /> Authentic</> : <><ShieldAlert size={32} /> Counterfeit</>}</h2></div>
           <div className="w-full max-w-lg mb-10 relative z-10">
             <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr"><div className="text-slate-500 text-sm uppercase tracking-wider">Brand</div><div className="font-bold text-slate-800">{data.brand}</div><div className="text-slate-500 text-sm uppercase tracking-wider">Model</div><div className="font-bold text-slate-800">{data.model}</div><div className="text-slate-500 text-sm uppercase tracking-wider">Date Inspected</div><div className="font-bold text-slate-800">{data.date}</div></div>
             <p className="text-xs text-slate-500 italic text-center">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
@@ -734,17 +737,6 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const sendPhotoRequest = () => { if (!selectedParts.length && !customMessage.trim()) return; setIsTimerRunning(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'waiting_for_customer' }); };
   const simulateCustomerUpload = () => { setSelectedParts([]); setCustomMessage(''); setIsTimerRunning(true); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing' }); };
   
-  const simulateCronJob = (type) => {
-    if(type === '48h') alert('סימולציה: מייל תזכורת 48 שעות נשלח בהצלחה ללקוח.');
-    if(type === '10d') {
-      alert('סימולציה: בקשה נסגרה אוטומטית עקב חוסר מענה 10 ימים (Time Out).');
-      updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' });
-      setSelectedReqId(null);
-    }
-  };
-
-  const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
-
   if (!activeReq) {
     const pendingRequests = requests.filter(r => r.status !== 'completed');
     return (

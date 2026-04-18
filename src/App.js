@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Lock, User, LogIn, Search, UploadCloud, 
-  AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
-  MessageCircle, Linkedin, 
-  Send, LayoutDashboard, Menu, X, PlusCircle, 
-  Clock, Camera, FileText, Upload, Mail,
-  QrCode, ShieldCheck, ShieldAlert, Smartphone, Check, XCircle,
+  Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft,
+  LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
+  QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
   Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap
 } from 'lucide-react';
@@ -917,7 +914,6 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
 
 function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   const [step, setStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
@@ -936,7 +932,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   };
   const [paymentTrack, setPaymentTrack] = useState('regular');
 
-  // Load PayPal Script Dynamically with LIVE CLIENT ID
+  // Load PayPal Script Dynamically
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   
   useEffect(() => {

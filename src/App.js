@@ -387,11 +387,12 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
       if (isSignUp && !showAdminLogin) await createUserWithEmailAndPassword(auth, email, password);
       else await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
       let msg = isRtl ? "שגיאה בפרטי ההתחברות. נסה שנית." : "Invalid credentials. Please try again.";
       if (err.code === 'auth/email-already-in-use') msg = isRtl ? "האימייל הזה כבר רשום במערכת, נסה להתחבר." : "Email already in use, please log in.";
       if (err.code === 'auth/weak-password') msg = isRtl ? "הסיסמה חלשה מדי (נדרשים לפחות 6 תווים)." : "Password is too weak (min 6 chars).";
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') msg = isRtl ? "אימייל או סיסמה שגויים." : "Invalid email or password.";
+      if (err.code === 'auth/operation-not-allowed') msg = "Email/Password sign-in is disabled in Firebase console.";
       setErrorMsg(msg);
     } finally {
       setIsLoading(false);
@@ -404,11 +405,15 @@ function LoginScreen({ onBack, t, isRtl, lang, setLang, hideIsrael }) {
     try {
       await signInWithPopup(auth, provider);
     } catch (err) {
-      console.error(err);
+      console.error("Social login error:", err);
       if (err.code === 'auth/popup-closed-by-user') {
         setErrorMsg(isRtl ? "ההתחברות בוטלה על ידי המשתמש." : "Login cancelled.");
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setErrorMsg(isRtl ? "הדומיין לא מאושר. הוסף את הכתובת הנוכחית ב-Firebase -> Authentication -> Settings -> Authorized domains." : "Unauthorized domain. Add to Firebase settings.");
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setErrorMsg(isRtl ? "לא הפעלת את ההתחברות הזו ב-Firebase (Sign-in method)." : "Provider not enabled in Firebase.");
       } else {
-        setErrorMsg(isRtl ? "שגיאה בהתחברות. ודא שהפעלת אפשרות זו ב-Firebase Console." : "Login failed. Make sure provider is enabled in Firebase Console.");
+        setErrorMsg(isRtl ? `שגיאה: ${err.message}` : `Login failed: ${err.message}`);
       }
     } finally {
       setIsLoading(false);

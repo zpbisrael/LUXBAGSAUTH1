@@ -185,12 +185,9 @@ const BAG_PARTS = [
   { id: 'buckle-back', iconType: 'buckle-back' }, { id: 'metal-stamp', iconType: 'metal-stamp' }
 ];
 
-// High-end Background Images for the Carousel
+// Single, high-quality, stable background image
 const HERO_BG_IMAGES = [
-  "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=2000&q=80", // Classic LV style texture
-  "/shopping.webp", // User's Chanel
-  "/images%20(5).jpg", // User's LV (URL encoded space)
-  "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80" // Gucci/Chanel style texture
+  "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80" // Gucci bag
 ];
 
 function GlobalStyles() {
@@ -358,15 +355,6 @@ export default function App() {
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user }) {
   const [showDev, setShowDev] = useState(false);
-  const [bgIndex, setBgIndex] = useState(0);
-
-  // Carousel Effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBgIndex((prevIndex) => (prevIndex + 1) % HERO_BG_IMAGES.length);
-    }, 5000); // Change image every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => { if (window.location.search.includes('dev=true')) setShowDev(true); }, []);
 
@@ -403,16 +391,14 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </nav>
 
-      {/* HERO SECTION WITH CAROUSEL */}
+      {/* HERO SECTION WITH STATIC GUCCI BACKGROUND */}
       <section className="relative pt-40 pb-24 lg:pt-56 lg:pb-40 bg-[#0a0a0a] overflow-hidden flex flex-col justify-center min-h-[85vh]">
-        {/* Dynamic Carousel Backgrounds */}
-        {HERO_BG_IMAGES.map((img, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out ${index === bgIndex ? 'opacity-50' : 'opacity-0'}`}
-            style={{ backgroundImage: `url('${img}')` }}
-          />
-        ))}
+        {/* Single Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
+          style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }}
+        />
+        
         {/* Gradient Overlays for Text Readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent z-0"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-transparent to-[#0a0a0a]/90 z-0"></div>
@@ -481,10 +467,10 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
            </div>
            <div className="w-full lg:w-1/2 relative flex justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-[#d4af37]/30 to-transparent rounded-full blur-[80px] -z-10"></div>
-              {/* Load custom Chanel bag from GitHub public folder, fallback to Unsplash if not found */}
+              {/* Load custom Chanel bag from GitHub public folder, fallback to Gucci bag if not found */}
               <img 
                 src="/shopping.webp" 
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=800&q=80"; }}
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80"; }}
                 alt="Luxury Bag Authentication" 
                 className="relative z-10 rounded-3xl shadow-2xl object-cover h-[400px] md:h-[500px] w-full max-w-md border-4 border-white/10" 
               />
@@ -627,15 +613,6 @@ function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsra
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [bgIndex, setBgIndex] = useState(0);
-
-  // Re-use Carousel Effect for Login Screen
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBgIndex((prevIndex) => (prevIndex + 1) % HERO_BG_IMAGES.length);
-    }, 5000); 
-    return () => clearInterval(interval);
-  }, []);
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
@@ -686,13 +663,10 @@ function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsra
         <button onClick={() => setLang(lang === 'he' ? 'en' : 'he')} className="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-slate-200 md:border-white/30 text-slate-800 md:text-white px-4 py-2 rounded-full font-bold text-xs shadow-sm hover:bg-white/30"><Globe size={14} /> {lang === 'he' ? 'EN' : 'עברית'}</button>
       </div>
       <div className="hidden md:flex md:w-1/2 relative bg-[#0a0a0a] items-center justify-center overflow-hidden pt-12">
-        {HERO_BG_IMAGES.map((img, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out ${index === bgIndex ? 'opacity-40' : 'opacity-0'}`}
-            style={{ backgroundImage: `url('${img}')` }}
-          />
-        ))}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+          style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-0"></div>
         <div className="relative z-10 flex flex-col items-center text-center p-12 animate-in fade-in duration-1000">
           <BrandLogo className="w-40 h-40 mb-8 drop-shadow-2xl" hideIsrael={hideIsrael} />

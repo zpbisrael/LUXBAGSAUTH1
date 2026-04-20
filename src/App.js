@@ -208,7 +208,7 @@ function GlobalStyles() {
   return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; } .font-serif { font-family: 'Playfair Display', 'Frank Ruhl Libre', serif !important; }`}} />;
 }
 
-// Helper: Compress Image to prevent hanging on slow networks / large files
+// Helper: Compress Image (Outputs a Blob instead of Base64 for faster, reliable storage upload)
 const compressImage = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -218,7 +218,7 @@ const compressImage = (file) => {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
+        const MAX_WIDTH = 1200; // Optimal quality width
         let width = img.width;
         let height = img.height;
 
@@ -230,7 +230,10 @@ const compressImage = (file) => {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to base64
+        
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/jpeg', 0.8);
       };
       img.onerror = (err) => reject(err);
     };
@@ -875,42 +878,36 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     
     const currentPart = uploadingPart;
     
-    // Instant Local Preview - No waiting for UI!
+    // Instant Local Preview
     const localPreviewUrl = URL.createObjectURL(file);
     setUploadedImages(prev => ({ ...prev, [currentPart]: localPreviewUrl }));
     setUploadingPart(null); 
     e.target.value = null; 
 
-    // Background Upload with reliable Promise and Fallback
     setActiveUploads(prev => prev + 1);
+    
     try {
-      // 1. Compress Image (converts to lightweight Base64 to prevent timeouts)
-      const base64Image = await compressImage(file);
-      let finalUrl = base64Image; // Default to base64 if storage fails
-
-      // 2. Try uploading to Firebase Storage with a 10-second timeout
-      if (storage) {
-        try {
-          const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-          const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}`);
-          
-          const uploadTask = uploadBytes(fileRef, file);
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000));
-          
-          // Race between upload and timeout
-          const snapshot = await Promise.race([uploadTask, timeoutPromise]);
-          finalUrl = await getDownloadURL(snapshot.ref);
-        } catch (storageErr) {
-          console.warn("Storage upload delayed or failed. Falling back to local DB storage.", storageErr);
-          // It will just keep using the compressed base64Image, so the user NEVER gets stuck!
-        }
-      }
+      let fileToUpload = file;
       
-      // Update with final URL (either Cloud Storage or Base64)
-      setUploadedImages(prev => ({ ...prev, [currentPart]: finalUrl }));
+      // ONLY compress if the file is heavy (> 800KB). Tiny files will fly instantly!
+      if (file.size > 800 * 1024) {
+        fileToUpload = await compressImage(file);
+      }
+
+      // Safe name for storage
+      const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
+      
+      // Upload the compressed blob to Firebase Storage
+      const snapshot = await uploadBytes(fileRef, fileToUpload);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // Update with the permanent cloud URL
+      setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
+      
     } catch (error) {
-      console.error("Compression/Processing failed", error);
-      alert(isRtl ? `שגיאה בעיבוד התמונה. נסה שוב.` : `Error processing image. Try again.`);
+      console.error("Upload process failed:", error);
+      alert(isRtl ? `ההעלאה נכשלה, ודא שיש לך אינטרנט תקין ונסה שוב.` : `Upload failed. Check network and try again.`);
       // Remove preview if complete failure
       setUploadedImages(prev => {
         const newImgs = {...prev};
@@ -1029,7 +1026,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
             {activeUploads > 0 && (
               <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 text-slate-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
                 <RefreshCcw size={14} className="animate-spin text-[#d4af37]" /> 
-                {isRtl ? `מסנכרן לשרת מאובטח (${activeUploads})...` : `Syncing securely (${activeUploads})...`}
+                {isRtl ? `מעלה לשרת המאובטח...` : `Syncing securely...`}
               </div>
             )}
             

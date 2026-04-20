@@ -18,7 +18,7 @@ import {
 import { 
   getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
 } from 'firebase/firestore';
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // ==========================================
 // FIREBASE INITIALIZATION & CONFIGURATION
@@ -190,8 +190,9 @@ const HERO_BG_IMAGES = [
   "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80" // Gucci bag
 ];
 
+// FIXED FONT: Added 'Frank Ruhl Libre' for beautiful Hebrew serif headings.
 function GlobalStyles() {
-  return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; } .font-serif { font-family: 'Playfair Display', serif !important; }`}} />;
+  return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; } .font-serif { font-family: 'Playfair Display', 'Frank Ruhl Libre', serif !important; }`}} />;
 }
 
 // ==========================================
@@ -825,41 +826,40 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     fileInputRef.current.click();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file || !user || !storage) return;
     
     const currentPart = uploadingPart;
     
-    // 1. Instant Local Preview - No waiting!
+    // Instant Local Preview - No waiting for UI!
     const localPreviewUrl = URL.createObjectURL(file);
     setUploadedImages(prev => ({ ...prev, [currentPart]: localPreviewUrl }));
-    setUploadingPart(null); // Free up UI instantly
-    e.target.value = null; // Reset input so same file can be selected if needed
+    setUploadingPart(null); 
+    e.target.value = null; 
 
-    // 2. Background Upload
+    // Background Upload with reliable Promise
     setActiveUploads(prev => prev + 1);
-    const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${file.name}`);
-    
-    uploadBytesResumable(fileRef, file)
-      .then(snapshot => getDownloadURL(snapshot.ref))
-      .then(downloadURL => {
-        // Replace local preview URL with secure cloud URL
-        setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
-      })
-      .catch(error => {
-        console.error("Upload failed", error);
-        alert(isRtl ? "שגיאה בהעלאת התמונה. נסה שוב." : "Error uploading image. Try again.");
-        // Remove preview if upload failed
-        setUploadedImages(prev => {
-          const newImgs = {...prev};
-          delete newImgs[currentPart];
-          return newImgs;
-        });
-      })
-      .finally(() => {
-        setActiveUploads(prev => prev - 1);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}`);
+      const snapshot = await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // Replace local preview URL with secure cloud URL
+      setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert(isRtl ? `שגיאה בהעלאה: ${error.message}` : `Error uploading: ${error.message}`);
+      // Remove preview if upload failed
+      setUploadedImages(prev => {
+        const newImgs = {...prev};
+        delete newImgs[currentPart];
+        return newImgs;
       });
+    } finally {
+      setActiveUploads(prev => prev - 1);
+    }
   };
 
   useEffect(() => {

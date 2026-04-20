@@ -185,15 +185,58 @@ const BAG_PARTS = [
   { id: 'buckle-back', iconType: 'buckle-back' }, { id: 'metal-stamp', iconType: 'metal-stamp' }
 ];
 
+// Brand to specific bag models mapping
+const BRAND_MODELS = {
+  "Louis Vuitton": ["Neverfull", "Speedy", "Alma", "Pochette Metis", "Keepall", "Capucines", "Onthego", "לא ידוע / Other"],
+  "Chanel": ["Classic Flap", "Boy Bag", "19 Bag", "Gabrielle", "2.55 Reissue", "Wallet on Chain (WOC)", "לא ידוע / Other"],
+  "Hermes": ["Birkin", "Kelly", "Constance", "Evelyne", "Picotin", "Lindy", "לא ידוע / Other"],
+  "Dior": ["Lady Dior", "Saddle Bag", "Book Tote", "Diorama", "Caro", "לא ידוע / Other"],
+  "Gucci": ["Marmont", "Dionysus", "Jackie", "Soho", "Sylvie", "לא ידוע / Other"],
+  "Prada": ["Galleria", "Cleo", "Re-Edition", "Cahier", "לא ידוע / Other"],
+  "Saint Laurent": ["Loulou", "College", "Sac de Jour", "Sunset", "Kate", "לא ידוע / Other"],
+  "Celine": ["Luggage", "Triomphe", "Belt Bag", "Classic Box", "לא ידוע / Other"],
+  "Fendi": ["Baguette", "Peekaboo", "Kan I", "לא ידוע / Other"],
+  "Balenciaga": ["City", "Hourglass", "Le Cagole", "לא ידוע / Other"]
+};
+
 // Single, high-quality, stable background image
 const HERO_BG_IMAGES = [
   "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80" // Gucci bag
 ];
 
-// FIXED FONT: Added 'Frank Ruhl Libre' for beautiful Hebrew serif headings.
 function GlobalStyles() {
   return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; } .font-serif { font-family: 'Playfair Display', 'Frank Ruhl Libre', serif !important; }`}} />;
 }
+
+// Helper: Compress Image to prevent hanging on slow networks / large files
+const compressImage = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to base64
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 // ==========================================
 // MAIN APP COMPONENT
@@ -323,16 +366,16 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
-      <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
         {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
         <Sidebar 
            t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} 
            role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} 
            onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)}
         />
-        <main className="flex-1 flex flex-col h-screen w-full overflow-hidden">
+        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
-          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32">
             {role === 'admin' ? (
               <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} />
             ) : currentView === 'new-request' ? (
@@ -352,7 +395,7 @@ export default function App() {
 }
 
 // ==========================================
-// MARKETING LANDING PAGE (UPGRADED UI)
+// MARKETING LANDING PAGE
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user }) {
   const [showDev, setShowDev] = useState(false);
@@ -838,27 +881,44 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     setUploadingPart(null); 
     e.target.value = null; 
 
-    // Background Upload with reliable Promise
+    // Background Upload with reliable Promise and Fallback
     setActiveUploads(prev => prev + 1);
     try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-      const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}`);
-      const snapshot = await uploadBytes(fileRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      // 1. Compress Image (converts to lightweight Base64 to prevent timeouts)
+      const base64Image = await compressImage(file);
+      let finalUrl = base64Image; // Default to base64 if storage fails
+
+      // 2. Try uploading to Firebase Storage with a 10-second timeout
+      if (storage) {
+        try {
+          const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+          const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}`);
+          
+          const uploadTask = uploadBytes(fileRef, file);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000));
+          
+          // Race between upload and timeout
+          const snapshot = await Promise.race([uploadTask, timeoutPromise]);
+          finalUrl = await getDownloadURL(snapshot.ref);
+        } catch (storageErr) {
+          console.warn("Storage upload delayed or failed. Falling back to local DB storage.", storageErr);
+          // It will just keep using the compressed base64Image, so the user NEVER gets stuck!
+        }
+      }
       
-      // Replace local preview URL with secure cloud URL
-      setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
+      // Update with final URL (either Cloud Storage or Base64)
+      setUploadedImages(prev => ({ ...prev, [currentPart]: finalUrl }));
     } catch (error) {
-      console.error("Upload failed", error);
-      alert(isRtl ? `שגיאה בהעלאה: ${error.message}` : `Error uploading: ${error.message}`);
-      // Remove preview if upload failed
+      console.error("Compression/Processing failed", error);
+      alert(isRtl ? `שגיאה בעיבוד התמונה. נסה שוב.` : `Error processing image. Try again.`);
+      // Remove preview if complete failure
       setUploadedImages(prev => {
         const newImgs = {...prev};
         delete newImgs[currentPart];
         return newImgs;
       });
     } finally {
-      setActiveUploads(prev => prev - 1);
+      setActiveUploads(prev => Math.max(0, prev - 1));
     }
   };
 
@@ -902,7 +962,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
 
   if (showSuccess) {
     return (
-      <div className="max-w-lg mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in zoom-in-95 text-center p-10">
+      <div className="max-w-lg mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in zoom-in-95 text-center p-10 mb-24">
         <div className="w-24 h-24 bg-[#d4af37]/20 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle className="w-12 h-12 text-[#d4af37]" /></div>
         <h2 className="text-2xl font-black text-slate-800 mb-3">{t('success_title')}</h2><p className="text-slate-600 mb-8">{t('success_sub')}</p>
         <div className="space-y-3"><button onClick={() => setView('dashboard')} className="w-full bg-[#0a0a0a] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors">{t('btn_home')}</button><button onClick={handleReset} className="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-100 transition-colors">{t('btn_another')} <PlusCircle size={18} className="inline ml-1" /></button></div>
@@ -911,16 +971,55 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   }
 
   return (
-    <div className="max-w-lg mx-auto md:max-w-3xl bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in fade-in pb-6">
-      <div className="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-between mb-2">
+    <div className="max-w-lg mx-auto w-full md:max-w-3xl bg-white rounded-3xl shadow-sm border border-slate-100 overflow-visible animate-in fade-in pb-6 mb-24">
+      <div className="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-between mb-2 rounded-t-3xl">
         <h2 className="font-bold text-slate-800">{t('new_request')}</h2><span className="text-xs font-medium text-[#d4af37] bg-[#d4af37]/10 px-3 py-1 rounded-full uppercase tracking-wider">{step === 1 ? t('step_1') : step === 2 ? t('step_2') : t('step_3')}</span>
       </div>
       <div className="p-5 md:p-8">
         {step === 1 ? (
           <div className="space-y-5">
-             <div><label className="block text-sm font-bold text-slate-700 mb-2">{t('brand')} *</label><select value={brand} onChange={e => setBrand(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"><option value="">{t('select_brand')}</option>{LUXURY_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}</select></div>
-             <div><label className="block text-sm font-bold text-slate-700 mb-2">{t('item_type')} *</label><select value={itemType} onChange={e => setItemType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"><option value="">{t('select_type')}</option>{ITEM_TYPES.map(type => <option key={type} value={type}>{type.split('/')[isRtl ? 1 : 0]}</option>)}</select></div>
-             {brand && itemType && (<div className="animate-in fade-in slide-in-from-top-4"><label className="block text-sm font-bold text-slate-700 mb-2">{t('model')} <span className="font-normal text-slate-400">({t('optional')})</span></label><input type="text" value={model} onChange={e => setModel(e.target.value)} placeholder={t('model_placeholder')} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors" /></div>)}
+             <div>
+               <label className="block text-sm font-bold text-slate-700 mb-2">{t('brand')} *</label>
+               <select value={brand} onChange={e => { setBrand(e.target.value); setModel(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors">
+                 <option value="">{t('select_brand')}</option>
+                 {LUXURY_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+               </select>
+             </div>
+             <div>
+               <label className="block text-sm font-bold text-slate-700 mb-2">{t('item_type')} *</label>
+               <select value={itemType} onChange={e => { setItemType(e.target.value); setModel(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors">
+                 <option value="">{t('select_type')}</option>
+                 {ITEM_TYPES.map(type => <option key={type} value={type}>{type.split('/')[isRtl ? 1 : 0]}</option>)}
+               </select>
+             </div>
+             
+             {brand && itemType && (
+               <div className="animate-in fade-in slide-in-from-top-4">
+                 <label className="block text-sm font-bold text-slate-700 mb-2">
+                   {t('model')} <span className="font-normal text-slate-400">({t('optional')})</span>
+                 </label>
+                 
+                 {itemType === 'Bag/תיק' && BRAND_MODELS[brand] ? (
+                   <select 
+                     value={model} 
+                     onChange={e => setModel(e.target.value)} 
+                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
+                   >
+                     <option value="">{isRtl ? "בחרו דגם מתוך הרשימה" : "Select model"}</option>
+                     {BRAND_MODELS[brand].map(m => <option key={m} value={m}>{m}</option>)}
+                   </select>
+                 ) : (
+                   <input 
+                     type="text" 
+                     value={model} 
+                     onChange={e => setModel(e.target.value)} 
+                     placeholder={t('model_placeholder')} 
+                     className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors" 
+                   />
+                 )}
+               </div>
+             )}
+             
              <button onClick={() => setStep(2)} disabled={!brand || !itemType} className="w-full mt-8 bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl disabled:opacity-50 transition-colors">{t('continue_photos')}</button>
           </div>
         ) : step === 2 ? (
@@ -999,7 +1098,7 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
     { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
   ];
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-12">
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
       <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
       <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 font-serif">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1022,7 +1121,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-12 animate-in zoom-in-95">
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95">
       <button onClick={onBack} className="text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
       <div className="bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
         <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden">
@@ -1104,7 +1203,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   if (!activeReq) {
     const pendingRequests = requests.filter(r => r.status !== 'completed');
     return (
-      <div className="max-w-6xl mx-auto animate-in fade-in" dir="rtl">
+      <div className="max-w-6xl mx-auto animate-in fade-in pb-24" dir="rtl">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
           <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1"><h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3><p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingRequests.length}</p></div>
           <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden"><div className="relative z-10"><h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3><p className="text-xl md:text-2xl font-bold flex items-center gap-2">מערכת יציבה ופעילה</p></div><BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={hideIsrael} /></div>
@@ -1127,7 +1226,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-6 animate-in fade-in duration-500" dir="rtl">
+    <div className="max-w-5xl mx-auto space-y-6 pb-24 animate-in fade-in duration-500" dir="rtl">
       <button onClick={() => setSelectedReqId(null)} className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-2"><ChevronRight size={18} /> חזור לתור המשימות</button>
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-4"><img src={activeReq.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} className="w-16 h-16 rounded-xl border border-slate-200 object-cover" /><div><h2 className="font-bold text-slate-800 text-lg">בקשה {activeReq.id}</h2><p className="text-sm text-slate-500">{activeReq.brand} • מסלול: <span className="font-bold text-red-500">{activeReq.paymentTrack}</span></p></div></div>

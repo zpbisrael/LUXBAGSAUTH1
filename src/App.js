@@ -70,12 +70,13 @@ const translations = {
     how_2_title: "ניתוח מעמיק", how_2_desc: "הצוות המומחה שלנו בשילוב מערכות AI בוחן את הפריט מול מאגרי המידע הרשמיים.",
     how_3_title: "קבלת תעודה דיגיטלית", how_3_desc: "תקבלו תעודה רשמית, חתומה דיגיטלית, אותה תוכלו לשתף עם קונים או להציג בגאווה.", 
     reviews_title: "אלפי עסקאות בטוחות",
+    b2b_title: "קניינים ובעלי בוטיק? הצטרפו לתוכנית העסקים שלנו",
     welcome: "ברוכים הבאים",
     welcome_sub: "התחברו כדי לעקוב אחר הבקשות.", signup_title: "יצירת חשבון", signup_sub: "הצטרפו והתחילו לאמת.",
     continue_google: "המשך עם Google", continue_fb: "המשך עם Facebook", continue_ig: "המשך עם Instagram",
     no_account: "אין חשבון?", have_account: "כבר יש חשבון?", signup_free: "הירשמו בחינם", login_here: "התחברו כאן",
     full_name: "שם מלא", email: "כתובת אימייל", password: "סיסמה", btn_login: "התחבר", btn_signup: "צור חשבון",
-    client_portal: "אזור לקוחות", my_checks: "הבדיקות שלי", new_request: "בקשה חדשה", hello: "שלום",
+    client_portal: "אזור אישי", my_checks: "הבדיקות שלי", new_request: "בקשה חדשה", hello: "שלום",
     welcome_dash: "ברוך הבא למערכת האימות.", history: "היסטוריית בדיקות", brand: "מותג", item_type: "סוג הפריט",
     model: "דגם", model_placeholder: "לדוגמה: Neverfull", optional: "רשות", select_brand: "בחרו מותג...",
     select_type: "בחרו סוג...", step_1: "שלב 1 מתוך 3", step_2: "שלב 2 מתוך 3", step_3: "שלב 3 מתוך 3",
@@ -85,7 +86,7 @@ const translations = {
     coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם",
     authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
     business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
-    contact_sales: "צרו קשר להזמנה", success_title: "התשלום בוצע בהצלחה! 🎉",
+    contact_sales: "דברו איתנו בוואטסאפ", success_title: "התשלום בוצע בהצלחה! 🎉",
     success_sub: "הבקשה הועברה לבדיקה. שלחנו לך מייל אישור.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
   },
   en: {
@@ -106,6 +107,7 @@ const translations = {
     why_3_desc: "100% secure processing with no third-party involvement.", how_title: "How It Works?", 
     how_1_title: "1. Upload", how_1_desc: "Upload photos securely.", how_2_title: "2. Analysis", how_2_desc: "Rigorous expert inspection.",
     how_3_title: "3. Certificate", how_3_desc: "Receive official certificate.", reviews_title: "Trusted by Thousands",
+    b2b_title: "Boutique Owner? Join our B2B Program",
     welcome: "Welcome Back",
     welcome_sub: "Log in to track requests.", signup_title: "Create Account", signup_sub: "Start authenticating.",
     continue_google: "Continue with Google", continue_fb: "Continue with Facebook", continue_ig: "Continue with Instagram",
@@ -121,7 +123,7 @@ const translations = {
     coupon_placeholder: "Enter code", apply: "Apply", send_payment: "Pay with PayPal", send_free: "Submit Free",
     authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed",
     business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.",
-    contact_sales: "Contact Sales", success_title: "Payment Successful! 🎉",
+    contact_sales: "Contact us on WhatsApp", success_title: "Payment Successful! 🎉",
     success_sub: "Item is under review. Confirmation email sent.", btn_home: "Dashboard", btn_another: "Authenticate Another"
   }
 };
@@ -185,7 +187,6 @@ const BAG_PARTS = [
   { id: 'buckle-back', iconType: 'buckle-back' }, { id: 'metal-stamp', iconType: 'metal-stamp' }
 ];
 
-// Brand to specific bag models mapping
 const BRAND_MODELS = {
   "Louis Vuitton": ["Neverfull", "Speedy", "Alma", "Pochette Metis", "Keepall", "Capucines", "Onthego", "לא ידוע / Other"],
   "Chanel": ["Classic Flap", "Boy Bag", "19 Bag", "Gabrielle", "2.55 Reissue", "Wallet on Chain (WOC)", "לא ידוע / Other"],
@@ -204,40 +205,31 @@ const HERO_BG_IMAGES = [
   "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80" // Gucci bag
 ];
 
+// Ensure clean font styles
 function GlobalStyles() {
-  return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; } .font-serif { font-family: 'Playfair Display', 'Frank Ruhl Libre', serif !important; }`}} />;
+  return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; } .font-serif { font-family: 'Playfair Display', 'Assistant', serif !important; }`}} />;
 }
 
-// Helper: Compress Image (Outputs a Blob instead of Base64 for faster, reliable storage upload)
-const compressImage = (file) => {
-  return new Promise((resolve, reject) => {
+// High-speed, aggressive compression. Returns Base64 immediately.
+const compressImageToBase64 = (file) => {
+  return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = (event) => {
+    reader.onload = (e) => {
       const img = new Image();
-      img.src = event.target.result;
+      img.src = e.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200; // Optimal quality width
+        const MAX_WIDTH = 600; // Small size for instant rendering and fast storage sync
         let width = img.width;
         let height = img.height;
-
-        if (width > MAX_WIDTH) {
-          height = Math.round((height * MAX_WIDTH) / width);
-          width = MAX_WIDTH;
-        }
-        canvas.width = width;
-        canvas.height = height;
+        if (width > MAX_WIDTH) { height = Math.round(height * MAX_WIDTH / width); width = MAX_WIDTH; }
+        canvas.width = width; canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob((blob) => {
-          resolve(blob);
-        }, 'image/jpeg', 0.8);
+        resolve(canvas.toDataURL('image/jpeg', 0.6)); 
       };
-      img.onerror = (err) => reject(err);
     };
-    reader.onerror = (err) => reject(err);
   });
 };
 
@@ -260,8 +252,9 @@ export default function App() {
   const isRtl = lang === 'he' || lang === 'ar';
   const hideIsrael = geo.country !== 'IL'; 
 
-  // Injects a Dynamic Favicon to the site
+  // Injects a Dynamic Favicon and Page Title
   useEffect(() => {
+    document.title = "AUTHENTICATE YOUR BAG | LBI";
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
       link = document.createElement('link');
@@ -345,7 +338,8 @@ export default function App() {
           onGoToLogin={() => {
             setShowLanding(false);
             if (!user) setShowLoginModal(true);
-          }} 
+          }}
+          onLogout={handleLogout}
         />
       </>
     );
@@ -400,7 +394,7 @@ export default function App() {
 // ==========================================
 // MARKETING LANDING PAGE
 // ==========================================
-function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user }) {
+function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user, onLogout }) {
   const [showDev, setShowDev] = useState(false);
 
   useEffect(() => { if (window.location.search.includes('dev=true')) setShowDev(true); }, []);
@@ -428,11 +422,17 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
           <div className="flex items-center gap-3"><BrandLogo className="w-12 h-12" hideIsrael={hideIsrael} /></div>
           <div className="flex items-center gap-4">
             <button onClick={() => setLang(lang === 'he' ? 'en' : 'he')} className="hidden md:flex items-center gap-1 text-xs font-bold text-white/70 hover:text-white transition-colors"><Globe size={14} /> {lang === 'he' ? 'EN' : 'HE'}</button>
-            <button onClick={onGoToLogin} className="text-sm font-bold text-white hover:text-[#d4af37] transition-colors drop-shadow-md">
-              {user ? t('client_portal') : t('nav_login')}
-            </button>
+            {user ? (
+              <button onClick={onLogout} className="text-sm font-bold text-white/80 hover:text-red-400 transition-colors drop-shadow-md">
+                {isRtl ? 'התנתק' : 'Logout'}
+              </button>
+            ) : (
+              <button onClick={onGoToLogin} className="text-sm font-bold text-white hover:text-[#d4af37] transition-colors drop-shadow-md">
+                {t('nav_login')}
+              </button>
+            )}
             <button onClick={onGoToLogin} className="bg-[#d4af37] text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-white transition-colors shadow-lg">
-              {user ? (isRtl ? 'אזור אישי' : 'Go to Portal') : t('nav_start')}
+              {user ? t('client_portal') : t('nav_start')}
             </button>
           </div>
         </div>
@@ -440,13 +440,10 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
 
       {/* HERO SECTION WITH STATIC GUCCI BACKGROUND */}
       <section className="relative pt-40 pb-24 lg:pt-56 lg:pb-40 bg-[#0a0a0a] overflow-hidden flex flex-col justify-center min-h-[85vh]">
-        {/* Single Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
           style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }}
         />
-        
-        {/* Gradient Overlays for Text Readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent z-0"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-transparent to-[#0a0a0a]/90 z-0"></div>
         
@@ -454,17 +451,19 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
           
           <BrandLogo className="w-32 h-32 md:w-40 md:h-40 mb-6 drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]" hideIsrael={hideIsrael} />
           
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 mb-8 shadow-lg backdrop-blur-sm">
-             <Sparkles size={16} className="text-[#d4af37]" />
-             <span className="text-[#d4af37] font-bold tracking-[0.15em] text-xs md:text-sm uppercase">{t('hero_badge')}</span>
-          </div>
+          {(!hideIsrael) && (
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 mb-8 shadow-lg backdrop-blur-sm">
+               <Sparkles size={16} className="text-[#d4af37]" />
+               <span className="text-[#d4af37] font-bold tracking-[0.15em] text-xs md:text-sm uppercase">{t('hero_badge')}</span>
+            </div>
+          )}
           
-          <h1 className="text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-2xl font-serif" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
+          <h1 className="text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-2xl" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
           <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed mb-12" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
             <button onClick={onGoToLogin} className="w-full sm:w-auto bg-[#d4af37] hover:bg-white text-black font-black px-10 py-5 rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all text-lg flex items-center justify-center gap-2 group">
-              <ShieldCheck size={24} className="group-hover:scale-110 transition-transform" /> {user ? (isRtl ? 'לניהול הבקשות שלך' : 'Manage Requests') : t('cta_primary')}
+              <ShieldCheck size={24} className="group-hover:scale-110 transition-transform" /> {user ? t('my_checks') : t('cta_primary')}
             </button>
             <a href="#how-it-works" className="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-sm font-bold px-10 py-5 rounded-full transition-colors text-lg flex items-center justify-center gap-2">
               {t('cta_secondary')}
@@ -476,10 +475,10 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       {/* STATS STRIP */}
       <section className="bg-[#0a0a0a] border-t border-white/10 py-10 relative z-20">
          <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/10 rtl:divide-x-reverse text-center">
-            <div><p className="text-3xl md:text-4xl font-black text-[#d4af37] font-serif mb-1">+12,500</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_items')}</p></div>
-            <div><p className="text-3xl md:text-4xl font-black text-white font-serif mb-1">99.8%</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_accuracy')}</p></div>
-            <div><p className="text-3xl md:text-4xl font-black text-white font-serif mb-1">2-12</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_speed')}</p></div>
-            <div><p className="text-3xl md:text-4xl font-black text-white font-serif mb-1">+4,000</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_clients')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-[#d4af37] mb-1">+12,500</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_items')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-white mb-1">99.8%</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_accuracy')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-white mb-1">2-12</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_speed')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-white mb-1">+4,000</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_clients')}</p></div>
          </div>
       </section>
 
@@ -487,11 +486,11 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       <section className="bg-white py-12 border-b border-slate-100 shadow-sm z-20 relative">
         <p className="text-center text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-8">{t('trusted_by')}</p>
         <div className="flex justify-center flex-wrap gap-10 md:gap-20 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
-           <span className="font-serif font-black text-2xl tracking-widest">LOUIS VUITTON</span>
-           <span className="font-serif font-black text-2xl tracking-widest">CHANEL</span>
-           <span className="font-serif font-black text-2xl tracking-widest">HERMÈS</span>
-           <span className="font-serif font-black text-2xl tracking-widest">DIOR</span>
-           <span className="font-serif font-black text-2xl tracking-widest">GUCCI</span>
+           <span className="font-black text-2xl tracking-widest">LOUIS VUITTON</span>
+           <span className="font-black text-2xl tracking-widest">CHANEL</span>
+           <span className="font-black text-2xl tracking-widest">HERMÈS</span>
+           <span className="font-black text-2xl tracking-widest">DIOR</span>
+           <span className="font-black text-2xl tracking-widest">GUCCI</span>
         </div>
       </section>
 
@@ -499,7 +498,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       <section className="py-24 bg-[#fafafa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
            <div className="w-full lg:w-1/2">
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-serif leading-tight">{t('israeli_title')}</h2>
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">{t('israeli_title')}</h2>
               <p className="text-lg text-slate-600 leading-relaxed mb-8">{t('israeli_desc')}</p>
               <div className="space-y-4">
                  <div className="flex items-start gap-4"><div className="mt-1 bg-teal-50 p-2 rounded-full text-teal-700"><Check size={20}/></div><p className="text-slate-700 font-medium">{t('israeli_point_1')}</p></div>
@@ -508,16 +507,16 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
               </div>
               <div className="mt-10 flex justify-start">
                  <button onClick={onGoToLogin} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
-                   <ShieldCheck size={20} /> {user ? (isRtl ? 'לניהול הבקשות שלך' : 'Manage Requests') : t('cta_primary')}
+                   <ShieldCheck size={20} /> {user ? t('client_portal') : t('cta_primary')}
                  </button>
               </div>
            </div>
            <div className="w-full lg:w-1/2 relative flex justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-[#d4af37]/30 to-transparent rounded-full blur-[80px] -z-10"></div>
-              {/* Load custom Chanel bag from GitHub public folder, fallback to Gucci bag if not found */}
+              {/* Fallback to user's uploaded chanel or default bag */}
               <img 
                 src="/shopping.webp" 
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80"; }}
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80"; }}
                 alt="Luxury Bag Authentication" 
                 className="relative z-10 rounded-3xl shadow-2xl object-cover h-[400px] md:h-[500px] w-full max-w-md border-4 border-white/10" 
               />
@@ -536,7 +535,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 font-serif">{t('why_us')}</h2>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6">{t('why_us')}</h2>
             <div className="w-24 h-1 bg-[#d4af37] mx-auto rounded-full"></div>
           </div>
           
@@ -560,7 +559,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
 
           <div className="mt-16 flex justify-center">
              <button onClick={onGoToLogin} className="bg-white text-[#0a0a0a] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
-               <CheckCircle size={20} /> {user ? (isRtl ? 'אזור אישי' : 'Go to Portal') : (isRtl ? 'התחילו אימות עכשיו' : 'Start Authentication')}
+               <CheckCircle size={20} /> {user ? t('client_portal') : (isRtl ? 'התחילו אימות עכשיו' : 'Start Authentication')}
              </button>
           </div>
         </div>
@@ -570,7 +569,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       <section id="how-it-works" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-serif">{t('how_title')}</h2>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{t('how_title')}</h2>
             <div className="w-24 h-1 bg-slate-900 mx-auto rounded-full"></div>
           </div>
 
@@ -607,7 +606,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
           
           <div className="mt-20 text-center">
             <button onClick={onGoToLogin} className="bg-slate-900 hover:bg-black text-white font-bold px-12 py-5 rounded-full shadow-2xl text-xl flex items-center justify-center gap-3 mx-auto transition-transform hover:scale-105">
-               {user ? (isRtl ? 'אזור הלקוחות' : 'Client Portal') : t('nav_start')} <ArrowRight size={24} className={`inline ${isRtl ? 'rotate-180' : ''}`} />
+               {user ? t('client_portal') : t('nav_start')} <ArrowRight size={24} className={`inline ${isRtl ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
@@ -616,7 +615,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       {/* REVIEWS (Social Proof) */}
       <section className="bg-[#fafafa] py-24 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
-           <h2 className="text-3xl font-black text-center text-slate-900 mb-12 font-serif">{t('reviews_title')}</h2>
+           <h2 className="text-3xl font-black text-center text-slate-900 mb-12">{t('reviews_title')}</h2>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { name: isRtl ? 'שירן כ.' : 'Shiran C.', text: isRtl ? 'הצילו אותי מקניית זיוף ב-8,000 ש"ח! שירות מהיר, מקצועי ואמין. התעודה הגיעה תוך כמה שעות.' : 'Saved me from buying a fake! Fast, professional and reliable.', stars: 5 },
@@ -630,16 +629,24 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                 </div>
               ))}
            </div>
-           
-           <div className="mt-16 flex justify-center">
-             <button onClick={onGoToLogin} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
-               <ShieldCheck size={20} /> {user ? (isRtl ? 'אזור הלקוחות' : 'Client Portal') : t('nav_start')}
-             </button>
-           </div>
         </div>
       </section>
       
-      <footer className="bg-[#0a0a0a] text-slate-400 py-16 border-t border-white/10">
+      {/* B2B / BUSINESS PACKAGES SECTION */}
+      <section className="bg-[#0a0a0a] text-white py-20 border-t border-white/10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#d4af37]/20 to-transparent opacity-30"></div>
+        <div className="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+           <div>
+             <h2 className="text-3xl md:text-4xl font-black mb-4">{t('b2b_title') || 'בעלי בוטיק? הצטרפו לתוכנית העסקים'}</h2>
+             <p className="text-slate-400 text-lg max-w-xl">רכשו חבילות אימות בכמות גדולה, חסכו עד 20% וקבלו מסלול אקספרס ישיר לצוות המומחים שלנו.</p>
+           </div>
+           <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="bg-[#d4af37] text-black font-black px-8 py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-white transition-colors w-full md:w-auto whitespace-nowrap">
+              <Briefcase size={20} /> {isRtl ? 'דברו איתנו בוואטסאפ' : 'Contact via WhatsApp'}
+           </button>
+        </div>
+      </section>
+
+      <footer className="bg-black text-slate-400 py-12 border-t border-white/5">
          <div className="max-w-7xl mx-auto px-4 text-center flex flex-col items-center">
             <BrandLogo className="w-20 h-20 mb-6 opacity-30 grayscale" hideIsrael={hideIsrael} />
             <p className="text-sm mb-2">&copy; {new Date().getFullYear()} LUXURY BAGS{hideIsrael ? '' : ' ISRAEL'}. All rights reserved.</p>
@@ -810,7 +817,7 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
       <div className="bg-[#0a0a0a] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-[#d4af37]/20">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#d4af37]/10 rounded-full blur-[50px] -z-10"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl md:text-3xl font-black mb-2 font-serif">{t('hello')}! 👋</h2><p className="text-slate-400 text-sm mb-8">{t('welcome_dash')}</p>
+          <h2 className="text-2xl md:text-3xl font-black mb-2">{t('hello')}! 👋</h2><p className="text-slate-400 text-sm mb-8">{t('welcome_dash')}</p>
           <button onClick={() => setView('new-request')} className="bg-[#d4af37] text-black font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm w-full md:w-auto justify-center hover:bg-white transition-colors"><PlusCircle size={18} /> {t('new_request')}</button>
         </div>
       </div>
@@ -847,10 +854,9 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   const [paymentTrack, setPaymentTrack] = useState('regular');
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   
-  // Real Upload State
   const [uploadedImages, setUploadedImages] = useState({});
   const [uploadingPart, setUploadingPart] = useState(null);
-  const [activeUploads, setActiveUploads] = useState(0); // Tracks how many images are uploading
+  const [activeUploads, setActiveUploads] = useState(0); 
   const fileInputRef = useRef(null);
   
   useEffect(() => {
@@ -872,50 +878,43 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     fileInputRef.current.click();
   };
 
+  const removeImage = (partId) => {
+    setUploadedImages(prev => {
+      const newImgs = {...prev};
+      delete newImgs[partId];
+      return newImgs;
+    });
+  };
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (!file || !user || !storage) return;
+    if (!file) return;
     
     const currentPart = uploadingPart;
-    
-    // Instant Local Preview
-    const localPreviewUrl = URL.createObjectURL(file);
-    setUploadedImages(prev => ({ ...prev, [currentPart]: localPreviewUrl }));
     setUploadingPart(null); 
+    
+    // Instant compression & local Base64 display
+    const base64Data = await compressImageToBase64(file);
+    setUploadedImages(prev => ({ ...prev, [currentPart]: base64Data }));
     e.target.value = null; 
 
-    setActiveUploads(prev => prev + 1);
-    
-    try {
-      let fileToUpload = file;
-      
-      // ONLY compress if the file is heavy (> 800KB). Tiny files will fly instantly!
-      if (file.size > 800 * 1024) {
-        fileToUpload = await compressImage(file);
+    // Silent Background Upload to Storage
+    if (storage && user) {
+      setActiveUploads(prev => prev + 1);
+      try {
+        const res = await fetch(base64Data);
+        const blob = await res.blob();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
+        const snapshot = await uploadBytes(fileRef, blob);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        // Replace base64 with true URL when ready
+        setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
+      } catch (err) {
+        console.warn("Storage sync failed, falling back to local Base64 string.", err);
+      } finally {
+        setActiveUploads(prev => Math.max(0, prev - 1));
       }
-
-      // Safe name for storage
-      const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-      const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
-      
-      // Upload the compressed blob to Firebase Storage
-      const snapshot = await uploadBytes(fileRef, fileToUpload);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      // Update with the permanent cloud URL
-      setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
-      
-    } catch (error) {
-      console.error("Upload process failed:", error);
-      alert(isRtl ? `ההעלאה נכשלה, ודא שיש לך אינטרנט תקין ונסה שוב.` : `Upload failed. Check network and try again.`);
-      // Remove preview if complete failure
-      setUploadedImages(prev => {
-        const newImgs = {...prev};
-        delete newImgs[currentPart];
-        return newImgs;
-      });
-    } finally {
-      setActiveUploads(prev => Math.max(0, prev - 1));
     }
   };
 
@@ -1026,26 +1025,31 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
             {activeUploads > 0 && (
               <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 text-slate-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
                 <RefreshCcw size={14} className="animate-spin text-[#d4af37]" /> 
-                {isRtl ? `מעלה לשרת המאובטח...` : `Syncing securely...`}
+                {isRtl ? `מסנכרן לשרת מאובטח (${activeUploads})...` : `Syncing securely (${activeUploads})...`}
               </div>
             )}
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {BAG_PARTS.map(part => (
-                <div key={part.id} onClick={() => triggerFileInput(part.id)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center text-center bg-slate-50 hover:border-[#d4af37]/50 cursor-pointer overflow-hidden relative transition-colors group">
+                <div key={part.id} className="relative group">
                   {uploadedImages[part.id] ? (
-                    <>
-                      <img src={uploadedImages[part.id]} alt={part.id} className="w-full h-16 object-cover rounded-md mb-2 group-hover:opacity-50 transition-opacity" />
-                      <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><RefreshCcw className="text-white drop-shadow-md" size={20}/></div>
-                    </>
+                    <div className="border-2 border-slate-200 rounded-xl p-1 relative">
+                      <img src={uploadedImages[part.id]} alt={part.id} className="w-full h-20 object-cover rounded-lg" />
+                      <button onClick={(e) => { e.stopPropagation(); removeImage(part.id); }} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md z-10 transition-colors">
+                        <X size={14} />
+                      </button>
+                      <span className="absolute bottom-2 right-2 z-10 bg-black/70 text-white text-[10px] px-1.5 rounded">{part.id}</span>
+                    </div>
                   ) : (
-                    <BagPartIcon type={part.iconType} className="w-10 h-10 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
+                    <div onClick={() => triggerFileInput(part.id)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center text-center bg-slate-50 hover:border-[#d4af37]/50 cursor-pointer h-[92px] transition-colors">
+                       <BagPartIcon type={part.iconType} className="w-8 h-8 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
+                       <span className="text-[10px] font-bold text-slate-500">{part.id}</span>
+                    </div>
                   )}
-                  <span className="text-xs font-bold text-slate-700 mb-1 z-10 bg-white/80 px-1 rounded">{part.id}</span>
                 </div>
               ))}
             </div>
-            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0 || activeUploads > 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
+            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in">
@@ -1097,7 +1101,7 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
       <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
-      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 font-serif">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
+      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {packages.map((pkg, idx) => (
           <div key={idx} className={`bg-white rounded-3xl p-8 border shadow-sm relative overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'border-[#d4af37] ring-1 ring-[#d4af37]/20' : 'border-slate-200'}`}>
@@ -1106,7 +1110,7 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
              <h3 className={`text-2xl font-black mb-1 mt-4 ${idx === 1 ? 'text-[#d4af37]' : 'text-slate-800'}`}>{pkg.title}</h3>
              <p className="text-slate-500 text-sm mb-8 font-medium">{pkg.checks} Authentications<br/><span className="text-green-600">+ {pkg.free} Free Checks</span></p>
              <div className="text-4xl font-black text-slate-900 mb-8" dir="ltr">{geo.symbol}{pkg.price}</div>
-             <button className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
+             <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
           </div>
         ))}
       </div>

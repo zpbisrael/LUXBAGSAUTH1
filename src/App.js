@@ -310,9 +310,15 @@ export default function App() {
     if (!user || !db) return;
     const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
     const unsubscribe = onSnapshot(requestsRef, (snapshot) => {
-      const allReqs = snapshot.docs.map(document => ({ firestoreId: document.id, ...document.data() }));
-      allReqs.sort((a, b) => b.createdAt - a.createdAt);
-      setSystemRequests(role === 'admin' ? allReqs : allReqs.filter(req => req.clientId === user.uid));
+      try {
+        // Bulletproof parsing to ensure malformed data never crashes the app!
+        const allReqs = snapshot.docs.map(document => ({ firestoreId: document.id, ...document.data() }));
+        // Safe sorting: handling missing createdAt fields
+        allReqs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        setSystemRequests(role === 'admin' ? allReqs : allReqs.filter(req => req?.clientId === user.uid));
+      } catch (err) {
+        console.error("Error processing snapshot data:", err);
+      }
     }, (error) => {
       console.error("Firestore Listen Error:", error);
       if (error.code === 'permission-denied') {
@@ -847,18 +853,41 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
       <div>
         <h3 className="text-slate-800 font-bold mb-4 flex items-center gap-2"><Clock size={18} className="text-[#d4af37]" /> {t('history')}</h3>
         <div className="space-y-4">
-          {requests.map(req => (
-            <div key={req.firestoreId || req.id} onClick={() => req.status === 'completed' && onSelectCert(req)} className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${req.status === 'completed' ? 'cursor-pointer hover:shadow-md active:scale-[0.99] hover:border-[#d4af37]/50 transition-all' : 'opacity-90'}`}>
-              <img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-16 h-16 rounded-xl object-cover border border-slate-100" />
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start mb-1"><h4 className="font-bold text-slate-800 text-sm truncate">{req.brand}</h4><span className="text-[10px] text-slate-400">{req.date}</span></div>
-                <p className="text-xs text-slate-500 truncate mb-2">{req.model} • {req.id}</p>
-                {req.status === 'completed' ? (<span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>{req.result === 'authentic' ? <><CheckCircle size={12} /> {t('authentic')}</> : req.result === 'refunded' ? <><X size={12}/> בוטל</> : <><XCircle size={12} /> {t('fake')}</>}</span>) : req.status === 'pending_payment' ? (<span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] font-bold border border-blue-200"><CreditCard size={12} /> ממתין לתשלום</span>) : req.status === 'waiting_for_customer' ? (<span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[10px] font-bold border border-amber-100"><AlertCircle size={12} /> {t('need_photos')}</span>) : (<span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold border border-slate-200"><Clock size={12} /> {t('pending_expert')}</span>)}
+          {(requests || []).map(req => {
+            if (!req) return null;
+            return (
+              <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => req?.status === 'completed' && onSelectCert(req)} className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${req?.status === 'completed' ? 'cursor-pointer hover:shadow-md active:scale-[0.99] hover:border-[#d4af37]/50 transition-all' : 'opacity-90'}`}>
+                <img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand || 'Item'} className="w-16 h-16 rounded-xl object-cover border border-slate-100" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-bold text-slate-800 text-sm truncate">{req?.brand || 'מותג לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4>
+                    <span className="text-[10px] text-slate-400">{req?.date || ''}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 truncate mb-2">{req?.model || ''} • {req?.id || 'ללא מזהה'}</p>
+                  
+                  {req?.status === 'completed' ? (
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                      {req.result === 'authentic' ? <><CheckCircle size={12} /> {t('authentic')}</> : req.result === 'refunded' ? <><X size={12}/> בוטל</> : <><XCircle size={12} /> {t('fake')}</>}
+                    </span>
+                  ) : req?.status === 'pending_payment' ? (
+                    <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] font-bold border border-blue-200">
+                      <CreditCard size={12} /> ממתין לתשלום
+                    </span>
+                  ) : req?.status === 'waiting_for_customer' ? (
+                    <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[10px] font-bold border border-amber-100">
+                      <AlertCircle size={12} /> {t('need_photos')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold border border-slate-200">
+                      <Clock size={12} /> {t('pending_expert')}
+                    </span>
+                  )}
+                </div>
+                <ChevronRight size={20} className={`text-slate-300 ${t('hello') === 'שלום' ? '' : 'transform rotate-180'}`} />
               </div>
-              <ChevronRight size={20} className={`text-slate-300 ${t('hello') === 'שלום' ? '' : 'transform rotate-180'}`} />
-            </div>
-          ))}
-          {requests.length === 0 && <p className="text-center text-slate-500 text-sm py-10">No requests yet.</p>}
+            );
+          })}
+          {(!requests || requests.length === 0) && <p className="text-center text-slate-500 text-sm py-10">אין בקשות עדיין.</p>}
         </div>
       </div>
     </div>
@@ -877,11 +906,11 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
 
-  const activeReq = requests.find(r => r.id === selectedReqId || r.firestoreId === selectedReqId);
+  const activeReq = (requests || []).find(r => r && (r.id === selectedReqId || r.firestoreId === selectedReqId));
 
-  // Divide requests into pending and completed for Admin history view
-  const pendingRequests = requests.filter(r => r.status !== 'completed' && r.status !== 'refunded');
-  const completedRequests = requests.filter(r => r.status === 'completed' || r.status === 'refunded');
+  // Divide requests safely
+  const pendingRequests = (requests || []).filter(r => r && r.status !== 'completed' && r.status !== 'refunded');
+  const completedRequests = (requests || []).filter(r => r && (r.status === 'completed' || r.status === 'refunded'));
 
   useEffect(() => {
     let interval = null;
@@ -891,6 +920,12 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   }, [isTimerRunning, timeLeft]);
 
   const formatTime = (sec) => `${Math.floor(sec / 3600).toString().padStart(2, '0')}:${Math.floor((sec % 3600) / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
+
+  const safeDateRender = (timestamp) => {
+    if (!timestamp) return 'תאריך לא ידוע';
+    try { return new Date(timestamp).toLocaleDateString('he-IL'); } 
+    catch(e) { return 'תאריך שגוי'; }
+  };
 
   const startReviewing = (req) => { setSelectedReqId(req.firestoreId || req.id); setTimeLeft(req.paymentTrack === 'express' ? 7200 : req.paymentTrack === 'fast' ? 21600 : 43200); if(req.status !== 'waiting_for_customer') setIsTimerRunning(true); };
   const simulateAIAnalysis = () => { setIsAnalyzing(true); setTimeout(() => { setIsAnalyzing(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing', aiDraftResponse: `מנוע ה-AI מזהה פונט לא תקני בחותמת התאריך. נדרשת החלטת מומחה סופית.`, confidence: 88 }); }, 2000); };
@@ -924,14 +959,13 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
           {pendingRequests.length === 0 ? (
             <div className="p-8 text-center">
               <p className="text-slate-500">אין בקשות פתוחות כרגע. הכל נבדק!</p>
-              {requests.length === 0 && <p className="text-xs text-slate-400 mt-2">(אם העלית בקשה כרגע, ודא שאתה מחובר באותה סביבת עבודה בדיוק - Vercel או Canvas)</p>}
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
               {pendingRequests.map(req => (
-                <div key={req.firestoreId || req.id} onClick={() => startReviewing(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer group">
-                  <div className="flex items-center gap-4"><img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-12 h-12 rounded object-cover border border-slate-200" /><div><h4 className="font-bold text-slate-800 text-sm">{req.brand} <span className="text-xs text-slate-500 font-normal">{req.model}</span></h4><p className="text-xs text-slate-500">{req.id} • <span className="font-bold">{req.paymentTrack}</span></p></div></div>
-                  <div className="flex items-center gap-3"><span className={`text-[10px] px-2 py-1 rounded-full font-bold ${req.status === 'waiting_for_customer' ? 'bg-amber-100 text-amber-700' : req.status === 'pending_payment' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>{req.status === 'waiting_for_customer' ? 'ממתין לתמונות' : req.status === 'pending_payment' ? 'ממתין לתשלום' : 'ממתין ל-AI'}</span><button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100">פתח תיק <ArrowRight size={14} className="inline ml-1"/></button></div>
+                <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => startReviewing(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer group">
+                  <div className="flex items-center gap-4"><img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand} className="w-12 h-12 rounded object-cover border border-slate-200" /><div><h4 className="font-bold text-slate-800 text-sm">{req?.brand || 'מותג לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4><p className="text-xs text-slate-500">{req?.id || 'מזהה חסר'} • <span className="font-bold">{req?.paymentTrack || 'רגיל'}</span></p></div></div>
+                  <div className="flex items-center gap-3"><span className={`text-[10px] px-2 py-1 rounded-full font-bold ${req?.status === 'waiting_for_customer' ? 'bg-amber-100 text-amber-700' : req?.status === 'pending_payment' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>{req?.status === 'waiting_for_customer' ? 'ממתין לתמונות' : req?.status === 'pending_payment' ? 'ממתין לתשלום' : 'ממתין ל-AI'}</span><button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100">פתח תיק <ArrowRight size={14} className="inline ml-1"/></button></div>
                 </div>
               ))}
             </div>
@@ -945,11 +979,11 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden opacity-80">
               <div className="divide-y divide-slate-100">
                 {completedRequests.map(req => (
-                  <div key={req.firestoreId || req.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4"><img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-12 h-12 rounded object-cover border border-slate-200 grayscale" /><div><h4 className="font-bold text-slate-800 text-sm">{req.brand} <span className="text-xs text-slate-500 font-normal">{req.model}</span></h4><p className="text-xs text-slate-500">{req.id} • {new Date(req.createdAt).toLocaleDateString('he-IL')}</p></div></div>
+                  <div key={req.firestoreId || req.id || Math.random().toString()} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4"><img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand} className="w-12 h-12 rounded object-cover border border-slate-200 grayscale" /><div><h4 className="font-bold text-slate-800 text-sm">{req?.brand || 'לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4><p className="text-xs text-slate-500">{req?.id || 'ללא מזהה'} • {safeDateRender(req?.createdAt)}</p></div></div>
                     <div className="flex items-center gap-3">
-                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                        {req.result === 'authentic' ? 'מקורי' : req.result === 'refunded' ? 'בוטל/זוכה' : 'מזויף'}
+                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold border ${req?.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req?.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                        {req?.result === 'authentic' ? 'מקורי' : req?.result === 'refunded' ? 'בוטל/זוכה' : 'מזויף'}
                       </span>
                     </div>
                   </div>
@@ -966,31 +1000,31 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
     <div className="max-w-5xl mx-auto space-y-6 pb-24 animate-in fade-in duration-500" dir="rtl">
       <button onClick={() => setSelectedReqId(null)} className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-2"><ChevronRight size={18} /> חזור לתור המשימות</button>
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-4"><img src={activeReq.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} className="w-16 h-16 rounded-xl border border-slate-200 object-cover" /><div><h2 className="font-bold text-slate-800 text-lg">בקשה {activeReq.id}</h2><p className="text-sm text-slate-500">{activeReq.brand} • מסלול: <span className="font-bold text-red-500">{activeReq.paymentTrack}</span></p></div></div>
-        <div className={`flex items-center gap-3 px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 shadow-inner ${activeReq.status === 'waiting_for_customer' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-slate-900 text-teal-400 border-slate-800'}`}><span dir="ltr">{formatTime(timeLeft)}</span>{activeReq.status === 'waiting_for_customer' ? <PauseCircle size={24} /> : <Timer size={24} className="animate-pulse" />}</div>
+        <div className="flex items-center gap-4"><img src={activeReq?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} className="w-16 h-16 rounded-xl border border-slate-200 object-cover" /><div><h2 className="font-bold text-slate-800 text-lg">בקשה {activeReq?.id}</h2><p className="text-sm text-slate-500">{activeReq?.brand} • מסלול: <span className="font-bold text-red-500">{activeReq?.paymentTrack}</span></p></div></div>
+        <div className={`flex items-center gap-3 px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 shadow-inner ${activeReq?.status === 'waiting_for_customer' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-slate-900 text-teal-400 border-slate-800'}`}><span dir="ltr">{formatTime(timeLeft)}</span>{activeReq?.status === 'waiting_for_customer' ? <PauseCircle size={24} /> : <Timer size={24} className="animate-pulse" />}</div>
       </div>
 
-      {activeReq.status === 'pending' && (
+      {activeReq?.status === 'pending' && (
         <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><h2 className="text-xl font-bold text-slate-800 mb-2">שלב 1: סריקת AI</h2><button onClick={simulateAIAnalysis} disabled={isAnalyzing} className="px-6 py-3.5 bg-teal-800 text-white rounded-xl font-bold flex gap-2">{isAnalyzing ? 'מנתח...' : 'הפעל סריקה'}</button></div>
       )}
 
-      {(activeReq.status === 'reviewing' || activeReq.status === 'waiting_for_customer' || activeReq.status === 'pending_payment') && (
+      {(activeReq?.status === 'reviewing' || activeReq?.status === 'waiting_for_customer' || activeReq?.status === 'pending_payment') && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="bg-[#1c1c1c] p-4 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]"><CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI</h3><span className="bg-white/10 px-3 py-1 rounded-full text-xs">ודאות: {activeReq.confidence || 'ממתין'}</span></div>
+              <div className="bg-[#1c1c1c] p-4 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]"><CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI</h3><span className="bg-white/10 px-3 py-1 rounded-full text-xs">ודאות: {activeReq?.confidence || 'ממתין'}</span></div>
               <div className="p-5 md:p-6 space-y-6">
-                <div><h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4><div className="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-wrap">{activeReq.aiDraftResponse || 'ממתין לבדיקה'}</div></div>
+                <div><h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4><div className="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-wrap">{activeReq?.aiDraftResponse || 'ממתין לבדיקה'}</div></div>
                 <div className="border-t border-slate-100 pt-6">
                   <h4 className="font-black text-slate-800 mb-4 text-lg">החלטת מומחה סופית</h4>
-                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq.status === 'waiting_for_customer' || activeReq.status === 'pending_payment'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50"><ShieldCheck className="inline mr-2"/>אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq.status === 'waiting_for_customer' || activeReq.status === 'pending_payment'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50"><ShieldAlert className="inline mr-2"/>פסול כמזויף</button></div>
+                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq?.status === 'waiting_for_customer' || activeReq?.status === 'pending_payment'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50"><ShieldCheck className="inline mr-2"/>אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq?.status === 'waiting_for_customer' || activeReq?.status === 'pending_payment'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50"><ShieldAlert className="inline mr-2"/>פסול כמזויף</button></div>
                   <div className="flex gap-4 border-t border-slate-100 pt-4 mt-2"><button onClick={() => setShowCancelModal(true)} className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline">לא ניתן לאימות? בטל וזכה לקוח</button></div>
                 </div>
               </div>
             </div>
             
             {/* ADMIN IMAGE GALLERY */}
-            {activeReq.images && Object.keys(activeReq.images).length > 0 && (
+            {activeReq?.images && Object.keys(activeReq.images).length > 0 && (
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-5">
                 <h3 className="font-bold text-slate-800 mb-4">תמונות הלקוח ({Object.keys(activeReq.images).length})</h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -1009,10 +1043,10 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
               <div className="bg-slate-50 p-4 border-b border-slate-100"><h3 className="font-bold text-slate-800 flex items-center gap-2"><ImagePlus size={18} className="text-teal-600" /> ניהול תמונות מול לקוח</h3></div>
               <div className="p-5">
-                {activeReq.status === 'reviewing' && !selectedParts.length && !customMessage && (
+                {activeReq?.status === 'reviewing' && !selectedParts.length && !customMessage && (
                   <div className="text-center"><div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500"><Camera size={28} /></div><h4 className="font-bold text-slate-800 mb-2">תמונות חסרות?</h4><button onClick={() => setCustomMessage(' ')} className="w-full py-3 bg-amber-100 text-amber-800 font-bold rounded-xl text-sm">פתח בקשת השלמה</button></div>
                 )}
-                {activeReq.status === 'reviewing' && customMessage !== '' && (
+                {activeReq?.status === 'reviewing' && customMessage !== '' && (
                   <div className="animate-in slide-in-from-right-4 duration-300">
                     <p className="text-xs font-bold text-slate-600 mb-3">סמן איזה אזור הלקוח נדרש לצלם שוב:</p>
                     <div className="grid grid-cols-4 gap-2 mb-4">{BAG_PARTS.map(part => (<div key={part.id} onClick={() => togglePartSelection(part.id)} className={`aspect-square rounded-lg border-2 flex items-center justify-center cursor-pointer ${selectedParts.includes(part.id) ? 'border-teal-500 bg-teal-50 text-teal-600' : 'border-slate-200 text-slate-400'}`}><BagPartIcon type={part.iconType} className="w-6 h-6" /></div>))}</div>
@@ -1020,10 +1054,10 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
                     <div className="flex gap-2"><button onClick={() => setCustomMessage('')} className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-lg">ביטול</button><button onClick={sendPhotoRequest} disabled={selectedParts.length === 0} className="flex-[2] py-2 bg-teal-800 text-white font-bold text-xs rounded-lg disabled:opacity-50">שלח ללקוח והקפא זמן</button></div>
                   </div>
                 )}
-                {activeReq.status === 'waiting_for_customer' && (
+                {activeReq?.status === 'waiting_for_customer' && (
                   <div className="text-center"><div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500 animate-pulse"><Clock size={28} /></div><h4 className="font-bold text-amber-600 mb-2">ממתין לתמונות מהלקוח</h4><p className="text-xs text-slate-500 mb-2">הלקוח קיבל מייל ויכול להעלות את התמונות מהאזור האישי שלו.</p></div>
                 )}
-                {activeReq.status === 'pending_payment' && (
+                {activeReq?.status === 'pending_payment' && (
                   <div className="text-center"><div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-500 animate-pulse"><CreditCard size={28} /></div><h4 className="font-bold text-blue-600 mb-2">ממתין לאישור תשלום</h4><p className="text-xs text-slate-500 mb-2">ברגע שהלקוח יאשר את התשלום במיניסייט, הבקשה תשתחרר אוטומטית לבדיקה.</p>
                     <button onClick={() => updateRequest(activeReq.firestoreId || activeReq.id, { status: 'pending' })} className="mt-4 w-full py-2 bg-blue-50 text-blue-700 font-bold text-xs rounded-lg border border-blue-200">עקוף ידנית ואשר תשלום</button>
                   </div>
@@ -1043,7 +1077,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
           </div>
         </div>
       )}
-      {showNotificationModal && <ClientNotificationModal verdict={finalVerdict} reqId={activeReq.id} onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} hideIsrael={hideIsrael} />}
+      {showNotificationModal && <ClientNotificationModal verdict={finalVerdict} reqId={activeReq?.id} onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} hideIsrael={hideIsrael} />}
     </div>
   );
 }

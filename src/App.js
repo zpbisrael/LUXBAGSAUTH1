@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
 } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
@@ -61,7 +61,7 @@ const translations = {
     israeli_title: "הסטנדרט הישראלי לאימות יוקרה.",
     israeli_desc: "עד היום, כדי לאמת תיק יוקרה נאלצתם להסתמך על קבוצות פייסבוק או לשלוח תמונות לחברות מעבר לים ולהמתין שבועות. Luxury Bags Israel משנה את חוקי המשחק.",
     israeli_point_1: "שירות מהיר ומקומי בשפה העברית.",
-    israeli_point_2: "הכרה מלאה מול חברות האשראי ו-PayPal במקרה של זיוף.",
+    israeli_point_2: "הכרה מלאה מול חברות האשראי בישראל במקרה של זיוף.",
     israeli_point_3: "תעודה דיגיטלית מאובטחת בטכנולוגיית ענן.",
     why_us: "למה קניינים בוחרים בנו?", why_1_title: "טכנולוגיית AI היברידית", why_1_desc: "סריקה ברמת הפיקסל לזיהוי טעויות ייצור בטרם הבדיקה האנושית המעמיקה.",
     why_2_title: "תעודה בעלת תוקף משפטי", why_2_desc: "התעודות שלנו מוכרות ומקובלות על ידי פלטפורמות הסחר הגדולות בעולם למקרי מחלוקת.", why_3_title: "סודיות ודיסקרטיות",
@@ -83,11 +83,11 @@ const translations = {
     continue_photos: "להעלאת תמונות", back: "חזור לאתר", continue_track: "לבחירת מסלול", track_title: "בחירת מסלול",
     track_sub: "בחרו את מהירות הטיפול.", track_reg: "בדיקה רגילה", track_fast: "בדיקה מהירה", track_exp: "אקספרס",
     hours_12: "12 שעות", hours_6: "6 שעות", hours_2: "שעתיים", recommended: "מומלץ", coupon_label: "קוד קופון",
-    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם",
+    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "תשלום באשראי / ביט", send_free: "שלח בחינם",
     authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
     business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
-    contact_sales: "דברו איתנו בוואטסאפ", success_title: "התשלום בוצע בהצלחה! 🎉",
-    success_sub: "הבקשה הועברה לבדיקה. שלחנו לך מייל אישור.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
+    contact_sales: "דברו איתנו בוואטסאפ", success_title: "הבקשה הוגשה בהצלחה! 🎉",
+    success_sub: "הבקשה הועברה לבדיקה. במידה וביצעת תשלום, נתחיל בבדיקה מיד.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
   },
   en: {
     nav_login: "Login", nav_start: "Start Auth", 
@@ -100,7 +100,7 @@ const translations = {
     israeli_title: "The Premium Standard of Authentication.",
     israeli_desc: "Stop relying on unverified forums. Luxury Bags Israel brings world-class authentication technology to your fingertips.",
     israeli_point_1: "Fast, localized premium service.",
-    israeli_point_2: "Officially recognized by PayPal and major marketplaces.",
+    israeli_point_2: "Officially recognized for credit card dispute resolution.",
     israeli_point_3: "Secure, blockchain-ready digital certificates.",
     why_us: "Why Buyers Choose Us?", why_1_title: "Hybrid AI Tech", why_1_desc: "Pixel-level scanning before final human expert verdict.",
     why_2_title: "Guaranteed", why_2_desc: "Recognized by PayPal and eBay for dispute resolution.", why_3_title: "Confidentiality",
@@ -120,11 +120,11 @@ const translations = {
     continue_photos: "Continue to Photos", back: "Back to Site", continue_track: "Continue to Track", track_title: "Select Track",
     track_sub: "Choose turnaround time.", track_reg: "Standard", track_fast: "Fast Track", track_exp: "Express",
     hours_12: "12 Hours", hours_6: "6 Hours", hours_2: "2 Hours", recommended: "Recommended", coupon_label: "Coupon Code",
-    coupon_placeholder: "Enter code", apply: "Apply", send_payment: "Pay with PayPal", send_free: "Submit Free",
+    coupon_placeholder: "Enter code", apply: "Apply", send_payment: "Pay Securely", send_free: "Submit Free",
     authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed",
     business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.",
-    contact_sales: "Contact us on WhatsApp", success_title: "Payment Successful! 🎉",
-    success_sub: "Item is under review. Confirmation email sent.", btn_home: "Dashboard", btn_another: "Authenticate Another"
+    contact_sales: "Contact us on WhatsApp", success_title: "Request Submitted! 🎉",
+    success_sub: "Item is under review. If paid, we will begin immediately.", btn_home: "Dashboard", btn_another: "Authenticate Another"
   }
 };
 
@@ -299,7 +299,8 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        setRole(currentUser.email && currentUser.email.includes('admin') ? 'admin' : 'client');
+        // Set role - Added robust toLowerCase() to prevent case-sensitivity bugs!
+        setRole(currentUser.email && currentUser.email.toLowerCase().includes('admin') ? 'admin' : 'client');
       }
     });
     return () => unsubscribe();
@@ -312,21 +313,37 @@ export default function App() {
       const allReqs = snapshot.docs.map(document => ({ firestoreId: document.id, ...document.data() }));
       allReqs.sort((a, b) => b.createdAt - a.createdAt);
       setSystemRequests(role === 'admin' ? allReqs : allReqs.filter(req => req.clientId === user.uid));
-    }, (error) => console.error("Firestore Listen Error:", error));
+    }, (error) => {
+      console.error("Firestore Listen Error:", error);
+      if (error.code === 'permission-denied') {
+        alert("שגיאת אבטחה! המערכת מזהה שפיירבייס חוסם גישה למסד הנתונים. יש לוודא שעדכנת את ה-Rules של Firestore Database למצב מאושר.");
+      }
+    });
     return () => unsubscribe();
   }, [user, role]);
 
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
-    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), { 
-      ...newReqData, clientId: user.uid, clientEmail: user.email || 'Anonymous', createdAt: Date.now() 
-    });
-    setCurrentView('dashboard'); 
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), { 
+        ...newReqData, clientId: user.uid, clientEmail: user.email || 'Anonymous', createdAt: Date.now() 
+      });
+      setCurrentView('dashboard'); 
+    } catch (err) {
+      console.error("Add Request Error:", err);
+      alert("שגיאה חמורה בשמירת הנתונים: פיירבייס חוסם את הבקשה.\nכדי שזה יעבוד, היכנס עכשיו למסד הנתונים ב-Firebase -> Firestore Database -> Rules, ושנה את הגישה ל: allow read, write: if request.auth != null;");
+      throw err; // מונע מסך הצלחה במקרה של שגיאה אמיתית בשרת
+    }
   };
   
   const updateRequest = async (firestoreId, updates) => {
     if (!user || !db) return;
-    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'auth_requests', firestoreId), updates);
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'auth_requests', firestoreId), updates);
+    } catch (err) {
+      console.error("Update Request Error:", err);
+      alert("שגיאה בעדכון מסד הנתונים בפיירבייס. בדוק Rules.");
+    }
   };
 
   if (showLanding) {
@@ -458,7 +475,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
             </div>
           )}
           
-          <h1 className="text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-2xl" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
+          <h1 className="text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-2xl font-serif" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
           <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed mb-12" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
@@ -475,10 +492,10 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       {/* STATS STRIP */}
       <section className="bg-[#0a0a0a] border-t border-white/10 py-10 relative z-20">
          <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/10 rtl:divide-x-reverse text-center">
-            <div><p className="text-3xl md:text-4xl font-black text-[#d4af37] mb-1">+12,500</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_items')}</p></div>
-            <div><p className="text-3xl md:text-4xl font-black text-white mb-1">99.8%</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_accuracy')}</p></div>
-            <div><p className="text-3xl md:text-4xl font-black text-white mb-1">2-12</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_speed')}</p></div>
-            <div><p className="text-3xl md:text-4xl font-black text-white mb-1">+4,000</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_clients')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-[#d4af37] font-serif mb-1">+12,500</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_items')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-white font-serif mb-1">99.8%</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_accuracy')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-white font-serif mb-1">2-12</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_speed')}</p></div>
+            <div><p className="text-3xl md:text-4xl font-black text-white font-serif mb-1">+4,000</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_clients')}</p></div>
          </div>
       </section>
 
@@ -486,11 +503,11 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       <section className="bg-white py-12 border-b border-slate-100 shadow-sm z-20 relative">
         <p className="text-center text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-8">{t('trusted_by')}</p>
         <div className="flex justify-center flex-wrap gap-10 md:gap-20 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
-           <span className="font-black text-2xl tracking-widest">LOUIS VUITTON</span>
-           <span className="font-black text-2xl tracking-widest">CHANEL</span>
-           <span className="font-black text-2xl tracking-widest">HERMÈS</span>
-           <span className="font-black text-2xl tracking-widest">DIOR</span>
-           <span className="font-black text-2xl tracking-widest">GUCCI</span>
+           <span className="font-black text-2xl tracking-widest font-serif">LOUIS VUITTON</span>
+           <span className="font-black text-2xl tracking-widest font-serif">CHANEL</span>
+           <span className="font-black text-2xl tracking-widest font-serif">HERMÈS</span>
+           <span className="font-black text-2xl tracking-widest font-serif">DIOR</span>
+           <span className="font-black text-2xl tracking-widest font-serif">GUCCI</span>
         </div>
       </section>
 
@@ -498,7 +515,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       <section className="py-24 bg-[#fafafa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
            <div className="w-full lg:w-1/2">
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">{t('israeli_title')}</h2>
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-serif leading-tight">{t('israeli_title')}</h2>
               <p className="text-lg text-slate-600 leading-relaxed mb-8">{t('israeli_desc')}</p>
               <div className="space-y-4">
                  <div className="flex items-start gap-4"><div className="mt-1 bg-teal-50 p-2 rounded-full text-teal-700"><Check size={20}/></div><p className="text-slate-700 font-medium">{t('israeli_point_1')}</p></div>
@@ -535,7 +552,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6">{t('why_us')}</h2>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 font-serif">{t('why_us')}</h2>
             <div className="w-24 h-1 bg-[#d4af37] mx-auto rounded-full"></div>
           </div>
           
@@ -569,7 +586,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       <section id="how-it-works" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{t('how_title')}</h2>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-serif">{t('how_title')}</h2>
             <div className="w-24 h-1 bg-slate-900 mx-auto rounded-full"></div>
           </div>
 
@@ -615,7 +632,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
       {/* REVIEWS (Social Proof) */}
       <section className="bg-[#fafafa] py-24 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
-           <h2 className="text-3xl font-black text-center text-slate-900 mb-12">{t('reviews_title')}</h2>
+           <h2 className="text-3xl font-black text-center text-slate-900 mb-12 font-serif">{t('reviews_title')}</h2>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { name: isRtl ? 'שירן כ.' : 'Shiran C.', text: isRtl ? 'הצילו אותי מקניית זיוף ב-8,000 ש"ח! שירות מהיר, מקצועי ואמין. התעודה הגיעה תוך כמה שעות.' : 'Saved me from buying a fake! Fast, professional and reliable.', stars: 5 },
@@ -629,6 +646,12 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                 </div>
               ))}
            </div>
+           
+           <div className="mt-16 flex justify-center">
+             <button onClick={onGoToLogin} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
+               <ShieldCheck size={20} /> {user ? t('client_portal') : t('nav_start')}
+             </button>
+           </div>
         </div>
       </section>
       
@@ -637,7 +660,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         <div className="absolute inset-0 bg-gradient-to-r from-[#d4af37]/20 to-transparent opacity-30"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
            <div>
-             <h2 className="text-3xl md:text-4xl font-black mb-4">{t('b2b_title') || 'בעלי בוטיק? הצטרפו לתוכנית העסקים'}</h2>
+             <h2 className="text-3xl md:text-4xl font-black mb-4 font-serif">{t('b2b_title') || 'בעלי בוטיק? הצטרפו לתוכנית העסקים'}</h2>
              <p className="text-slate-400 text-lg max-w-xl">רכשו חבילות אימות בכמות גדולה, חסכו עד 20% וקבלו מסלול אקספרס ישיר לצוות המומחים שלנו.</p>
            </div>
            <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="bg-[#d4af37] text-black font-black px-8 py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-white transition-colors w-full md:w-auto whitespace-nowrap">
@@ -817,7 +840,7 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
       <div className="bg-[#0a0a0a] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-[#d4af37]/20">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#d4af37]/10 rounded-full blur-[50px] -z-10"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl md:text-3xl font-black mb-2">{t('hello')}! 👋</h2><p className="text-slate-400 text-sm mb-8">{t('welcome_dash')}</p>
+          <h2 className="text-2xl md:text-3xl font-black mb-2 font-serif">{t('hello')}! 👋</h2><p className="text-slate-400 text-sm mb-8">{t('welcome_dash')}</p>
           <button onClick={() => setView('new-request')} className="bg-[#d4af37] text-black font-bold px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm w-full md:w-auto justify-center hover:bg-white transition-colors"><PlusCircle size={18} /> {t('new_request')}</button>
         </div>
       </div>
@@ -830,7 +853,7 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-1"><h4 className="font-bold text-slate-800 text-sm truncate">{req.brand}</h4><span className="text-[10px] text-slate-400">{req.date}</span></div>
                 <p className="text-xs text-slate-500 truncate mb-2">{req.model} • {req.id}</p>
-                {req.status === 'completed' ? (<span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>{req.result === 'authentic' ? <><CheckCircle size={12} /> {t('authentic')}</> : req.result === 'refunded' ? <><X size={12}/> בוטל</> : <><XCircle size={12} /> {t('fake')}</>}</span>) : req.status === 'waiting_for_customer' ? (<span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[10px] font-bold border border-amber-100"><AlertCircle size={12} /> {t('need_photos')}</span>) : (<span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold border border-slate-200"><Clock size={12} /> {t('pending_expert')}</span>)}
+                {req.status === 'completed' ? (<span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>{req.result === 'authentic' ? <><CheckCircle size={12} /> {t('authentic')}</> : req.result === 'refunded' ? <><X size={12}/> בוטל</> : <><XCircle size={12} /> {t('fake')}</>}</span>) : req.status === 'pending_payment' ? (<span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] font-bold border border-blue-200"><CreditCard size={12} /> ממתין לתשלום</span>) : req.status === 'waiting_for_customer' ? (<span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[10px] font-bold border border-amber-100"><AlertCircle size={12} /> {t('need_photos')}</span>) : (<span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold border border-slate-200"><Clock size={12} /> {t('pending_expert')}</span>)}
               </div>
               <ChevronRight size={20} className={`text-slate-300 ${t('hello') === 'שלום' ? '' : 'transform rotate-180'}`} />
             </div>
@@ -838,333 +861,6 @@ function ClientDashboard({ t, requests, setView, onSelectCert }) {
           {requests.length === 0 && <p className="text-center text-slate-500 text-sm py-10">No requests yet.</p>}
         </div>
       </div>
-    </div>
-  );
-}
-
-function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) {
-  const [step, setStep] = useState(1);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [brand, setBrand] = useState('');
-  const [itemType, setItemType] = useState('');
-  const [model, setModel] = useState('');
-  const [couponCode, setCouponCode] = useState('');
-  const [couponMessage, setCouponMessage] = useState(null);
-  const [isDiscountApplied, setIsDiscountApplied] = useState(false);
-  const [paymentTrack, setPaymentTrack] = useState('regular');
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
-  
-  const [uploadedImages, setUploadedImages] = useState({});
-  const [uploadingPart, setUploadingPart] = useState(null);
-  const [activeUploads, setActiveUploads] = useState(0); 
-  const fileInputRef = useRef(null);
-  
-  useEffect(() => {
-    const scriptId = 'paypal-sdk-script';
-    if (document.getElementById(scriptId)) { setPaypalLoaded(true); return; }
-    const script = document.createElement('script'); script.id = scriptId;
-    script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
-    script.async = true; script.onload = () => setPaypalLoaded(true); document.body.appendChild(script);
-  }, [geo.currency]);
-
-  const handleApplyCoupon = () => {
-    if (['LUXBAGFREE', 'LUXBAGCHECK'].includes(couponCode.trim().toUpperCase())) {
-      setCouponMessage({ type: 'success', text: isRtl ? 'קופון אומת בהצלחה!' : 'Coupon applied successfully!' }); setIsDiscountApplied(true);
-    } else { setCouponMessage({ type: 'error', text: isRtl ? 'קוד שגוי' : 'Invalid code' }); setIsDiscountApplied(false); }
-  };
-
-  const triggerFileInput = (partId) => {
-    setUploadingPart(partId);
-    fileInputRef.current.click();
-  };
-
-  const removeImage = (partId) => {
-    setUploadedImages(prev => {
-      const newImgs = {...prev};
-      delete newImgs[partId];
-      return newImgs;
-    });
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const currentPart = uploadingPart;
-    setUploadingPart(null); 
-    
-    // Instant compression & local Base64 display
-    const base64Data = await compressImageToBase64(file);
-    setUploadedImages(prev => ({ ...prev, [currentPart]: base64Data }));
-    e.target.value = null; 
-
-    // Silent Background Upload to Storage
-    if (storage && user) {
-      setActiveUploads(prev => prev + 1);
-      try {
-        const res = await fetch(base64Data);
-        const blob = await res.blob();
-        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-        const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
-        const snapshot = await uploadBytes(fileRef, blob);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        // Replace base64 with true URL when ready
-        setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
-      } catch (err) {
-        console.warn("Storage sync failed, falling back to local Base64 string.", err);
-      } finally {
-        setActiveUploads(prev => Math.max(0, prev - 1));
-      }
-    }
-  };
-
-  useEffect(() => {
-    // Only render PayPal if there are NO active uploads background processing
-    if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess && activeUploads === 0) {
-       const container = document.getElementById('paypal-button-container');
-       if (container) {
-         container.innerHTML = ''; 
-         const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
-         window.paypal.Buttons({
-           createOrder: (d, actions) => actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] }),
-           onApprove: (d, actions) => actions.order.capture().then(() => {
-                const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
-                addRequest({ 
-                  id: newReqId, brand, model: model || 'N/A', 
-                  date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, 
-                  image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
-                  images: uploadedImages 
-                });
-                setShowSuccess(true);
-             }),
-           onError: (err) => { console.error("PayPal Error:", err); alert("PayPal Error: Please try again."); }
-         }).render('#paypal-button-container');
-       }
-    }
-  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages, activeUploads]);
-
-  const handlePaymentSuccessFree = () => {
-    const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
-    addRequest({ 
-      id: newReqId, brand, model: model || 'N/A', 
-      date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack, 
-      image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
-      images: uploadedImages 
-    });
-    setShowSuccess(true);
-  };
-
-  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
-
-  if (showSuccess) {
-    return (
-      <div className="max-w-lg mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in zoom-in-95 text-center p-10 mb-24">
-        <div className="w-24 h-24 bg-[#d4af37]/20 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle className="w-12 h-12 text-[#d4af37]" /></div>
-        <h2 className="text-2xl font-black text-slate-800 mb-3">{t('success_title')}</h2><p className="text-slate-600 mb-8">{t('success_sub')}</p>
-        <div className="space-y-3"><button onClick={() => setView('dashboard')} className="w-full bg-[#0a0a0a] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors">{t('btn_home')}</button><button onClick={handleReset} className="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-100 transition-colors">{t('btn_another')} <PlusCircle size={18} className="inline ml-1" /></button></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-lg mx-auto w-full md:max-w-3xl bg-white rounded-3xl shadow-sm border border-slate-100 overflow-visible animate-in fade-in pb-6 mb-24">
-      <div className="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-between mb-2 rounded-t-3xl">
-        <h2 className="font-bold text-slate-800">{t('new_request')}</h2><span className="text-xs font-medium text-[#d4af37] bg-[#d4af37]/10 px-3 py-1 rounded-full uppercase tracking-wider">{step === 1 ? t('step_1') : step === 2 ? t('step_2') : t('step_3')}</span>
-      </div>
-      <div className="p-5 md:p-8">
-        {step === 1 ? (
-          <div className="space-y-5">
-             <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">{t('brand')} *</label>
-               <select value={brand} onChange={e => { setBrand(e.target.value); setModel(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors">
-                 <option value="">{t('select_brand')}</option>
-                 {LUXURY_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-               </select>
-             </div>
-             <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">{t('item_type')} *</label>
-               <select value={itemType} onChange={e => { setItemType(e.target.value); setModel(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors">
-                 <option value="">{t('select_type')}</option>
-                 {ITEM_TYPES.map(type => <option key={type} value={type}>{type.split('/')[isRtl ? 1 : 0]}</option>)}
-               </select>
-             </div>
-             
-             {brand && itemType && (
-               <div className="animate-in fade-in slide-in-from-top-4">
-                 <label className="block text-sm font-bold text-slate-700 mb-2">
-                   {t('model')} <span className="font-normal text-slate-400">({t('optional')})</span>
-                 </label>
-                 
-                 {itemType === 'Bag/תיק' && BRAND_MODELS[brand] ? (
-                   <select 
-                     value={model} 
-                     onChange={e => setModel(e.target.value)} 
-                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
-                   >
-                     <option value="">{isRtl ? "בחרו דגם מתוך הרשימה" : "Select model"}</option>
-                     {BRAND_MODELS[brand].map(m => <option key={m} value={m}>{m}</option>)}
-                   </select>
-                 ) : (
-                   <input 
-                     type="text" 
-                     value={model} 
-                     onChange={e => setModel(e.target.value)} 
-                     placeholder={t('model_placeholder')} 
-                     className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors" 
-                   />
-                 )}
-               </div>
-             )}
-             
-             <button onClick={() => setStep(2)} disabled={!brand || !itemType} className="w-full mt-8 bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl disabled:opacity-50 transition-colors">{t('continue_photos')}</button>
-          </div>
-        ) : step === 2 ? (
-          <div className="space-y-6">
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-            
-            {activeUploads > 0 && (
-              <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 text-slate-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
-                <RefreshCcw size={14} className="animate-spin text-[#d4af37]" /> 
-                {isRtl ? `מסנכרן לשרת מאובטח (${activeUploads})...` : `Syncing securely (${activeUploads})...`}
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {BAG_PARTS.map(part => (
-                <div key={part.id} className="relative group">
-                  {uploadedImages[part.id] ? (
-                    <div className="border-2 border-slate-200 rounded-xl p-1 relative">
-                      <img src={uploadedImages[part.id]} alt={part.id} className="w-full h-20 object-cover rounded-lg" />
-                      <button onClick={(e) => { e.stopPropagation(); removeImage(part.id); }} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md z-10 transition-colors">
-                        <X size={14} />
-                      </button>
-                      <span className="absolute bottom-2 right-2 z-10 bg-black/70 text-white text-[10px] px-1.5 rounded">{part.id}</span>
-                    </div>
-                  ) : (
-                    <div onClick={() => triggerFileInput(part.id)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center text-center bg-slate-50 hover:border-[#d4af37]/50 cursor-pointer h-[92px] transition-colors">
-                       <BagPartIcon type={part.iconType} className="w-8 h-8 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
-                       <span className="text-[10px] font-bold text-slate-500">{part.id}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
-          </div>
-        ) : (
-          <div className="space-y-6 animate-in fade-in">
-            <div className="mb-4"><h3 className="text-xl font-bold text-slate-800 mb-1">{t('track_title')}</h3><p className="text-sm text-slate-500">{t('track_sub')}</p></div>
-            <div className="space-y-4">
-              <TrackOption id="regular" title={t('track_reg')} hours={t('hours_12')} price={geo.currency === 'ILS' ? 99 : 29} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
-              <TrackOption id="fast" title={t('track_fast')} hours={t('hours_6')} price={geo.currency === 'ILS' ? 129 : 39} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-orange-500" />
-              <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={geo.currency === 'ILS' ? 149 : 49} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} tag={t('recommended')} highlight="text-red-500" />
-            </div>
-            <div className="bg-slate-50 p-5 rounded-xl text-sm border border-slate-100 mt-6">
-              <label className="block text-sm font-bold text-slate-700 mb-2">{t('coupon_label')}</label>
-              <div className="flex gap-2"><input type="text" value={couponCode} onChange={e => { setCouponCode(e.target.value); setCouponMessage(null); }} placeholder={t('coupon_placeholder')} className="flex-1 bg-white border border-slate-200 rounded-lg py-3 px-4 uppercase text-sm outline-none focus:border-[#d4af37]" disabled={isDiscountApplied} /><button onClick={handleApplyCoupon} disabled={!couponCode || isDiscountApplied} className="bg-slate-800 text-[#d4af37] font-bold py-3 px-6 rounded-lg disabled:opacity-50 hover:bg-slate-900 transition-colors">{t('apply')}</button></div>
-              {couponMessage && <p className={`mt-2 text-xs font-bold ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>{couponMessage.text}</p>}
-            </div>
-            <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
-              <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
-              {isDiscountApplied ? (
-                <button onClick={handlePaymentSuccessFree} className="w-full bg-[#0a0a0a] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors">{t('send_free')}</button>
-              ) : (<div className="relative z-0 min-h-[150px]">{!paypalLoaded && <div className="flex justify-center p-8"><RefreshCcw className="animate-spin text-slate-400" /></div>}<div id="paypal-button-container" className="w-full"></div></div>)}
-              <button onClick={() => setView('business-pkgs')} className="text-sm font-bold text-slate-500 hover:text-slate-800 mt-4 flex justify-center items-center gap-2"><Briefcase size={16} /> {t('business_pkg')}</button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
-  const isSelected = current === id;
-  return (
-    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
-          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
-        </div>
-        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
-      </div>
-    </div>
-  );
-}
-
-function BusinessPackages({ t, geo, isRtl, setView }) {
-  const packages = [
-    { title: 'Bronze', checks: 10, free: 2, discount: '15%', price: geo.currency === 'ILS' ? 850 : 250 },
-    { title: 'Silver', checks: 50, free: 10, discount: '17%', price: geo.currency === 'ILS' ? 4150 : 1200 },
-    { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
-  ];
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
-      <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
-      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {packages.map((pkg, idx) => (
-          <div key={idx} className={`bg-white rounded-3xl p-8 border shadow-sm relative overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'border-[#d4af37] ring-1 ring-[#d4af37]/20' : 'border-slate-200'}`}>
-             {idx === 1 && <div className="absolute top-0 inset-x-0 bg-[#d4af37] text-black text-[10px] font-bold text-center py-1 uppercase tracking-widest">Most Popular</div>}
-             <div className="absolute top-6 right-6 bg-slate-900 text-white text-xs font-black px-2.5 py-1 rounded">- {pkg.discount}</div>
-             <h3 className={`text-2xl font-black mb-1 mt-4 ${idx === 1 ? 'text-[#d4af37]' : 'text-slate-800'}`}>{pkg.title}</h3>
-             <p className="text-slate-500 text-sm mb-8 font-medium">{pkg.checks} Authentications<br/><span className="text-green-600">+ {pkg.free} Free Checks</span></p>
-             <div className="text-4xl font-black text-slate-900 mb-8" dir="ltr">{geo.symbol}{pkg.price}</div>
-             <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }) {
-  if(!data) return null;
-  const isAuthentic = data.result === 'authentic';
-  return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95">
-      <button onClick={onBack} className="text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
-      <div className="bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
-        <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden">
-          <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
-          <div className="mb-10 relative z-10"><BrandLogo className="w-28 h-28 mx-auto mb-6 drop-shadow-xl" hideIsrael={hideIsrael} /><h1 className="text-3xl md:text-5xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-3">Certificate of Authentication</h1><p className="text-[#d4af37] font-bold tracking-[0.4em] text-sm uppercase">Luxury Bags Israel</p></div>
-          <div className={`w-full py-5 mb-10 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}><h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><ShieldCheck size={36} /> Authentic</> : <><ShieldAlert size={36} /> Counterfeit</>}</h2></div>
-          <div className="w-full max-w-xl mb-12 relative z-10">
-            <div className="grid grid-cols-2 gap-y-6 text-left border-b border-slate-200 pb-6 mb-6" dir="ltr"><div className="text-slate-500 text-sm uppercase tracking-widest">Brand</div><div className="font-bold text-slate-900 text-lg">{data.brand}</div><div className="text-slate-500 text-sm uppercase tracking-widest">Model</div><div className="font-bold text-slate-900 text-lg">{data.model}</div><div className="text-slate-500 text-sm uppercase tracking-widest">Date Inspected</div><div className="font-bold text-slate-900 text-lg">{data.date}</div></div>
-            <p className="text-sm text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
-          </div>
-          <div className="w-full mb-12 relative z-10">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-3 mb-6 text-left" dir="ltr">Inspected Elements</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {data.images && Object.entries(data.images).map(([part, url]) => (
-                 <div key={part} className="relative group">
-                    <img src={url} alt={part} className="w-full h-28 md:h-36 object-cover border border-slate-200 rounded-lg shadow-sm group-hover:opacity-90 transition-opacity" />
-                    <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded uppercase tracking-wider">{part}</span>
-                 </div>
-              ))}
-              {(!data.images || Object.keys(data.images).length === 0) && (
-                 <img src={data.image} className="w-full h-32 object-cover border border-slate-200 rounded-lg shadow-sm col-span-2" />
-              )}
-            </div>
-          </div>
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-8 border-t border-slate-100">
-            <div className="text-left" dir="ltr"><CertificateStamp /></div>
-            <div className="flex flex-col items-center"><div className="bg-white p-3 border border-slate-200 rounded-xl shadow-md mb-3"><QrCode size={72} className="text-slate-800" /></div><p className="text-[9px] text-slate-400 uppercase tracking-widest">Scan to Verify</p><p className="text-xs font-bold text-slate-800 mt-1 font-mono tracking-wider">{data.id}</p></div>
-          </div>
-        </div>
-      </div>
-      {!isClientView && (<div className="flex justify-end pt-6"><button className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg"><Upload size={20} /> הדפס / יצא ל-PDF</button></div>)}
-      {isClientView && isAuthentic && (
-        <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
-          <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
-          <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
-             <button className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> העתק קישור</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1182,6 +878,10 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const [cancelReason, setCancelReason] = useState('');
 
   const activeReq = requests.find(r => r.id === selectedReqId || r.firestoreId === selectedReqId);
+
+  // Divide requests into pending and completed for Admin history view
+  const pendingRequests = requests.filter(r => r.status !== 'completed' && r.status !== 'refunded');
+  const completedRequests = requests.filter(r => r.status === 'completed' || r.status === 'refunded');
 
   useEffect(() => {
     let interval = null;
@@ -1202,26 +902,62 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
   if (!activeReq) {
-    const pendingRequests = requests.filter(r => r.status !== 'completed');
     return (
       <div className="max-w-6xl mx-auto animate-in fade-in pb-24" dir="rtl">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
-          <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1"><h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3><p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingRequests.length}</p></div>
-          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden"><div className="relative z-10"><h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3><p className="text-xl md:text-2xl font-bold flex items-center gap-2">מערכת יציבה ופעילה</p></div><BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={hideIsrael} /></div>
+          <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
+            <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3>
+            <p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingRequests.length}</p>
+          </div>
+          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3>
+              <p className="text-xl md:text-2xl font-bold flex items-center gap-2">מערכת יציבה ופעילה</p>
+              <p className="text-xs text-teal-200 mt-2">סה"כ רשומות במסד הנתונים: {requests.length}</p>
+            </div>
+            <BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={hideIsrael} />
+          </div>
         </div>
+        
         <h2 className="text-2xl font-bold text-slate-800 mb-6">תור משימות לבדיקה</h2>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {pendingRequests.length === 0 ? (<p className="p-8 text-center text-slate-500">אין בקשות פתוחות. הכל נבדק!</p>) : (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-10">
+          {pendingRequests.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-slate-500">אין בקשות פתוחות כרגע. הכל נבדק!</p>
+              {requests.length === 0 && <p className="text-xs text-slate-400 mt-2">(אם העלית בקשה כרגע, ודא שאתה מחובר באותה סביבת עבודה בדיוק - Vercel או Canvas)</p>}
+            </div>
+          ) : (
             <div className="divide-y divide-slate-100">
               {pendingRequests.map(req => (
                 <div key={req.firestoreId || req.id} onClick={() => startReviewing(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer group">
                   <div className="flex items-center gap-4"><img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-12 h-12 rounded object-cover border border-slate-200" /><div><h4 className="font-bold text-slate-800 text-sm">{req.brand} <span className="text-xs text-slate-500 font-normal">{req.model}</span></h4><p className="text-xs text-slate-500">{req.id} • <span className="font-bold">{req.paymentTrack}</span></p></div></div>
-                  <div className="flex items-center gap-3"><span className={`text-[10px] px-2 py-1 rounded-full font-bold ${req.status === 'waiting_for_customer' ? 'bg-amber-100 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>{req.status === 'waiting_for_customer' ? 'ממתין לתמונות' : 'ממתין ל-AI'}</span><button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100">פתח תיק <ArrowRight size={14} className="inline ml-1"/></button></div>
+                  <div className="flex items-center gap-3"><span className={`text-[10px] px-2 py-1 rounded-full font-bold ${req.status === 'waiting_for_customer' ? 'bg-amber-100 text-amber-700' : req.status === 'pending_payment' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>{req.status === 'waiting_for_customer' ? 'ממתין לתמונות' : req.status === 'pending_payment' ? 'ממתין לתשלום' : 'ממתין ל-AI'}</span><button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100">פתח תיק <ArrowRight size={14} className="inline ml-1"/></button></div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* ADMIN HISTORY VIEW */}
+        {completedRequests.length > 0 && (
+          <>
+            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2"><Clock size={20}/> היסטוריית בדיקות עבר</h2>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden opacity-80">
+              <div className="divide-y divide-slate-100">
+                {completedRequests.map(req => (
+                  <div key={req.firestoreId || req.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4"><img src={req.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req.brand} className="w-12 h-12 rounded object-cover border border-slate-200 grayscale" /><div><h4 className="font-bold text-slate-800 text-sm">{req.brand} <span className="text-xs text-slate-500 font-normal">{req.model}</span></h4><p className="text-xs text-slate-500">{req.id} • {new Date(req.createdAt).toLocaleDateString('he-IL')}</p></div></div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                        {req.result === 'authentic' ? 'מקורי' : req.result === 'refunded' ? 'בוטל/זוכה' : 'מזויף'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -1238,16 +974,16 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
         <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><h2 className="text-xl font-bold text-slate-800 mb-2">שלב 1: סריקת AI</h2><button onClick={simulateAIAnalysis} disabled={isAnalyzing} className="px-6 py-3.5 bg-teal-800 text-white rounded-xl font-bold flex gap-2">{isAnalyzing ? 'מנתח...' : 'הפעל סריקה'}</button></div>
       )}
 
-      {(activeReq.status === 'reviewing' || activeReq.status === 'waiting_for_customer') && (
+      {(activeReq.status === 'reviewing' || activeReq.status === 'waiting_for_customer' || activeReq.status === 'pending_payment') && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="bg-[#1c1c1c] p-4 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]"><CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI</h3><span className="bg-white/10 px-3 py-1 rounded-full text-xs">ודאות: {activeReq.confidence}%</span></div>
+              <div className="bg-[#1c1c1c] p-4 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]"><CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI</h3><span className="bg-white/10 px-3 py-1 rounded-full text-xs">ודאות: {activeReq.confidence || 'ממתין'}</span></div>
               <div className="p-5 md:p-6 space-y-6">
-                <div><h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4><div className="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-wrap">{activeReq.aiDraftResponse}</div></div>
+                <div><h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4><div className="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-wrap">{activeReq.aiDraftResponse || 'ממתין לבדיקה'}</div></div>
                 <div className="border-t border-slate-100 pt-6">
                   <h4 className="font-black text-slate-800 mb-4 text-lg">החלטת מומחה סופית</h4>
-                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50"><ShieldCheck className="inline mr-2"/>אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq.status === 'waiting_for_customer'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50"><ShieldAlert className="inline mr-2"/>פסול כמזויף</button></div>
+                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq.status === 'waiting_for_customer' || activeReq.status === 'pending_payment'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50"><ShieldCheck className="inline mr-2"/>אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq.status === 'waiting_for_customer' || activeReq.status === 'pending_payment'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50"><ShieldAlert className="inline mr-2"/>פסול כמזויף</button></div>
                   <div className="flex gap-4 border-t border-slate-100 pt-4 mt-2"><button onClick={() => setShowCancelModal(true)} className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline">לא ניתן לאימות? בטל וזכה לקוח</button></div>
                 </div>
               </div>
@@ -1286,6 +1022,11 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
                 )}
                 {activeReq.status === 'waiting_for_customer' && (
                   <div className="text-center"><div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500 animate-pulse"><Clock size={28} /></div><h4 className="font-bold text-amber-600 mb-2">ממתין לתמונות מהלקוח</h4><p className="text-xs text-slate-500 mb-2">הלקוח קיבל מייל ויכול להעלות את התמונות מהאזור האישי שלו.</p></div>
+                )}
+                {activeReq.status === 'pending_payment' && (
+                  <div className="text-center"><div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-500 animate-pulse"><CreditCard size={28} /></div><h4 className="font-bold text-blue-600 mb-2">ממתין לאישור תשלום</h4><p className="text-xs text-slate-500 mb-2">ברגע שהלקוח יאשר את התשלום במיניסייט, הבקשה תשתחרר אוטומטית לבדיקה.</p>
+                    <button onClick={() => updateRequest(activeReq.firestoreId || activeReq.id, { status: 'pending' })} className="mt-4 w-full py-2 bg-blue-50 text-blue-700 font-bold text-xs rounded-lg border border-blue-200">עקוף ידנית ואשר תשלום</button>
+                  </div>
                 )}
               </div>
             </div>

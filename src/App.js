@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard, Instagram
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
 } from 'lucide-react';
 
 // Firebase Imports
@@ -126,11 +126,11 @@ const translations = {
     continue_photos: "להעלאת תמונות", back: "חזור לאתר", continue_track: "לבחירת מסלול", track_title: "בחירת מסלול",
     track_sub: "בחרו את מהירות הטיפול.", track_reg: "בדיקה רגילה", track_fast: "בדיקה מהירה", track_exp: "אקספרס",
     hours_12: "12 שעות", hours_6: "6 שעות", hours_2: "שעתיים", recommended: "מומלץ", coupon_label: "קוד קופון",
-    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם",
+    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "תשלום באשראי / ביט", send_free: "שלח בחינם",
     authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
     business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
     contact_sales: "דברו איתנו בוואטסאפ", success_title: "הבקשה הוגשה בהצלחה! 🎉",
-    success_sub: "התשלום עבר והבקשה בבדיקה! שלחנו לך מייל אישור.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
+    success_sub: "הבקשה הועברה לבדיקה. במידה וביצעת תשלום, נתחיל בבדיקה מיד.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
   },
   en: {
     nav_login: "Login", nav_start: "Start Auth", 
@@ -167,13 +167,24 @@ const translations = {
     authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed",
     business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.",
     contact_sales: "Contact us on WhatsApp", success_title: "Request Submitted! 🎉",
-    success_sub: "Payment successful! Item is under review.", btn_home: "Dashboard", btn_another: "Authenticate Another"
+    success_sub: "Item is under review. If paid, we will begin immediately.", btn_home: "Dashboard", btn_another: "Authenticate Another"
   }
 };
 
 // ==========================================
 // ICONS & UI HELPERS
 // ==========================================
+
+function InstagramIcon({ size = 24, className = "" }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+    </svg>
+  );
+}
+
 function BrandLogo({ className = "w-16 h-16", hideIsrael = false }) {
   return (
     <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -1241,7 +1252,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><Instagram size={20}/> שתפו בסטורי</button>
+             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
              <button className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> העתק קישור</button>
           </div>
         </div>

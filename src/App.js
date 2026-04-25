@@ -22,7 +22,6 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 
 // ==========================================
 // מנגנון הגנה: WATCHDOG (ERROR BOUNDARY)
-// מונע קריסה מוחלטת של האפליקציה ומסך לבן
 // ==========================================
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -64,7 +63,9 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Firebase Initialization
+// ==========================================
+// FIREBASE CONFIGURATION
+// ==========================================
 const userFirebaseConfig = {
   apiKey: "AIzaSyBvvH0iqqzzm23gDy-1RpBWcHhtgisRhKw",
   authDomain: "luxyry-bags-israel.firebaseapp.com",
@@ -88,7 +89,9 @@ try {
   console.error("Firebase init failed", e);
 }
 
-// Translations
+// ==========================================
+// TRANSLATIONS
+// ==========================================
 const translations = {
   he: {
     nav_login: "התחברות", nav_start: "התחילו אימות", 
@@ -123,11 +126,11 @@ const translations = {
     continue_photos: "להעלאת תמונות", back: "חזור לאתר", continue_track: "לבחירת מסלול", track_title: "בחירת מסלול",
     track_sub: "בחרו את מהירות הטיפול.", track_reg: "בדיקה רגילה", track_fast: "בדיקה מהירה", track_exp: "אקספרס",
     hours_12: "12 שעות", hours_6: "6 שעות", hours_2: "שעתיים", recommended: "מומלץ", coupon_label: "קוד קופון",
-    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "תשלום באשראי / ביט", send_free: "שלח בחינם",
+    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם",
     authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
     business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
     contact_sales: "דברו איתנו בוואטסאפ", success_title: "הבקשה הוגשה בהצלחה! 🎉",
-    success_sub: "הבקשה הועברה לבדיקה. במידה וביצעת תשלום, נתחיל בבדיקה מיד.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
+    success_sub: "התשלום עבר והבקשה בבדיקה! שלחנו לך מייל אישור.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
   },
   en: {
     nav_login: "Login", nav_start: "Start Auth", 
@@ -164,11 +167,13 @@ const translations = {
     authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed",
     business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.",
     contact_sales: "Contact us on WhatsApp", success_title: "Request Submitted! 🎉",
-    success_sub: "Item is under review. If paid, we will begin immediately.", btn_home: "Dashboard", btn_another: "Authenticate Another"
+    success_sub: "Payment successful! Item is under review.", btn_home: "Dashboard", btn_another: "Authenticate Another"
   }
 };
 
-// Icons & Graphics
+// ==========================================
+// ICONS & UI HELPERS
+// ==========================================
 function BrandLogo({ className = "w-16 h-16", hideIsrael = false }) {
   return (
     <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -216,6 +221,9 @@ function BagPartIcon({ type, className = "w-8 h-8" }) {
   }
 }
 
+// ==========================================
+// CONSTANTS & HELPERS
+// ==========================================
 const LUXURY_BRANDS = ["Louis Vuitton", "Chanel", "Hermes", "Dior", "Gucci", "Prada", "Saint Laurent", "Celine", "Fendi", "Balenciaga", "Rolex", "Cartier"];
 const ITEM_TYPES = ["Bag/תיק", "Clothing/בגד", "Shoes/נעליים", "Accessories/אקססוריז", "Watch/שעון"];
 const BAG_PARTS = [
@@ -238,17 +246,12 @@ const BRAND_MODELS = {
   "Balenciaga": ["City", "Hourglass", "Le Cagole", "לא ידוע / Other"]
 };
 
-// Background Image
-const HERO_BG_IMAGES = [
-  "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80"
-];
+const HERO_BG_IMAGES = ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80"];
 
-// Global Styles
 function GlobalStyles() {
   return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; }`}} />;
 }
 
-// High-speed Image Compression
 const compressImageToBase64 = (file) => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -271,7 +274,6 @@ const compressImageToBase64 = (file) => {
   });
 };
 
-// Frontend Telegram Alert
 const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
   const token = "8628800853:AAGwwiVHEii4ao5PO93sWN9755BiQkijDH8";
   const chatId = "6397836431";
@@ -286,7 +288,6 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
     console.error("Telegram alert failed silently", err);
   }
 };
-
 
 // ==========================================
 // CORE APP
@@ -306,6 +307,17 @@ function MainApp() {
   const t = (key) => translations[lang]?.[key] || translations['en'][key] || key;
   const isRtl = lang === 'he' || lang === 'ar';
   const hideIsrael = geo.country !== 'IL'; 
+
+  useEffect(() => {
+    document.title = "AUTHENTICATE YOUR BAG | LBI";
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="100" fill="%231c1c1c"/><path d="M55 70 L75 120 L125 120 L145 70 Z" fill="none" stroke="%23d4af37" stroke-width="4" stroke-linejoin="round"/><rect x="75" y="70" width="50" height="50" fill="none" stroke="%23d4af37" stroke-width="4"/><path d="M85 70 C85 45, 115 45, 115 70" fill="none" stroke="%23d4af37" stroke-width="4"/></svg>';
+  }, []);
 
   const handleLogout = () => { 
     if(auth) signOut(auth); 
@@ -454,7 +466,7 @@ function MainApp() {
 }
 
 // ==========================================
-// MARKETING LANDING PAGE
+// SUB-COMPONENTS
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user, onLogout }) {
   const [showDev, setShowDev] = useState(false);
@@ -478,7 +490,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       )}
       
-      {/* NAVBAR */}
       <nav className="fixed w-full z-50 transition-all duration-300 bg-black/40 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3"><BrandLogo className="w-12 h-12" hideIsrael={hideIsrael} /></div>
@@ -500,29 +511,21 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </nav>
 
-      {/* HERO SECTION WITH STATIC GUCCI BACKGROUND */}
       <section className="relative pt-40 pb-24 lg:pt-56 lg:pb-40 bg-[#0a0a0a] overflow-hidden flex flex-col justify-center min-h-[85vh]">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
-          style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50" style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }} />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent z-0"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-transparent to-[#0a0a0a]/90 z-0"></div>
         
         <div className="relative z-10 max-w-5xl mx-auto px-4 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000 flex flex-col items-center">
-          
           <BrandLogo className="w-32 h-32 md:w-40 md:h-40 mb-6 drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]" hideIsrael={hideIsrael} />
-          
           {(!hideIsrael) && (
             <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 mb-8 shadow-lg backdrop-blur-sm">
                <Sparkles size={16} className="text-[#d4af37]" />
                <span className="text-[#d4af37] font-bold tracking-[0.15em] text-xs md:text-sm uppercase">{t('hero_badge')}</span>
             </div>
           )}
-          
           <h1 className="text-5xl md:text-8xl font-black text-white mb-6 leading-tight tracking-tighter drop-shadow-2xl font-bold" dangerouslySetInnerHTML={{ __html: t('hero_title') }}></h1>
           <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed mb-12" dangerouslySetInnerHTML={{ __html: hideIsrael ? t('hero_subtitle_global') : t('hero_subtitle_il') }}></p>
-          
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
             <button onClick={onGoToLogin} className="w-full sm:w-auto bg-[#d4af37] hover:bg-white text-black font-black px-10 py-5 rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all text-lg flex items-center justify-center gap-2 group">
               <ShieldCheck size={24} className="group-hover:scale-110 transition-transform" /> {user ? t('my_checks') : t('cta_primary')}
@@ -534,7 +537,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
 
-      {/* STATS STRIP */}
       <section className="bg-[#0a0a0a] border-t border-white/10 py-10 relative z-20">
          <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/10 rtl:divide-x-reverse text-center">
             <div><p className="text-3xl md:text-4xl font-black text-[#d4af37] font-bold mb-1">+12,500</p><p className="text-xs text-slate-400 uppercase tracking-wider">{t('stats_items')}</p></div>
@@ -544,7 +546,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
          </div>
       </section>
 
-      {/* TRUSTED BY */}
       <section className="bg-white py-12 border-b border-slate-100 shadow-sm z-20 relative">
         <p className="text-center text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-8">{t('trusted_by')}</p>
         <div className="flex justify-center flex-wrap gap-10 md:gap-20 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
@@ -556,7 +557,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
 
-      {/* THE ISRAELI STANDARD (Split Section) */}
       <section className="py-24 bg-[#fafafa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
            <div className="w-full lg:w-1/2">
@@ -575,7 +575,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
            </div>
            <div className="w-full lg:w-1/2 relative flex justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-[#d4af37]/30 to-transparent rounded-full blur-[80px] -z-10"></div>
-              {/* Fallback to user's uploaded chanel or default bag */}
               <img 
                 src="/shopping.webp" 
                 onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80"; }}
@@ -590,17 +589,14 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
 
-      {/* WHY US (Glass Cards) */}
       <section className="py-24 bg-[#0a0a0a] text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#d4af37]/10 rounded-full blur-[100px] -z-10"></div>
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-900/20 rounded-full blur-[100px] -z-10"></div>
-        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-4xl md:text-5xl font-black text-white mb-6 font-bold">{t('why_us')}</h2>
             <div className="w-24 h-1 bg-[#d4af37] mx-auto rounded-full"></div>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-10 rounded-3xl hover:bg-white/10 transition-all hover:-translate-y-2 group">
               <div className="w-16 h-16 bg-[#d4af37]/20 rounded-2xl flex items-center justify-center text-[#d4af37] mb-8 group-hover:scale-110 transition-transform"><Cpu size={32} /></div>
@@ -618,7 +614,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
               <p className="text-slate-400 leading-relaxed text-lg">{t('why_3_desc')}</p>
             </div>
           </div>
-
           <div className="mt-16 flex justify-center">
              <button onClick={onGoToLogin} className="bg-white text-[#0a0a0a] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
                <CheckCircle size={20} /> {user ? t('client_portal') : (isRtl ? 'התחילו אימות עכשיו' : 'Start Authentication')}
@@ -627,17 +622,14 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section id="how-it-works" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-bold">{t('how_title')}</h2>
             <div className="w-24 h-1 bg-slate-900 mx-auto rounded-full"></div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
              <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-0.5 bg-slate-200 -z-10"></div>
-             
              <div className="text-center relative z-10 group">
                 <div className="w-32 h-32 mx-auto bg-white border-4 border-slate-100 group-hover:border-[#d4af37] text-slate-800 rounded-full flex items-center justify-center mb-8 shadow-xl transition-colors relative">
                    <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#d4af37] text-black font-black flex items-center justify-center rounded-full text-lg">1</div>
@@ -646,7 +638,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">{t('how_1_title')}</h3>
                 <p className="text-slate-600 text-lg px-4">{t('how_1_desc')}</p>
              </div>
-             
              <div className="text-center relative z-10 group">
                 <div className="w-32 h-32 mx-auto bg-white border-4 border-slate-100 group-hover:border-[#d4af37] text-slate-800 rounded-full flex items-center justify-center mb-8 shadow-xl transition-colors relative">
                    <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#d4af37] text-black font-black flex items-center justify-center rounded-full text-lg">2</div>
@@ -655,7 +646,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">{t('how_2_title')}</h3>
                 <p className="text-slate-600 text-lg px-4">{t('how_2_desc')}</p>
              </div>
-             
              <div className="text-center relative z-10 group">
                 <div className="w-32 h-32 mx-auto bg-[#0a0a0a] border-4 border-[#0a0a0a] group-hover:border-[#d4af37] text-[#d4af37] rounded-full flex items-center justify-center mb-8 shadow-xl transition-colors relative">
                    <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#d4af37] text-black font-black flex items-center justify-center rounded-full text-lg">3</div>
@@ -665,7 +655,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                 <p className="text-slate-600 text-lg px-4">{t('how_3_desc')}</p>
              </div>
           </div>
-          
           <div className="mt-20 text-center">
             <button onClick={onGoToLogin} className="bg-slate-900 hover:bg-black text-white font-bold px-12 py-5 rounded-full shadow-2xl text-xl flex items-center justify-center gap-3 mx-auto transition-transform hover:scale-105">
                {user ? t('client_portal') : t('nav_start')} <ArrowRight size={24} className={`inline ${isRtl ? 'rotate-180' : ''}`} />
@@ -674,7 +663,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
 
-      {/* REVIEWS (Social Proof) */}
       <section className="bg-[#fafafa] py-24 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
            <h2 className="text-3xl font-black text-center text-slate-900 mb-12 font-bold">{t('reviews_title')}</h2>
@@ -691,7 +679,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                 </div>
               ))}
            </div>
-           
            <div className="mt-16 flex justify-center">
              <button onClick={onGoToLogin} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
                <ShieldCheck size={20} /> {user ? t('client_portal') : t('nav_start')}
@@ -700,7 +687,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
       
-      {/* B2B / BUSINESS PACKAGES SECTION */}
       <section className="bg-[#0a0a0a] text-white py-20 border-t border-white/10 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-[#d4af37]/20 to-transparent opacity-30"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -725,9 +711,6 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
   );
 }
 
-// ==========================================
-// LOGIN SCREEN
-// ==========================================
 function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsrael }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -785,10 +768,7 @@ function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsra
         <button onClick={() => setLang(lang === 'he' ? 'en' : 'he')} className="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-slate-200 md:border-white/30 text-slate-800 md:text-white px-4 py-2 rounded-full font-bold text-xs shadow-sm hover:bg-white/30"><Globe size={14} /> {lang === 'he' ? 'EN' : 'עברית'}</button>
       </div>
       <div className="hidden md:flex md:w-1/2 relative bg-[#0a0a0a] items-center justify-center overflow-hidden pt-12">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
-          style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40" style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }} />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-0"></div>
         <div className="relative z-10 flex flex-col items-center text-center p-12 animate-in fade-in duration-1000">
           <BrandLogo className="w-40 h-40 mb-8 drop-shadow-2xl" hideIsrael={hideIsrael} />
@@ -841,9 +821,6 @@ function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsra
   );
 }
 
-// ==========================================
-// SHARED UI COMPONENTS
-// ==========================================
 function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogout, hideIsrael, onBackToSite }) {
   const adminMenu = [{ id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Search size={20} /> }];
   const clientMenu = [{ id: 'dashboard', label: t('my_checks'), icon: <LayoutDashboard size={20} /> }, { id: 'new-request', label: t('new_request'), icon: <PlusCircle size={20} /> }];
@@ -876,9 +853,6 @@ function Header({ toggleMenu, role, t }) {
   );
 }
 
-// ==========================================
-// CLIENT DASHBOARD
-// ==========================================
 function ClientDashboard({ t, requests, setView, onSelectCert }) {
   return (
     <div className="space-y-6 max-w-lg mx-auto md:max-w-4xl animate-in fade-in duration-500">

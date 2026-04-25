@@ -8,7 +8,7 @@ import {
   Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
 } from 'lucide-react';
 
-// ימפּאָרטירן פירעבאַסע (Firebase Imports)
+// Firebase Imports
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-// איניציאליזאציע פֿון פירעבאַסע (Firebase Initialization)
+// Firebase Initialization
 const userFirebaseConfig = {
   apiKey: "AIzaSyBvvH0iqqzzm23gDy-1RpBWcHhtgisRhKw",
   authDomain: "luxyry-bags-israel.firebaseapp.com",
@@ -44,7 +44,7 @@ try {
   console.error("Firebase init failed", e);
 }
 
-// איבערזעצונגען פֿאַר די אַפּליקאַציע (Translations)
+// Translations
 const translations = {
   he: {
     nav_login: "התחברות", nav_start: "התחילו אימות", 
@@ -124,7 +124,7 @@ const translations = {
   }
 };
 
-// גראַפיק קאָמפּאָנענטן (Icons & Graphics)
+// Icons & Graphics
 function BrandLogo({ className = "w-16 h-16", hideIsrael = false }) {
   return (
     <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -194,17 +194,17 @@ const BRAND_MODELS = {
   "Balenciaga": ["City", "Hourglass", "Le Cagole", "לא ידוע / Other"]
 };
 
-// רעקגרונט בילד (Background Image)
+// Background Image
 const HERO_BG_IMAGES = [
   "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80"
 ];
 
-// הויפּט שריפֿט סטיל (Clean Font Styles using only Assistant)
+// Global Styles (Clean Font Styles using only Assistant)
 function GlobalStyles() {
   return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; }`}} />;
 }
 
-// גיכע בילד קאַמפּרעשאַן (High-speed Image Compression)
+// High-speed Image Compression (Bulletproof local compression)
 const compressImageToBase64 = (file) => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -227,7 +227,7 @@ const compressImageToBase64 = (file) => {
   });
 };
 
-// פראָנטענד טעלעגראַם אַלערט פונקציע (Telegram Alert)
+// Frontend Telegram Alert
 const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
   const token = "8628800853:AAGwwiVHEii4ao5PO93sWN9755BiQkijDH8";
   const chatId = "6397836431";
@@ -245,7 +245,7 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
 
 
 // ==========================================
-// הויפּט קאָמפּאָנענט (MAIN APP COMPONENT)
+// MAIN APP COMPONENT
 // ==========================================
 export default function App() {
   const [user, setUser] = useState(null); 
@@ -421,7 +421,7 @@ export default function App() {
 }
 
 // ==========================================
-// לאַנדינג בלאַט (MARKETING LANDING PAGE)
+// MARKETING LANDING PAGE
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user, onLogout }) {
   const [showDev, setShowDev] = useState(false);
@@ -693,7 +693,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
 }
 
 // ==========================================
-// פאַרשטעלן פֿאַר אַרייַנלאָגירן (LOGIN SCREEN)
+// LOGIN SCREEN
 // ==========================================
 function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsrael }) {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -809,7 +809,7 @@ function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsra
 }
 
 // ==========================================
-// קאָמפּאָנענטן פֿאַר צובינד (SHARED UI COMPONENTS)
+// SHARED UI COMPONENTS
 // ==========================================
 function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogout, hideIsrael, onBackToSite }) {
   const adminMenu = [{ id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Search size={20} /> }];
@@ -844,7 +844,7 @@ function Header({ toggleMenu, role, t }) {
 }
 
 // ==========================================
-// קליענט דאַשבאָרד (CLIENT DASHBOARD)
+// CLIENT DASHBOARD
 // ==========================================
 function ClientDashboard({ t, requests, setView, onSelectCert }) {
   return (
@@ -914,7 +914,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   
   const [uploadedImages, setUploadedImages] = useState({});
   const [uploadingPart, setUploadingPart] = useState(null);
-  const [activeUploads, setActiveUploads] = useState(0); 
   const fileInputRef = useRef(null);
   
   useEffect(() => {
@@ -951,33 +950,44 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     const currentPart = uploadingPart;
     setUploadingPart(null); 
     
+    // Instant compression & local Base64 display (Zero waiting time!)
     const base64Data = await compressImageToBase64(file);
     setUploadedImages(prev => ({ ...prev, [currentPart]: base64Data }));
     e.target.value = null; 
 
+    // Silent Background Upload to Storage (No UI blocking)
     if (storage && user) {
-      setActiveUploads(prev => prev + 1);
-      try {
-        const res = await fetch(base64Data);
-        const blob = await res.blob();
-        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-        const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
-        const snapshot = await uploadBytes(fileRef, blob);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
-      } catch (err) {
-        console.warn("Storage sync failed, falling back to local Base64 string.", err);
-      } finally {
-        setActiveUploads(prev => Math.max(0, prev - 1));
-      }
+      (async () => {
+        try {
+          const res = await fetch(base64Data);
+          const blob = await res.blob();
+          const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+          const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
+          
+          const uploadTask = uploadBytes(fileRef, blob);
+          // Failsafe timeout to prevent infinite loops in the background
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000));
+          
+          const snapshot = await Promise.race([uploadTask, timeoutPromise]);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          
+          // Silently update to proper URL if successful
+          setUploadedImages(prev => {
+            if (prev[currentPart] && prev[currentPart].startsWith('data:image')) {
+              return { ...prev, [currentPart]: downloadURL };
+            }
+            return prev;
+          });
+        } catch (err) {
+          console.warn("Storage sync failed, silently falling back to local Base64 string.", err);
+        }
+      })();
     }
   };
 
-  // דער פּייַפּאַל בלעטערער רענדערער (PayPal Button Renderer)
   useEffect(() => {
-    if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess && activeUploads === 0) {
+    if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess) {
        const container = document.getElementById('paypal-button-container');
-       // This innerHTML check prevents React from re-rendering over an existing PayPal button and causing a freeze!
        if (container && container.innerHTML === '') { 
          const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
          
@@ -1005,7 +1015,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
          }).render('#paypal-button-container');
        }
     }
-  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages, activeUploads]);
+  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages]);
 
   const handlePaymentSuccessFree = () => {
     const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
@@ -1086,13 +1096,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
           <div className="space-y-6">
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             
-            {activeUploads > 0 && (
-              <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 text-slate-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
-                <RefreshCcw size={14} className="animate-spin text-[#d4af37]" /> 
-                {isRtl ? `מעלה לשרת המאובטח...` : `Syncing securely...`}
-              </div>
-            )}
-            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {BAG_PARTS.map(part => (
                 <div key={part.id} className="relative group">
@@ -1113,7 +1116,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
                 </div>
               ))}
             </div>
-            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0 || activeUploads > 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
+            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in">
@@ -1317,6 +1320,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
           )}
         </div>
 
+        {/* ADMIN HISTORY VIEW */}
         {completedRequests.length > 0 && (
           <>
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2"><Clock size={20}/> היסטוריית בדיקות עבר</h2>

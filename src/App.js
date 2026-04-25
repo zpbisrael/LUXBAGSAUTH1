@@ -921,7 +921,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     const scriptId = 'paypal-sdk-script';
     if (document.getElementById(scriptId)) { setPaypalLoaded(true); return; }
     const script = document.createElement('script'); script.id = scriptId;
-    script.src = `https://www.paypal.com/sdk/js?client-id=test&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
     script.async = true; script.onload = () => setPaypalLoaded(true); document.body.appendChild(script);
   }, [geo.currency]);
 

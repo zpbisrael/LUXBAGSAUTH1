@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard, Instagram
 } from 'lucide-react';
 
 // Firebase Imports
@@ -264,15 +264,15 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
-    /* מנגנון הדפסה מתקדם - להפקת תעודות כ-PDF נקי */
+    /* מנגנון הדפסה מתקדם - מוודא שהתעודה תודפס על עמוד A4 אחד נקי ללא כפתורים */
     @media print {
-      @page { size: auto; margin: 10mm; }
+      @page { size: A4 portrait; margin: 5mm; }
       body { background-color: #fff !important; }
       
-      /* העלמת אלמנטים מיותרים */
-      aside, header, .no-print { display: none !important; }
+      /* העלמה מלאה של תפריטים, רקעים שחורים וכפתורים */
+      aside, header, .print\\:hidden { display: none !important; }
       
-      /* שחרור הגלילה כדי שהתעודה תופיע במלואה */
+      /* ביטול הגלילה של המערכת כדי שהדף ייפרס למלוא הגובה */
       html, body, #root, .flex, main, .overflow-y-auto, .overflow-hidden {
         height: auto !important;
         min-height: auto !important;
@@ -1397,40 +1397,75 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95">
-      <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
-      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
-        <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden">
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 print:p-0 print:m-0 print:space-y-0 print:w-[200mm] print:max-w-none print:mx-auto">
+      <button onClick={onBack} className="print:hidden text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
+      
+      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-8 print:shadow-none print:p-1 print:h-[280mm] print:flex print:flex-col print:overflow-hidden">
+        <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden print:p-6 print:flex-1">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
-          <div className="mb-10 relative z-10"><BrandLogo className="w-28 h-28 mx-auto mb-6 drop-shadow-xl" hideIsrael={hideIsrael} /><h1 className="text-3xl md:text-5xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-3">Certificate of Authentication</h1><p className="text-[#d4af37] font-bold tracking-[0.4em] text-sm uppercase">Luxury Bags Israel</p></div>
-          <div className={`w-full py-5 mb-10 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}><h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3">{isAuthentic ? <><ShieldCheck size={36} /> Authentic</> : <><ShieldAlert size={36} /> Counterfeit</>}</h2></div>
-          <div className="w-full max-w-xl mb-12 relative z-10">
-            <div className="grid grid-cols-2 gap-y-6 text-left border-b border-slate-200 pb-6 mb-6" dir="ltr"><div className="text-slate-500 text-sm uppercase tracking-widest">Brand</div><div className="font-bold text-slate-900 text-lg">{data.brand}</div><div className="text-slate-500 text-sm uppercase tracking-widest">Model</div><div className="font-bold text-slate-900 text-lg">{data.model}</div><div className="text-slate-500 text-sm uppercase tracking-widest">Date Inspected</div><div className="font-bold text-slate-900 text-lg">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div></div>
-            <p className="text-sm text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+          
+          <div className="mb-10 print:mb-6 relative z-10">
+            <BrandLogo className="w-28 h-28 print:w-20 print:h-20 mx-auto mb-6 print:mb-3 drop-shadow-xl" hideIsrael={hideIsrael} />
+            <h1 className="text-3xl md:text-5xl print:text-3xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-3 print:mb-1">Certificate of Authentication</h1>
+            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-sm print:text-xs uppercase">Luxury Bags Israel</p>
           </div>
-          <div className="w-full mb-12 relative z-10">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-3 mb-6 text-left" dir="ltr">Inspected Elements</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          
+          <div className={`w-full py-5 mb-10 border-y-2 relative z-10 print:py-2 print:mb-6 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+            <h2 className="text-2xl md:text-3xl print:text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
+              {isAuthentic ? <><ShieldCheck size={36} className="print:w-8 print:h-8" /> Authentic</> : <><ShieldAlert size={36} className="print:w-8 print:h-8" /> Counterfeit</>}
+            </h2>
+          </div>
+          
+          <div className="w-full max-w-xl mb-12 print:mb-6 relative z-10">
+            <div className="grid grid-cols-2 gap-y-6 print:gap-y-4 text-left border-b border-slate-200 pb-6 mb-6 print:pb-4 print:mb-4" dir="ltr">
+              <div className="text-slate-500 text-sm print:text-xs uppercase tracking-widest">Brand</div>
+              <div className="font-bold text-slate-900 text-lg print:text-base">{data.brand}</div>
+              <div className="text-slate-500 text-sm print:text-xs uppercase tracking-widest">Model</div>
+              <div className="font-bold text-slate-900 text-lg print:text-base">{data.model}</div>
+              <div className="text-slate-500 text-sm print:text-xs uppercase tracking-widest">Date Inspected</div>
+              <div className="font-bold text-slate-900 text-lg print:text-base">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+            </div>
+            <p className="text-sm print:text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+          </div>
+          
+          <div className="w-full mb-12 print:mb-4 relative z-10">
+            <h3 className="text-sm print:text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-3 mb-6 print:pb-2 print:mb-4 text-left" dir="ltr">Inspected Elements</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-3 print:gap-2">
               {data.images && Object.entries(data.images).map(([part, url]) => (
-                 <div key={part} className="relative group">
-                    <img src={url} alt={part} className="w-full h-28 md:h-36 object-cover border border-slate-200 rounded-lg shadow-sm group-hover:opacity-90 transition-opacity" />
-                    <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded uppercase tracking-wider">{part}</span>
+                 <div key={part} className="relative group flex flex-col items-center">
+                    <img src={url} alt={part} className="w-full h-28 md:h-36 print:h-20 object-cover border border-slate-200 rounded-lg shadow-sm" style={{ objectFit: 'cover' }} />
+                    <span className="absolute bottom-2 right-2 print:static print:mt-1 bg-black/60 print:bg-transparent print:text-slate-500 backdrop-blur-sm text-white text-[10px] px-2 py-1 print:p-0 rounded uppercase tracking-wider print:font-bold">{part}</span>
                  </div>
               ))}
               {(!data.images || Object.keys(data.images).length === 0) && (
-                 <img src={data.image} className="w-full h-32 object-cover border border-slate-200 rounded-lg shadow-sm col-span-2" />
+                 <img src={data.image} className="w-full h-32 print:h-24 object-cover border border-slate-200 rounded-lg shadow-sm col-span-2 print:col-span-4" style={{ objectFit: 'cover' }} />
               )}
             </div>
           </div>
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-8 border-t border-slate-100">
+          
+          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-8 print:pt-4 border-t border-slate-100">
             <div className="text-left" dir="ltr"><CertificateStamp /></div>
-            <div className="flex flex-col items-center"><div className="bg-white p-3 border border-slate-200 rounded-xl shadow-md mb-3"><QrCode size={72} className="text-slate-800" /></div><p className="text-[9px] text-slate-400 uppercase tracking-widest">Scan to Verify</p><p className="text-xs font-bold text-slate-800 mt-1 font-mono tracking-wider">{data.id}</p></div>
+            <div className="flex flex-col items-center">
+              <div className="bg-white p-3 print:p-2 border border-slate-200 rounded-xl shadow-md mb-3 print:mb-1">
+                <QrCode size={72} className="text-slate-800 print:w-12 print:h-12" />
+              </div>
+              <p className="text-[9px] text-slate-400 uppercase tracking-widest">Scan to Verify</p>
+              <p className="text-xs font-bold text-slate-800 mt-1 font-mono tracking-wider">{data.id}</p>
+            </div>
           </div>
         </div>
       </div>
-      {!isClientView && (<div className="flex justify-end pt-6 no-print"><button onClick={() => window.print()} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg"><Upload size={20} /> הדפס / יצא ל-PDF</button></div>)}
+      
+      {!isClientView && (
+        <div className="flex justify-end pt-6 print:hidden">
+          <button onClick={() => window.print()} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+            <Upload size={20} /> הדפס / יצא ל-PDF
+          </button>
+        </div>
+      )}
+      
       {isClientView && isAuthentic && (
-        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+        <div className="print:hidden bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>

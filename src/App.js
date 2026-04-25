@@ -260,7 +260,47 @@ const BRAND_MODELS = {
 const HERO_BG_IMAGES = ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80"];
 
 function GlobalStyles() {
-  return <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); * { font-family: 'Assistant', system-ui, sans-serif !important; }`}} />;
+  return <style dangerouslySetInnerHTML={{__html: `
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
+    * { font-family: 'Assistant', system-ui, sans-serif !important; }
+    
+    /* מנגנון הדפסה מתקדם - להפקת תעודות כ-PDF נקי */
+    @media print {
+      @page { size: auto; margin: 10mm; }
+      body { background-color: #fff !important; }
+      
+      /* העלמת אלמנטים מיותרים */
+      aside, header, .no-print { display: none !important; }
+      
+      /* שחרור הגלילה כדי שהתעודה תופיע במלואה */
+      html, body, #root, .flex, main, .overflow-y-auto, .overflow-hidden {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        display: block !important;
+      }
+      
+      /* איפוס שוליים סביב התעודה */
+      .p-4, .md\\:p-8, .pb-32 { padding: 0 !important; margin: 0 !important; }
+      
+      /* עיצוב התעודה עצמה להדפסה */
+      .printable-certificate {
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 auto !important;
+        page-break-inside: avoid;
+      }
+      
+      /* כפיית הדפסת צבעי רקע (חיוני למסגרות וצבעי אישור/שגיאה) */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+    }
+  `}} />;
 }
 
 const compressImageToBase64 = (file) => {
@@ -867,7 +907,7 @@ function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogo
 
 function Header({ toggleMenu, role, t }) {
   return (
-    <header className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shadow-sm sticky top-0 z-30">
+    <header className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shadow-sm sticky top-0 z-30 no-print">
       <div className="flex items-center gap-3"><button onClick={toggleMenu} className="md:hidden text-slate-600 p-1 rounded-lg"><Menu size={24} /></button><h1 className="text-lg font-bold text-slate-800 hidden md:block">{role === 'admin' ? 'System Admin / AI Core' : t('client_portal')}</h1></div>
     </header>
   );
@@ -1184,6 +1224,135 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   );
 }
 
+function MissingPhotosUploader({ t, geo, isRtl, req, setView, user, updateRequest }) {
+  const [uploadedImages, setUploadedImages] = useState({});
+  const [uploadingPart, setUploadingPart] = useState(null);
+  const [activeUploads, setActiveUploads] = useState(0);
+  const fileInputRef = useRef(null);
+
+  const missingParts = req?.missingParts?.length > 0 ? req.missingParts : ['front', 'inside', 'metal-stamp', 'date-code'];
+  const msg = req?.missingPhotosMsg || 'אנא העלה תמונות ברורות יותר של האזורים הבאים:';
+
+  const triggerFileInput = (partId) => {
+    setUploadingPart(partId);
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const removeImage = (partId) => {
+    setUploadedImages(prev => {
+      const newImgs = {...prev};
+      delete newImgs[partId];
+      return newImgs;
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const currentPart = uploadingPart;
+    setUploadingPart(null);
+
+    const base64Data = await compressImageToBase64(file);
+    setUploadedImages(prev => ({ ...prev, [currentPart]: base64Data }));
+    e.target.value = null;
+
+    if (storage && user) {
+      setActiveUploads(prev => prev + 1);
+      try {
+        const res = await fetch(base64Data);
+        const blob = await res.blob();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
+        const snapshot = await uploadBytes(fileRef, blob);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        setUploadedImages(prev => {
+          if (prev[currentPart] && prev[currentPart].startsWith('data:image')) {
+            return { ...prev, [currentPart]: downloadURL };
+          }
+          return prev;
+        });
+      } catch (err) {
+        console.warn("Storage sync failed, silently falling back to local Base64 string.", err);
+      } finally {
+        setActiveUploads(prev => Math.max(0, prev - 1));
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (Object.keys(uploadedImages).length === 0) return;
+    await updateRequest(req.firestoreId, {
+      status: 'reviewing',
+      images: { ...req.images, ...uploadedImages },
+      missingParts: [],
+      missingPhotosMsg: null,
+      clientNotes: 'הלקוח העלה תמונות משלימות'
+    });
+    setView('dashboard');
+  };
+
+  const handleNoBetterPhotos = async () => {
+    await updateRequest(req.firestoreId, {
+      status: 'reviewing',
+      missingParts: [],
+      missingPhotosMsg: null,
+      clientNotes: 'הלקוח ציין שאין ברשותו תמונות טובות יותר'
+    });
+    setView('dashboard');
+  };
+
+  return (
+    <div className="max-w-lg mx-auto w-full md:max-w-3xl bg-white rounded-3xl shadow-sm border border-amber-200 overflow-visible animate-in fade-in pb-6 mb-24">
+      <div className="bg-amber-50 p-4 border-b border-amber-100 flex items-center justify-between mb-2 rounded-t-3xl">
+        <h2 className="font-bold text-amber-800 flex items-center gap-2"><AlertCircle size={20}/> השלמת תמונות נדרשת</h2>
+      </div>
+      <div className="p-5 md:p-8 space-y-6">
+        <p className="text-slate-700 bg-slate-50 p-4 rounded-xl text-sm border border-slate-200"><strong>הודעת הבודק:</strong><br/>{msg}</p>
+        
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+        
+        {activeUploads > 0 && (
+          <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 text-slate-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
+            <RefreshCcw size={14} className="animate-spin text-[#d4af37]" />
+            {isRtl ? `מסנכרן תמונות...` : `Syncing securely...`}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {missingParts.map(partId => {
+            const partDef = BAG_PARTS.find(p => p.id === partId) || { id: partId, iconType: 'upload' };
+            return (
+              <div key={partId} className="relative group">
+                {uploadedImages[partId] ? (
+                  <div className="border-2 border-slate-200 rounded-xl p-1 relative overflow-hidden">
+                    <img src={uploadedImages[partId]} alt={partId} className="w-full h-20 object-cover rounded-lg" />
+                    <button onClick={(e) => { e.stopPropagation(); removeImage(partId); }} className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md z-10 transition-colors">
+                      <X size={14} />
+                    </button>
+                    <span className="absolute bottom-1 right-1 z-10 bg-black/70 text-white text-[10px] px-1.5 rounded">{partId}</span>
+                  </div>
+                ) : (
+                  <div onClick={() => triggerFileInput(partId)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center text-center bg-slate-50 hover:border-[#d4af37]/50 cursor-pointer h-[92px] transition-colors">
+                     <BagPartIcon type={partDef.iconType} className="w-8 h-8 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
+                     <span className="text-[10px] font-bold text-slate-500">{partId}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
+          <button onClick={handleSubmit} disabled={Object.keys(uploadedImages).length === 0 || activeUploads > 0} className="w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl disabled:opacity-50 transition-colors">שלח תמונות לבדיקה חוזרת</button>
+          <button onClick={handleNoBetterPhotos} className="w-full bg-slate-100 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">אין לי אפשרות לצלם תמונה טובה יותר</button>
+          <button onClick={() => setView('dashboard')} className="w-full text-slate-400 text-sm mt-2 hover:text-slate-600 font-bold transition-colors">חזור</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
   const isSelected = current === id;
   return (
@@ -1229,8 +1398,8 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
   const isAuthentic = data.result === 'authentic';
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95">
-      <button onClick={onBack} className="text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
-      <div className="bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
+      <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
+      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
         <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
           <div className="mb-10 relative z-10"><BrandLogo className="w-28 h-28 mx-auto mb-6 drop-shadow-xl" hideIsrael={hideIsrael} /><h1 className="text-3xl md:text-5xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-3">Certificate of Authentication</h1><p className="text-[#d4af37] font-bold tracking-[0.4em] text-sm uppercase">Luxury Bags Israel</p></div>
@@ -1259,9 +1428,9 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
           </div>
         </div>
       </div>
-      {!isClientView && (<div className="flex justify-end pt-6"><button onClick={() => window.print()} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg"><Upload size={20} /> הדפס / יצא ל-PDF</button></div>)}
+      {!isClientView && (<div className="flex justify-end pt-6 no-print"><button onClick={() => window.print()} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg"><Upload size={20} /> הדפס / יצא ל-PDF</button></div>)}
       {isClientView && isAuthentic && (
-        <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>

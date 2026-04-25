@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard, Instagram
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
 } from 'lucide-react';
 
 // Firebase Imports
@@ -1184,138 +1184,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   );
 }
 
-// ==========================================
-// CLIENT MISSING PHOTOS UPLOADER
-// ==========================================
-function MissingPhotosUploader({ t, geo, isRtl, req, setView, user, updateRequest }) {
-  const [uploadedImages, setUploadedImages] = useState({});
-  const [uploadingPart, setUploadingPart] = useState(null);
-  const [activeUploads, setActiveUploads] = useState(0);
-  const fileInputRef = useRef(null);
-
-  const missingParts = req?.missingParts?.length > 0 ? req.missingParts : ['front', 'inside', 'metal-stamp', 'date-code'];
-  const msg = req?.missingPhotosMsg || 'אנא העלה תמונות ברורות יותר של האזורים הבאים:';
-
-  const triggerFileInput = (partId) => {
-    setUploadingPart(partId);
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
-
-  const removeImage = (partId) => {
-    setUploadedImages(prev => {
-      const newImgs = {...prev};
-      delete newImgs[partId];
-      return newImgs;
-    });
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const currentPart = uploadingPart;
-    setUploadingPart(null);
-
-    const base64Data = await compressImageToBase64(file);
-    setUploadedImages(prev => ({ ...prev, [currentPart]: base64Data }));
-    e.target.value = null;
-
-    if (storage && user) {
-      setActiveUploads(prev => prev + 1);
-      try {
-        const res = await fetch(base64Data);
-        const blob = await res.blob();
-        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-        const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}.jpg`);
-        const snapshot = await uploadBytes(fileRef, blob);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        setUploadedImages(prev => {
-          if (prev[currentPart] && prev[currentPart].startsWith('data:image')) {
-            return { ...prev, [currentPart]: downloadURL };
-          }
-          return prev;
-        });
-      } catch (err) {
-        console.warn("Storage sync failed, silently falling back to local Base64 string.", err);
-      } finally {
-        setActiveUploads(prev => Math.max(0, prev - 1));
-      }
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (Object.keys(uploadedImages).length === 0) return;
-    await updateRequest(req.firestoreId, {
-      status: 'reviewing',
-      images: { ...req.images, ...uploadedImages },
-      missingParts: [],
-      missingPhotosMsg: null,
-      clientNotes: 'הלקוח העלה תמונות משלימות'
-    });
-    setView('dashboard');
-  };
-
-  const handleNoBetterPhotos = async () => {
-    await updateRequest(req.firestoreId, {
-      status: 'reviewing',
-      missingParts: [],
-      missingPhotosMsg: null,
-      clientNotes: 'הלקוח ציין שאין ברשותו תמונות טובות יותר'
-    });
-    setView('dashboard');
-  };
-
-  return (
-    <div className="max-w-lg mx-auto w-full md:max-w-3xl bg-white rounded-3xl shadow-sm border border-amber-200 overflow-visible animate-in fade-in pb-6 mb-24">
-      <div className="bg-amber-50 p-4 border-b border-amber-100 flex items-center justify-between mb-2 rounded-t-3xl">
-        <h2 className="font-bold text-amber-800 flex items-center gap-2"><AlertCircle size={20}/> השלמת תמונות נדרשת</h2>
-      </div>
-      <div className="p-5 md:p-8 space-y-6">
-        <p className="text-slate-700 bg-slate-50 p-4 rounded-xl text-sm border border-slate-200"><strong>הודעת הבודק:</strong><br/>{msg}</p>
-        
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-        
-        {activeUploads > 0 && (
-          <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 text-slate-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
-            <RefreshCcw size={14} className="animate-spin text-[#d4af37]" />
-            {isRtl ? `מסנכרן תמונות...` : `Syncing securely...`}
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {missingParts.map(partId => {
-            const partDef = BAG_PARTS.find(p => p.id === partId) || { id: partId, iconType: 'upload' };
-            return (
-              <div key={partId} className="relative group">
-                {uploadedImages[partId] ? (
-                  <div className="border-2 border-slate-200 rounded-xl p-1 relative overflow-hidden">
-                    <img src={uploadedImages[partId]} alt={partId} className="w-full h-20 object-cover rounded-lg" />
-                    <button onClick={(e) => { e.stopPropagation(); removeImage(partId); }} className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md z-10 transition-colors">
-                      <X size={14} />
-                    </button>
-                    <span className="absolute bottom-1 right-1 z-10 bg-black/70 text-white text-[10px] px-1.5 rounded">{partId}</span>
-                  </div>
-                ) : (
-                  <div onClick={() => triggerFileInput(partId)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center text-center bg-slate-50 hover:border-[#d4af37]/50 cursor-pointer h-[92px] transition-colors">
-                     <BagPartIcon type={partDef.iconType} className="w-8 h-8 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
-                     <span className="text-[10px] font-bold text-slate-500">{partId}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
-          <button onClick={handleSubmit} disabled={Object.keys(uploadedImages).length === 0 || activeUploads > 0} className="w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl disabled:opacity-50 transition-colors">שלח תמונות לבדיקה חוזרת</button>
-          <button onClick={handleNoBetterPhotos} className="w-full bg-slate-100 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">אין לי אפשרות לצלם תמונה טובה יותר</button>
-          <button onClick={() => setView('dashboard')} className="w-full text-slate-400 text-sm mt-2 hover:text-slate-600 font-bold transition-colors">חזור</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
   const isSelected = current === id;
   return (
@@ -1398,7 +1266,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><Instagram size={20}/> שתפו בסטורי</button>
+             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
              <button className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> העתק קישור</button>
           </div>
         </div>

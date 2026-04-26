@@ -129,7 +129,8 @@ const translations = {
     authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
     business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
     contact_sales: "דברו איתנו בוואטסאפ", success_title: "הבקשה הוגשה בהצלחה! 🎉",
-    success_sub: "הבקשה הועברה לבדיקה. במידה וביצעת תשלום, נתחיל בבדיקה מיד.", btn_home: "מסך ראשי", btn_another: "אימות נוסף"
+    success_sub: "הבקשה הועברה לבדיקה. במידה וביצעת תשלום, נתחיל בבדיקה מיד.", btn_home: "מסך ראשי", btn_another: "אימות נוסף",
+    serial_number: "מספר סידורי (אופציונלי)", serial_placeholder: "לדוגמה: AB123456"
   },
   en: {
     nav_login: "Login", nav_start: "Start Auth", 
@@ -165,7 +166,8 @@ const translations = {
     authentic: "Authentic", fake: "Counterfeit", pending_expert: "Under Review...", need_photos: "Photos Needed",
     business_pkg: "Business Packages", pkg_title: "Business Packages", pkg_sub: "Save up to 20%.",
     contact_sales: "Contact us on WhatsApp", success_title: "Request Submitted! 🎉",
-    success_sub: "Item is under review. If paid, we will begin immediately.", btn_home: "Dashboard", btn_another: "Authenticate Another"
+    success_sub: "Item is under review. If paid, we will begin immediately.", btn_home: "Dashboard", btn_another: "Authenticate Another",
+    serial_number: "Serial Number (Optional)", serial_placeholder: "e.g., AB123456"
   }
 };
 
@@ -243,7 +245,7 @@ const BAG_PARTS = [
 ];
 
 const BRAND_MODELS = {
-  "Louis Vuitton": ["Neverfull", "Speedy", "Alma", "Pochette Metis", "Keepall", "Capucines", "Onthego", "לא ידוע / Other"],
+  "Louis Vuitton": ["Neverfull", "Speedy", "Alma", "Pochette Metis", "Keepall", "Capucines", "Onthego", "Noé", "Multi Pochette", "Diane", "Coussin", "Loop", "Twist", "Bumbag", "Dauphine", "לא ידוע / Other"],
   "Chanel": ["Classic Flap", "Boy Bag", "19 Bag", "Gabrielle", "2.55 Reissue", "Wallet on Chain (WOC)", "לא ידוע / Other"],
   "Hermes": ["Birkin", "Kelly", "Constance", "Evelyne", "Picotin", "Lindy", "לא ידוע / Other"],
   "Dior": ["Lady Dior", "Saddle Bag", "Book Tote", "Diorama", "Caro", "לא ידוע / Other"],
@@ -594,12 +596,12 @@ function MainApp() {
   return (
     <>
       <GlobalStyles />
-      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden print:h-auto print:overflow-visible" dir={isRtl ? "rtl" : "ltr"}>
         <div className="no-print">
           {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
         </div>
         <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)} />
-        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden">
+        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden print:h-auto print:overflow-visible">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
           <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32 cert-view-container">
             {role === 'admin' && currentView !== 'certificate-view' ? (
@@ -1075,6 +1077,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   const [brand, setBrand] = useState('');
   const [itemType, setItemType] = useState('');
   const [model, setModel] = useState('');
+  const [serialNumber, setSerialNumber] = useState(''); // NEW: Serial Number
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState(null);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
@@ -1161,6 +1164,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
              return actions.order.capture().then(async () => {
                 const finalReqId = await addRequest({
                   brand, model: model || 'N/A',
+                  serialNumber: serialNumber || '', // Saving Serial Number
                   date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
                   image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
                   images: uploadedImages
@@ -1176,11 +1180,12 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
          }).render('#paypal-button-container');
        }
     }
-  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages, activeUploads]);
+  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, serialNumber, uploadedImages, activeUploads]);
 
   const handlePaymentSuccessFree = async () => {
     const finalReqId = await addRequest({
       brand, model: model || 'N/A',
+      serialNumber: serialNumber || '',
       date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
       image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
       images: uploadedImages
@@ -1188,7 +1193,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     setShowSuccess(true);
   };
 
-  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
+  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
 
   if (showSuccess) {
     return (
@@ -1224,29 +1229,44 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
              </div>
 
              {brand && itemType && (
-               <div className="animate-in fade-in slide-in-from-top-4">
-                 <label className="block text-sm font-bold text-slate-700 mb-2">
-                   {t('model')} <span className="font-normal text-slate-400">({t('optional')})</span>
-                 </label>
-
-                 {itemType === 'Bag/תיק' && BRAND_MODELS[brand] ? (
-                   <select
-                     value={model}
-                     onChange={e => setModel(e.target.value)}
-                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
-                   >
-                     <option value="">{isRtl ? "בחרו דגם מתוך הרשימה" : "Select model"}</option>
-                     {BRAND_MODELS[brand].map(m => <option key={m} value={m}>{m}</option>)}
-                   </select>
-                 ) : (
+               <div className="animate-in fade-in slide-in-from-top-4 space-y-5">
+                 <div>
+                   <label className="block text-sm font-bold text-slate-700 mb-2">
+                     {t('model')} <span className="font-normal text-slate-400">({t('optional')})</span>
+                   </label>
+                   {itemType === 'Bag/תיק' && BRAND_MODELS[brand] ? (
+                     <select
+                       value={model}
+                       onChange={e => setModel(e.target.value)}
+                       className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
+                     >
+                       <option value="">{isRtl ? "בחרו דגם מתוך הרשימה" : "Select model"}</option>
+                       {BRAND_MODELS[brand].map(m => <option key={m} value={m}>{m}</option>)}
+                     </select>
+                   ) : (
+                     <input
+                       type="text"
+                       value={model}
+                       onChange={e => setModel(e.target.value)}
+                       placeholder={t('model_placeholder')}
+                       className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
+                     />
+                   )}
+                 </div>
+                 
+                 {/* NEW: Serial Number Field */}
+                 <div>
+                   <label className="block text-sm font-bold text-slate-700 mb-2">
+                     {t('serial_number')}
+                   </label>
                    <input
                      type="text"
-                     value={model}
-                     onChange={e => setModel(e.target.value)}
-                     placeholder={t('model_placeholder')}
+                     value={serialNumber}
+                     onChange={e => setSerialNumber(e.target.value)}
+                     placeholder={t('serial_placeholder')}
                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
                    />
-                 )}
+                 </div>
                </div>
              )}
 
@@ -1488,16 +1508,90 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
   );
 }
 
-function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, isPublicVerification = false }) {
-  if(!data) return null;
+function DigitalCertificate({ data, hideIsrael }) {
+  if (!data) return null;
   const isAuthentic = data.result === 'authentic';
-  
-  // Limiting images to exactly 4 max. 
   const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
-
   const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
 
+  return (
+    <div className="printable-certificate" dir="rtl">
+      <div className="cert-inner bg-white relative overflow-hidden flex flex-col">
+        <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[160mm] h-[160mm] opacity-[0.03] pointer-events-none" />
+        
+        <div className="absolute top-[8mm] right-[8mm] text-right">
+           <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
+           <p className="text-[16px] font-bold text-slate-800 font-mono tracking-wider m-0 mt-1 leading-none">{data.id}</p>
+        </div>
+        
+        <div className="mb-[6mm] relative z-10 pt-[6mm] text-center w-full">
+          <BrandLogo className="w-[20mm] h-[20mm] mx-auto mb-3 drop-shadow-md" hideIsrael={hideIsrael} />
+          <h1 className="text-[32px] font-serif tracking-widest text-[#0a0a0a] uppercase mb-1 m-0 leading-none">Certificate of Authentication</h1>
+          <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[12px] uppercase m-0">Luxury Bags Israel</p>
+        </div>
+        
+        <div className={`w-full py-[4mm] mb-[6mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+            {isAuthentic ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
+            <h2 className="text-[22px] font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+        </div>
+        
+        <div className="w-full max-w-[140mm] mx-auto mb-[6mm] relative z-10">
+          <div className="grid grid-cols-2 gap-y-[4mm] text-left border-b border-slate-200 pb-[5mm] mb-[5mm]" dir="ltr">
+            <div className="text-slate-500 text-[12px] uppercase tracking-widest">Brand</div>
+            <div className="font-bold text-slate-900 text-[16px] leading-none">{data.brand}</div>
+            
+            <div className="text-slate-500 text-[12px] uppercase tracking-widest">Model</div>
+            <div className="font-bold text-slate-900 text-[16px] leading-none">{data.model}</div>
+            
+            {data.serialNumber && (
+              <>
+                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Serial Number</div>
+                <div className="font-bold text-slate-900 text-[16px] leading-none">{data.serialNumber}</div>
+              </>
+            )}
+            
+            <div className="text-slate-500 text-[12px] uppercase tracking-widest">Date Inspected</div>
+            <div className="font-bold text-slate-900 text-[16px] leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+          </div>
+          <p className="text-[11px] text-slate-500 italic text-center max-w-[120mm] mx-auto leading-relaxed m-0">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+        </div>
+        
+        <div className="w-full relative z-10 flex-1">
+          <h3 className="text-[12px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-[2mm] mb-[4mm] text-left m-0" dir="ltr">Inspected Elements</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
+            {imagesToDisplay.map(([part, url]) => (
+               <div key={part} className="flex flex-col items-center text-center">
+                  <img src={url} alt={part} className="w-full h-[25mm] object-cover border border-slate-200 rounded-sm shadow-sm" />
+                  <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+               </div>
+            ))}
+            {imagesToDisplay.length === 0 && (
+               <div className="col-span-4 flex flex-col items-center text-center">
+                 <img src={data.image} className="w-[80mm] h-[30mm] object-cover border border-slate-200 rounded-sm shadow-sm" />
+                 <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
+               </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-[6mm] border-t border-slate-100">
+          <div className="text-left pb-1" dir="ltr"><CertificateStamp /></div>
+          <div className="flex flex-col items-center">
+            <div className="bg-white p-1.5 border border-slate-200 rounded-md shadow-sm mb-1">
+              <img src={qrCodeUrl} alt="QR Code Verification" className="w-[14mm] h-[14mm] object-contain mix-blend-multiply" crossOrigin="anonymous" />
+            </div>
+            <p className="text-[8px] text-slate-400 uppercase tracking-widest m-0 p-0">Scan to Verify</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CertificateWrapper({ data, onBack, isClientView, isRtl, hideIsrael, isPublicVerification, setVerifyId }) {
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  
   const handlePrint = () => {
     const originalTitle = document.title;
     document.title = data.id || 'LBI-Certificate';
@@ -1506,75 +1600,18 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:p-0 print:m-0 print:space-y-0 print:w-[210mm] print:max-w-none print:mx-auto">
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95">
       {!isPublicVerification && (
-        <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
+        <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors">
+          <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור
+        </button>
       )}
       
-      {/* Container specifically sized to display neatly on screen and print perfectly */}
-      <div className="w-full overflow-x-auto flex justify-center pb-4 no-print scrollbar-hide">
-        <div className="printable-certificate shrink-0 bg-white w-[210mm] h-[297mm] box-border border-[10px] border-[#0a0a0a] p-[4mm] shadow-2xl relative">
-          <div className="w-full h-full border-[3px] border-[#d4af37] p-[10mm] flex flex-col items-center text-center relative box-border bg-white overflow-hidden">
-            
-            <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[160mm] h-[160mm] opacity-[0.03] pointer-events-none" />
-            
-            <div className="absolute top-[8mm] right-[8mm] text-right">
-               <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
-               <p className="text-[16px] font-bold text-slate-800 font-mono tracking-wider m-0 mt-1 leading-none">{data.id}</p>
-            </div>
-            
-            <div className="mb-[8mm] relative z-10 pt-[6mm]">
-              <BrandLogo className="w-[20mm] h-[20mm] mx-auto mb-3 drop-shadow-md" hideIsrael={hideIsrael} />
-              <h1 className="text-[32px] font-serif tracking-widest text-[#0a0a0a] uppercase mb-1 m-0 leading-none">Certificate of Authentication</h1>
-              <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[12px] uppercase m-0">Luxury Bags Israel</p>
-            </div>
-            
-            <div className={`w-full py-[2mm] mb-[6mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-                {isAuthentic ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
-                <h2 className="text-[22px] font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
-            </div>
-            
-            <div className="w-full max-w-[140mm] mb-[6mm] relative z-10">
-              <div className="grid grid-cols-2 gap-y-[4mm] text-left border-b border-slate-200 pb-[5mm] mb-[5mm]" dir="ltr">
-                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Brand</div>
-                <div className="font-bold text-slate-900 text-[16px] leading-none">{data.brand}</div>
-                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Model</div>
-                <div className="font-bold text-slate-900 text-[16px] leading-none">{data.model}</div>
-                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Date Inspected</div>
-                <div className="font-bold text-slate-900 text-[16px] leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
-              </div>
-              <p className="text-[11px] text-slate-500 italic text-center max-w-[120mm] mx-auto leading-relaxed m-0">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
-            </div>
-            
-            <div className="w-full relative z-10 flex-1">
-              <h3 className="text-[12px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-[2mm] mb-[4mm] text-left m-0" dir="ltr">Inspected Elements</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
-                {imagesToDisplay.map(([part, url]) => (
-                   <div key={part} className="flex flex-col items-center text-center">
-                      <img src={url} alt={part} className="w-full h-[25mm] object-cover border border-slate-200 rounded-sm shadow-sm" />
-                      <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
-                   </div>
-                ))}
-                {imagesToDisplay.length === 0 && (
-                   <div className="col-span-4 flex flex-col items-center text-center">
-                     <img src={data.image} className="w-[80mm] h-[30mm] object-cover border border-slate-200 rounded-sm shadow-sm" />
-                     <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
-                   </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-[6mm] border-t border-slate-100">
-              <div className="text-left pb-1" dir="ltr"><CertificateStamp /></div>
-              <div className="flex flex-col items-center">
-                <div className="bg-white p-1.5 border border-slate-200 rounded-md shadow-sm mb-1">
-                  <img src={qrCodeUrl} alt="QR Code Verification" className="w-[14mm] h-[14mm] object-contain mix-blend-multiply" crossOrigin="anonymous" />
-                </div>
-                <p className="text-[8px] text-slate-400 uppercase tracking-widest m-0 p-0">Scan to Verify</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* תצוגה מקדימה על המסך */}
+      <div className="w-full overflow-x-auto flex justify-center pb-4 scrollbar-hide">
+         <div className="shrink-0 border-[10px] border-[#0a0a0a] shadow-2xl relative" style={{ width: '210mm', height: '297mm' }}>
+            <DigitalCertificate data={data} hideIsrael={hideIsrael} />
+         </div>
       </div>
       
       {!isClientView && (
@@ -1585,7 +1622,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
         </div>
       )}
       
-      {isClientView && !isPublicVerification && isAuthentic && (
+      {isClientView && !isPublicVerification && data.result === 'authentic' && (
         <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
@@ -1601,9 +1638,8 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
   );
 }
 
-function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
+function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
-  const [previewCertReq, setPreviewCertReq] = useState(null); 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [finalVerdict, setFinalVerdict] = useState(null); 
@@ -1652,10 +1688,6 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   
   const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
-  if (previewCertReq) {
-    return <DigitalCertificate data={previewCertReq} onBack={() => setPreviewCertReq(null)} isClientView={false} t={(k)=>k} isRtl={true} hideIsrael={hideIsrael} />;
-  }
-
   if (!activeReq) {
     return (
       <div className="max-w-6xl mx-auto animate-in fade-in pb-24" dir="rtl">
@@ -1699,7 +1731,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden opacity-80">
               <div className="divide-y divide-slate-100">
                 {completedRequests.map(req => (
-                  <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => setPreviewCertReq(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors">
+                  <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => onSelectCert(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors">
                     <div className="flex items-center gap-4"><img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand} className="w-12 h-12 rounded object-cover border border-slate-200 grayscale" /><div><h4 className="font-bold text-slate-800 text-sm">{req?.brand || 'לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4><p className="text-xs text-slate-500">{req?.id || 'ללא מזהה'} • {safeDateRender(req?.createdAt)}</p></div></div>
                     <div className="flex items-center gap-3">
                       <span className={`text-[10px] px-2 py-1 rounded-full font-bold border ${req?.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req?.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>

@@ -98,7 +98,6 @@ const translations = {
     hero_badge: "פיתוח כחול-לבן 🇮🇱 | הראשון מסוגו בישראל",
     hero_title: "השקט הנפשי שלך.<br />המומחיות שלנו.",
     hero_subtitle_il: "אנו משלבים בינה מלאכותית מתקדמת עם עין אנושית של מומחי יוקרה כדי להבטיח שהפריט שלך – מקורי ב-100%. הסטנדרט העולמי, עכשיו בישראל.",
-    hero_subtitle_global: "The Global Standard in Luxury Authentication. AI precision meets human expertise.",
     cta_primary: "אמתו את הפריט שלכם", cta_secondary: "גלו איך זה עובד", trusted_by: "מאמתים את מותגי העל המובילים בעולם",
     stats_items: "פריטים שאומתו", stats_accuracy: "אחוזי דיוק", stats_speed: "שעות לקבלת תעודה", stats_clients: "קניינים ולקוחות",
     israeli_title: "הסטנדרט הישראלי לאימות יוקרה.",
@@ -136,7 +135,6 @@ const translations = {
     nav_login: "Login", nav_start: "Start Auth", 
     hero_badge: "Global Standard | Premium Service",
     hero_title: "ZERO COMPROMISE.<br />ZERO FAKES.",
-    hero_subtitle_il: "The new global standard in luxury authentication. AI precision meets human expertise.", 
     hero_subtitle_global: "The new global standard in luxury authentication.",
     cta_primary: "Verify Your Item", cta_secondary: "How it works?", trusted_by: "Authenticating prestigious brands",
     stats_items: "Items Authenticated", stats_accuracy: "Accuracy", stats_speed: "Hours Turnaround", stats_clients: "Happy Clients",
@@ -174,7 +172,6 @@ const translations = {
 // ==========================================
 // ICONS & UI HELPERS
 // ==========================================
-
 function InstagramIcon({ size = 24, className = "" }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -264,60 +261,21 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
-    /* מנגנון הדפסה חסין כדורים - עמוד אחד נקי וללא גלישה */
     @media print {
-      @page { size: A4 portrait; margin: 10mm; }
-      
-      /* איפוס עוטפים וכפיית רקע לבן */
+      @page { size: A4 portrait; margin: 0; }
       body, html { 
         margin: 0 !important; 
         padding: 0 !important; 
         background-color: #fff !important; 
-        height: auto !important;
       }
+      .no-print { display: none !important; }
       
-      /* העלמה אגרסיבית של כל כפתור, תפריט ושאריות שאינן שייכות לתעודה */
-      .no-print, aside, header, nav, button, .print\\:hidden { 
-        display: none !important; 
-      }
-      
-      /* "שבירת" הגלילה של המערכת כדי למנוע היחתכות הדף והדפסת דפים ריקים */
-      #root, main, .flex, .flex-1, .overflow-y-auto, .overflow-hidden {
+      #root {
         display: block !important;
-        height: auto !important;
-        min-height: auto !important;
-        width: auto !important;
-        max-width: none !important;
-        overflow: visible !important;
-        position: static !important;
         margin: 0 !important;
         padding: 0 !important;
-        background: transparent !important;
-        transform: none !important;
       }
       
-      /* התעודה עצמה - משתלטת על העמוד וקובעת את גודלה בעצמה, ללא הגבלת גובה קשיחה שיכולה למרוח עמודים */
-      .printable-certificate {
-        position: relative !important;
-        width: 190mm !important; /* בטוח לכל מדפסת ללא גלישה לצדדים */
-        margin: 0 auto !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-        border: none !important;
-        box-shadow: none !important;
-        page-break-inside: avoid !important;
-        page-break-after: avoid !important;
-        page-break-before: avoid !important;
-      }
-      
-      .cert-inner {
-        min-height: 250mm !important; /* אבטחת מראה פורפורציונלי מבלי לדחוף למטה */
-        border: 3px solid #d4af37 !important;
-        box-sizing: border-box !important;
-        padding: 8mm !important;
-      }
-
-      /* כפיית הדפסת צבעי רקע (מסגרות יוקרה וסטטוס) */
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -370,12 +328,13 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
 function PrintOnlyView({ data, hideIsrael }) {
   if (!data) return null;
   const isAuthentic = data.result === 'authentic';
+  // Ensures exactly 4 images max are displayed, and no more.
   const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
   const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
 
   return (
-    <div className="bg-white w-[210mm] h-[296mm] mx-auto box-border relative font-sans" dir="rtl">
+    <div className="bg-white w-[210mm] h-[296mm] mx-auto box-border relative font-sans overflow-hidden" dir="rtl">
       <div className="w-full h-full border-[10px] border-[#0a0a0a] p-[4mm] box-border relative">
         <div className="w-full h-full border-[3px] border-[#d4af37] p-[10mm] flex flex-col items-center text-center relative box-border bg-white overflow-hidden">
           
@@ -443,7 +402,7 @@ function PrintOnlyView({ data, hideIsrael }) {
 }
 
 // ==========================================
-// CORE APP
+// CORE APP STATE MANAGER
 // ==========================================
 function MainApp() {
   const [user, setUser] = useState(null); 
@@ -549,9 +508,6 @@ function MainApp() {
       }
     }, (error) => {
       console.error("Firestore Listen Error:", error);
-      if (error.code === 'permission-denied') {
-        alert("שגיאת אבטחה! המערכת מזהה שפיירבייס חוסם גישה למסד הנתונים. יש לוודא שעדכנת את ה-Rules של Firestore Database למצב מאושר.");
-      }
     });
     return () => unsubscribe();
   }, [user, role, verifyId]);
@@ -559,7 +515,7 @@ function MainApp() {
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
     try {
-      const counterRef = doc(db, 'artifacts', appId, 'public', 'data');
+      const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'main_counter');
       let newIdNum = 19201;
 
       try {
@@ -573,7 +529,7 @@ function MainApp() {
           }
         });
       } catch (e) {
-        console.warn("Could not run transaction, generating fallback ID", e);
+        console.warn("Transaction failed, using fallback ID", e);
         newIdNum = 19201 + Math.floor(Math.random() * 1000);
       }
       
@@ -590,7 +546,7 @@ function MainApp() {
       return finalReqId; 
     } catch (err) {
       console.error("Add Request Error:", err);
-      alert("שגיאה חמורה בשמירת הנתונים: פיירבייס חוסם את הבקשה.");
+      alert("שגיאה בשמירת הבקשה במסד הנתונים.");
       throw err; 
     }
   };
@@ -601,10 +557,10 @@ function MainApp() {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'auth_requests', firestoreId), updates);
     } catch (err) {
       console.error("Update Request Error:", err);
-      alert("שגיאה בעדכון מסד הנתונים בפיירבייס. בדוק Rules.");
     }
   };
 
+  // מנגנון בידוד ההדפסה: כשמדפיסים, שאר האתר נעלם ומשאיר רק את התעודה!
   if (isPrinting) {
     return (
       <div className="bg-white m-0 p-0 w-full h-full min-h-screen overflow-hidden">
@@ -654,14 +610,7 @@ function MainApp() {
     return (
       <>
         <GlobalStyles />
-        <LandingPage 
-          t={t} geo={geo} isRtl={isRtl} lang={lang} setLang={setLang} setGeo={setGeo} hideIsrael={hideIsrael} user={user}
-          onGoToLogin={() => {
-            setShowLanding(false);
-            if (!user) setShowLoginModal(true);
-          }}
-          onLogout={handleLogout}
-        />
+        <LandingPage t={t} geo={geo} isRtl={isRtl} lang={lang} setLang={setLang} setGeo={setGeo} hideIsrael={hideIsrael} user={user} onGoToLogin={() => { setShowLanding(false); if (!user) setShowLoginModal(true); }} onLogout={handleLogout} />
       </>
     );
   }
@@ -671,11 +620,7 @@ function MainApp() {
       <>
         <GlobalStyles />
         <div dir={isRtl ? "rtl" : "ltr"} className="relative">
-          <LoginScreen 
-            t={t} isRtl={isRtl} lang={lang} setLang={setLang} hideIsrael={hideIsrael} 
-            onBack={() => { setShowLoginModal(false); setShowLanding(true); }} 
-            onLoginSuccess={() => setShowLoginModal(false)}
-          />
+          <LoginScreen t={t} isRtl={isRtl} lang={lang} setLang={setLang} hideIsrael={hideIsrael} onBack={() => { setShowLoginModal(false); setShowLanding(true); }} onLoginSuccess={() => setShowLoginModal(false)} />
         </div>
       </>
     );
@@ -684,25 +629,14 @@ function MainApp() {
   return (
     <>
       <GlobalStyles />
-      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden print:h-auto print:overflow-visible" dir={isRtl ? "rtl" : "ltr"}>
+      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
         {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm no-print" onClick={() => setIsMobileMenuOpen(false)} />}
-        <Sidebar 
-           t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} 
-           role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} 
-           onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)}
-        />
-        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden print:h-auto print:overflow-visible">
+        <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)} />
+        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
-          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32 print:overflow-visible print:p-0 print:h-auto">
+          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32">
             {role === 'admin' && currentView !== 'certificate-view' ? (
-              <AuthenticationTool 
-                 requests={systemRequests} 
-                 updateRequest={updateRequest} 
-                 hideIsrael={hideIsrael} 
-                 t={t} 
-                 isRtl={isRtl} 
-                 onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }}
-              />
+              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} t={t} isRtl={isRtl} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} setIsPrinting={setIsPrinting} />
             ) : currentView === 'new-request' ? (
               <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} user={user} />
             ) : currentView === 'business-pkgs' ? (
@@ -712,13 +646,7 @@ function MainApp() {
             ) : currentView === 'missing-photos' ? (
               <MissingPhotosUploader t={t} geo={geo} isRtl={isRtl} req={selectedCertificate} setView={setCurrentView} user={user} updateRequest={updateRequest} />
             ) : (
-              <ClientDashboard 
-                 t={t} 
-                 requests={systemRequests} 
-                 setView={setCurrentView} 
-                 onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} 
-                 onProvidePhotos={(req) => { setSelectedCertificate(req); setCurrentView('missing-photos'); }}
-              />
+              <ClientDashboard t={t} requests={systemRequests} setView={setCurrentView} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} onProvidePhotos={(req) => { setSelectedCertificate(req); setCurrentView('missing-photos'); }} />
             )}
           </div>
         </main>
@@ -728,7 +656,7 @@ function MainApp() {
 }
 
 // ==========================================
-// SUB-COMPONENTS
+// VIEWS & SCREENS
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIsrael, user, onLogout }) {
   const [showDev, setShowDev] = useState(false);
@@ -1616,7 +1544,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
         if (setIsPrinting) setIsPrinting(false);
         document.title = originalTitle;
       }, 500);
-    }, 500);
+    }, 800);
   };
 
   return (
@@ -1715,7 +1643,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
   );
 }
 
-function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert }) {
+function AuthenticationTool({ requests, updateRequest, hideIsrael, setIsPrinting }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
   const [previewCertReq, setPreviewCertReq] = useState(null); 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -1766,6 +1694,10 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert 
   
   const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
+  if (previewCertReq) {
+    return <DigitalCertificate data={previewCertReq} onBack={() => setPreviewCertReq(null)} isClientView={false} t={(k)=>k} isRtl={true} hideIsrael={hideIsrael} setIsPrinting={setIsPrinting} />;
+  }
+
   if (!activeReq) {
     return (
       <div className="max-w-6xl mx-auto animate-in fade-in pb-24" dir="rtl">
@@ -1809,7 +1741,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden opacity-80">
               <div className="divide-y divide-slate-100">
                 {completedRequests.map(req => (
-                  <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => onSelectCert(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors">
+                  <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => setPreviewCertReq(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors">
                     <div className="flex items-center gap-4"><img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand} className="w-12 h-12 rounded object-cover border border-slate-200 grayscale" /><div><h4 className="font-bold text-slate-800 text-sm">{req?.brand || 'לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4><p className="text-xs text-slate-500">{req?.id || 'ללא מזהה'} • {safeDateRender(req?.createdAt)}</p></div></div>
                     <div className="flex items-center gap-3">
                       <span className={`text-[10px] px-2 py-1 rounded-full font-bold border ${req?.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req?.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>

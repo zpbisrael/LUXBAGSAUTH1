@@ -16,7 +16,7 @@ import {
   GoogleAuthProvider, signInWithPopup
 } from 'firebase/auth';
 import { 
-  getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, getDoc, setDoc, runTransaction 
+  getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, getDoc, setDoc, runTransaction, getDocs
 } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -353,6 +353,7 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
   }
 };
 
+
 // ==========================================
 // CORE APP
 // ==========================================
@@ -368,9 +369,24 @@ function MainApp() {
   const [geo, setGeo] = useState({ country: 'IL', currency: 'ILS', symbol: '₪' });
   const [lang, setLang] = useState('he');
   
+  // Public Verification State
+  const [verifyId, setVerifyId] = useState(null);
+  const [verifyData, setVerifyData] = useState(null);
+  const [verifyStatus, setVerifyStatus] = useState('loading');
+
   const t = (key) => translations[lang]?.[key] || translations['en'][key] || key;
   const isRtl = lang === 'he' || lang === 'ar';
   const hideIsrael = geo.country !== 'IL'; 
+
+  // בדוק אם אנחנו בעמוד אימות פומבי לפי כתובת ה-URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const vId = params.get('verify');
+    if (vId) {
+      setVerifyId(vId);
+      setShowLanding(false);
+    }
+  }, []);
 
   useEffect(() => {
     document.title = "AUTHENTICATE YOUR BAG | LBI";
@@ -391,7 +407,7 @@ function MainApp() {
 
   useEffect(() => {
     let sessionTimer;
-    if (user) {
+    if (user && !verifyId) {
       sessionTimer = setTimeout(() => {
         handleLogout();
         setShowLoginModal(true);
@@ -399,7 +415,7 @@ function MainApp() {
       }, 7200000); 
     }
     return () => clearTimeout(sessionTimer);
-  }, [user, isRtl]);
+  }, [user, isRtl, verifyId]);
 
   useEffect(() => {
     if (!auth) return;
@@ -407,7 +423,8 @@ function MainApp() {
       try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
-        } else if (process.env.NODE_ENV === 'development') {
+        } else {
+          // Always sign in anonymously if no token, so public visitors can fetch DB for verification
           await signInAnonymously(auth);
         }
       } catch(e) { console.warn("Auth Failed", e); }
@@ -423,8 +440,30 @@ function MainApp() {
     return () => unsubscribe();
   }, []);
 
+  // שלוף נתוני אימות אם אנחנו במצב אימות פומבי
   useEffect(() => {
-    if (!user || !db) return;
+    if (verifyId && user && db) {
+      const fetchVerification = async () => {
+        try {
+          const snapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'));
+          const reqs = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+          const found = reqs.find(r => r.id === verifyId && (r.status === 'completed' || r.status === 'refunded'));
+          if (found) {
+            setVerifyData(found);
+            setVerifyStatus('found');
+          } else {
+            setVerifyStatus('error');
+          }
+        } catch (e) {
+          setVerifyStatus('error');
+        }
+      };
+      fetchVerification();
+    }
+  }, [verifyId, user, db]);
+
+  useEffect(() => {
+    if (!user || !db || verifyId) return;
     const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
     const unsubscribe = onSnapshot(requestsRef, (snapshot) => {
       try {
@@ -441,12 +480,11 @@ function MainApp() {
       }
     });
     return () => unsubscribe();
-  }, [user, role]);
+  }, [user, role, verifyId]);
 
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
     try {
-      // Transaction to safely increment global request counter
       const counterRef = doc(db, 'artifacts', appId, 'public', 'metadata', 'counter');
       let newIdNum = 19201;
 
@@ -464,13 +502,13 @@ function MainApp() {
 
       await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), { 
         ...newReqData, 
-        id: finalReqId, // Inject proper sequential ID
+        id: finalReqId, 
         clientId: user.uid, 
         clientEmail: user.email || 'Anonymous', 
         createdAt: Date.now() 
       });
       setCurrentView('dashboard'); 
-      return finalReqId; // Return new ID for telegram
+      return finalReqId; 
     } catch (err) {
       console.error("Add Request Error:", err);
       alert("שגיאה חמורה בשמירת הנתונים: פיירבייס חוסם את הבקשה או שאין הרשאת כתיבה ל-Counter.");
@@ -487,6 +525,42 @@ function MainApp() {
       alert("שגיאה בעדכון מסד הנתונים בפיירבייס. בדוק Rules.");
     }
   };
+
+  // הצגת מסך אימות פומבי
+  if (verifyId) {
+    if (verifyStatus === 'loading') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans" dir="rtl">
+           <div className="text-center animate-pulse"><RefreshCcw className="w-12 h-12 text-[#d4af37] mx-auto mb-4 animate-spin"/>טוען נתוני תעודה...</div>
+        </div>
+      );
+    }
+    if (verifyStatus === 'error') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-6" dir="rtl">
+           <div className="bg-white p-10 rounded-3xl shadow-xl text-center max-w-md">
+             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+             <h2 className="text-2xl font-bold text-slate-800 mb-2">התעודה לא נמצאה</h2>
+             <p className="text-slate-600 mb-6">המספר שהוזן שגוי, התעודה מזויפת, או שהבדיקה טרם הסתיימה.</p>
+             <button onClick={() => window.location.href = window.location.origin + window.location.pathname} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold">חזור לדף הבית</button>
+           </div>
+        </div>
+      );
+    }
+    if (verifyStatus === 'found') {
+      return (
+        <div className="min-h-screen bg-slate-50 py-10 font-sans" dir="rtl">
+           <div className="max-w-3xl mx-auto mb-6 text-center animate-in slide-in-from-top-4 no-print">
+             <div className="inline-flex items-center gap-2 bg-green-100 border border-green-200 text-green-800 px-6 py-3 rounded-full font-bold text-sm shadow-sm">
+               <CheckCircle size={20}/> אומת בהצלחה מול שרתי LBI
+             </div>
+             <p className="text-slate-500 mt-4 text-sm">התעודה המוצגת מטה היא רשמית ואושרה על ידי מערכות Luxury Bags Israel.</p>
+           </div>
+           <DigitalCertificate data={verifyData} onBack={() => window.location.href = window.location.origin + window.location.pathname} isClientView={false} t={t} isRtl={isRtl} hideIsrael={hideIsrael} isPublicVerification={true} />
+        </div>
+      );
+    }
+  }
 
   if (showLanding) {
     return (
@@ -964,10 +1038,10 @@ function ClientDashboard({ t, requests, setView, onSelectCert, onProvidePhotos }
             return (
               <div key={req.firestoreId || req.id || Math.random().toString()} 
                    onClick={() => {
-                     if(req?.status === 'completed') onSelectCert(req);
+                     if(req?.status === 'completed' || req?.status === 'refunded') onSelectCert(req);
                      if(req?.status === 'waiting_for_customer') onProvidePhotos(req);
                    }} 
-                   className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${(req?.status === 'completed' || req?.status === 'waiting_for_customer') ? 'cursor-pointer hover:shadow-md active:scale-[0.99] hover:border-[#d4af37]/50 transition-all' : 'opacity-90'}`}>
+                   className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${(req?.status === 'completed' || req?.status === 'refunded' || req?.status === 'waiting_for_customer') ? 'cursor-pointer hover:shadow-md active:scale-[0.99] hover:border-[#d4af37]/50 transition-all' : 'opacity-90'}`}>
                 <img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand || 'Item'} className="w-16 h-16 rounded-xl object-cover border border-slate-100" />
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1">
@@ -976,7 +1050,7 @@ function ClientDashboard({ t, requests, setView, onSelectCert, onProvidePhotos }
                   </div>
                   <p className="text-xs text-slate-500 truncate mb-2">{req?.model || ''} • {req?.id || 'ללא מזהה'}</p>
                   
-                  {req?.status === 'completed' ? (
+                  {req?.status === 'completed' || req?.status === 'refunded' ? (
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold border ${req.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
                       {req.result === 'authentic' ? <><CheckCircle size={12} /> {t('authentic')}</> : req.result === 'refunded' ? <><X size={12}/> בוטל</> : <><XCircle size={12} /> {t('fake')}</>}
                     </span>
@@ -1424,12 +1498,16 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
   );
 }
 
-function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }) {
+function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, isPublicVerification = false }) {
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   
   // Limiting images to max 4 to fit perfectly on A4
   const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+
+  // Generate real QR code URL pointing to verification page
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
 
   const handlePrint = () => {
     // Override Document Title for Saving as PDF (LBI-XXXXXX)
@@ -1441,8 +1519,10 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print">
-      <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:p-0 print:m-0 print:space-y-0 print:w-[200mm] print:max-w-none print:mx-auto">
+      {!isPublicVerification && (
+        <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
+      )}
       
       {/* Container specifically sized for A4 */}
       <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-[6px] print:shadow-none print:p-0 print:w-[210mm] print:h-[297mm] print:mx-auto print:box-border print:overflow-hidden">
@@ -1463,7 +1543,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
           
           <div className={`w-full py-4 mb-6 print:mb-4 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
             <h2 className="text-xl print:text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
-              {isAuthentic ? <><ShieldCheck size={28} /> Authentic</> : <><ShieldAlert size={28} /> Counterfeit</>}
+              {isAuthentic ? <><ShieldCheck size={28} className="print:w-8 print:h-8" /> Authentic</> : <><ShieldAlert size={28} className="print:w-8 print:h-8" /> Counterfeit</>}
             </h2>
           </div>
           
@@ -1482,16 +1562,17 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
           <div className="w-full mb-6 print:mb-2 relative z-10 flex-1">
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 print:mb-3 text-left" dir="ltr">Inspected Elements</h3>
             
+            {/* Forced 4-column grid for images, ensuring they never stretch */}
             <div className="grid grid-cols-4 gap-3 print:gap-2 w-full">
               {imagesToDisplay.map(([part, url]) => (
                  <div key={part} className="flex flex-col items-center">
-                    <img src={url} alt={part} className="w-full h-24 print:h-28 object-cover border border-slate-200 rounded-md shadow-sm" />
+                    <img src={url} alt={part} className="w-full h-24 print:h-28 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
                     <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">{part}</span>
                  </div>
               ))}
               {imagesToDisplay.length === 0 && (
                  <div className="col-span-4 flex flex-col items-center">
-                   <img src={data.image} className="w-64 h-32 print:h-36 object-cover border border-slate-200 rounded-md shadow-sm" />
+                   <img src={data.image} className="w-64 h-32 print:h-36 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
                    <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">MAIN</span>
                  </div>
               )}
@@ -1502,7 +1583,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
             <div className="text-left" dir="ltr"><CertificateStamp /></div>
             <div className="flex flex-col items-center">
               <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-1">
-                <QrCode size={56} className="text-slate-800" />
+                <img src={qrCodeUrl} alt="QR Code Verification" className="w-14 h-14 print:w-12 print:h-12 object-contain mix-blend-multiply" crossOrigin="anonymous" />
               </div>
               <p className="text-[8px] text-slate-400 uppercase tracking-widest">Scan to Verify</p>
             </div>
@@ -1510,22 +1591,22 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
         </div>
       </div>
       
-      {!isClientView && (
-        <div className="flex justify-end pt-6 no-print">
-          <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
-            <Upload size={20} /> הדפס / יצא ל-PDF
-          </button>
-        </div>
-      )}
+      {/* Print button visible to admins or clients on standard view, but hidden on public verification URL */}
+      <div className="flex justify-center sm:justify-end pt-6 no-print">
+        <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+          <Upload size={20} /> הדפס / יצא ל-PDF
+        </button>
+      </div>
       
-      {isClientView && isAuthentic && (
+      {/* Sharing tools for client (Only if authentic and not just public scanning) */}
+      {isClientView && !isPublicVerification && isAuthentic && (
         <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
              <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
-             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> הדפס / יצא ל-PDF</button>
+             <button onClick={() => { navigator.clipboard.writeText(verifyUrl); alert('הקישור הועתק!'); }} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> העתק קישור</button>
           </div>
         </div>
       )}
@@ -1535,7 +1616,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
 
 function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
-  const [previewCertReq, setPreviewCertReq] = useState(null); // Used to show certificate in Admin view
+  const [previewCertReq, setPreviewCertReq] = useState(null); 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [finalVerdict, setFinalVerdict] = useState(null); 

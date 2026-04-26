@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard, Share2
 } from 'lucide-react';
 
 // Firebase Imports
@@ -48,7 +48,7 @@ class ErrorBoundary extends React.Component {
               <AlertTriangle size={40} className="text-red-500" />
             </div>
             <h1 className="text-2xl font-black text-slate-800 mb-3">מערכת ה-Watchdog הופעלה</h1>
-            <p className="text-slate-600 mb-6 text-sm">זיהינו שגיאת קוד שניסתה להקריס את האפליקציה. מנגנון ההגנה בלם אותה מלקרוס לחלוטין.</p>
+            <p className="text-slate-600 mb-6 text-sm">זיהינו שגיאת קוד. מנגנון ההגנה בלם אותה מלקרוס לחלוטין.</p>
             <div className="bg-slate-900 text-red-400 p-4 rounded-xl text-left text-xs font-mono overflow-auto h-32 mb-6 shadow-inner" dir="ltr">
               {this.state.error && this.state.error.toString()}
             </div>
@@ -90,7 +90,7 @@ try {
 }
 
 // ==========================================
-// TRANSLATIONS
+// TRANSLATIONS & CONSTANTS
 // ==========================================
 const translations = {
   he: {
@@ -171,6 +171,30 @@ const translations = {
   }
 };
 
+const LUXURY_BRANDS = ["Louis Vuitton", "Chanel", "Hermes", "Dior", "Gucci", "Prada", "Saint Laurent", "Celine", "Fendi", "Balenciaga", "Rolex", "Cartier"];
+const ITEM_TYPES = ["Bag/תיק", "Clothing/בגד", "Shoes/נעליים", "Accessories/אקססוריז", "Watch/שעון"];
+const BAG_PARTS = [
+  { id: 'front', iconType: 'front' }, { id: 'inside', iconType: 'inside' },
+  { id: 'base', iconType: 'base' }, { id: 'date-code', iconType: 'date-code' },
+  { id: 'zipper', iconType: 'zipper' }, { id: 'buckle-front', iconType: 'buckle-front' },
+  { id: 'buckle-back', iconType: 'buckle-back' }, { id: 'metal-stamp', iconType: 'metal-stamp' }
+];
+
+const BRAND_MODELS = {
+  "Louis Vuitton": ["Neverfull", "Speedy", "Alma", "Pochette Metis", "Keepall", "Capucines", "Onthego", "Noé", "Multi Pochette", "Diane", "Coussin", "Loop", "Twist", "Bumbag", "Dauphine", "לא ידוע / Other"],
+  "Chanel": ["Classic Flap", "Boy Bag", "19 Bag", "Gabrielle", "2.55 Reissue", "Wallet on Chain (WOC)", "לא ידוע / Other"],
+  "Hermes": ["Birkin", "Kelly", "Constance", "Evelyne", "Picotin", "Lindy", "לא ידוע / Other"],
+  "Dior": ["Lady Dior", "Saddle Bag", "Book Tote", "Diorama", "Caro", "לא ידוע / Other"],
+  "Gucci": ["Marmont", "Dionysus", "Jackie", "Soho", "Sylvie", "לא ידוע / Other"],
+  "Prada": ["Galleria", "Cleo", "Re-Edition", "Cahier", "לא ידוע / Other"],
+  "Saint Laurent": ["Loulou", "College", "Sac de Jour", "Sunset", "Kate", "לא ידוע / Other"],
+  "Celine": ["Luggage", "Triomphe", "Belt Bag", "Classic Box", "לא ידוע / Other"],
+  "Fendi": ["Baguette", "Peekaboo", "Kan I", "לא ידוע / Other"],
+  "Balenciaga": ["City", "Hourglass", "Le Cagole", "לא ידוע / Other"]
+};
+
+const HERO_BG_IMAGES = ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80"];
+
 // ==========================================
 // ICONS & UI HELPERS
 // ==========================================
@@ -232,33 +256,6 @@ function BagPartIcon({ type, className = "w-8 h-8" }) {
 }
 
 // ==========================================
-// CONSTANTS & HELPERS
-// ==========================================
-const LUXURY_BRANDS = ["Louis Vuitton", "Chanel", "Hermes", "Dior", "Gucci", "Prada", "Saint Laurent", "Celine", "Fendi", "Balenciaga", "Rolex", "Cartier"];
-const ITEM_TYPES = ["Bag/תיק", "Clothing/בגד", "Shoes/נעליים", "Accessories/אקססוריז", "Watch/שעון"];
-const BAG_PARTS = [
-  { id: 'front', iconType: 'front' }, { id: 'inside', iconType: 'inside' },
-  { id: 'base', iconType: 'base' }, { id: 'date-code', iconType: 'date-code' },
-  { id: 'zipper', iconType: 'zipper' }, { id: 'buckle-front', iconType: 'buckle-front' },
-  { id: 'buckle-back', iconType: 'buckle-back' }, { id: 'metal-stamp', iconType: 'metal-stamp' }
-];
-
-const BRAND_MODELS = {
-  "Louis Vuitton": ["Neverfull", "Speedy", "Alma", "Pochette Metis", "Keepall", "Capucines", "Onthego", "Noé", "Multi Pochette", "Diane", "Coussin", "Loop", "Twist", "Bumbag", "Dauphine", "לא ידוע / Other"],
-  "Chanel": ["Classic Flap", "Boy Bag", "19 Bag", "Gabrielle", "2.55 Reissue", "Wallet on Chain (WOC)", "לא ידוע / Other"],
-  "Hermes": ["Birkin", "Kelly", "Constance", "Evelyne", "Picotin", "Lindy", "לא ידוע / Other"],
-  "Dior": ["Lady Dior", "Saddle Bag", "Book Tote", "Diorama", "Caro", "לא ידוע / Other"],
-  "Gucci": ["Marmont", "Dionysus", "Jackie", "Soho", "Sylvie", "לא ידוע / Other"],
-  "Prada": ["Galleria", "Cleo", "Re-Edition", "Cahier", "לא ידוע / Other"],
-  "Saint Laurent": ["Loulou", "College", "Sac de Jour", "Sunset", "Kate", "לא ידוע / Other"],
-  "Celine": ["Luggage", "Triomphe", "Belt Bag", "Classic Box", "לא ידוע / Other"],
-  "Fendi": ["Baguette", "Peekaboo", "Kan I", "לא ידוע / Other"],
-  "Balenciaga": ["City", "Hourglass", "Le Cagole", "לא ידוע / Other"]
-};
-
-const HERO_BG_IMAGES = ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80"];
-
-// ==========================================
 // STYLES FOR FLAWLESS PRINTING
 // ==========================================
 function GlobalStyles() {
@@ -305,7 +302,7 @@ function GlobalStyles() {
         left: 0 !important;
         top: 0 !important;
         width: 210mm !important;
-        height: 297mm !important; /* Slightly under 297 to avoid spilling to a 2nd page */
+        height: 296mm !important; /* Slightly under 297 to avoid spilling to a 2nd page */
         margin: 0 !important;
         padding: 5mm !important;
         background-color: white !important;
@@ -324,6 +321,7 @@ function GlobalStyles() {
   `}} />;
 }
 
+// Helper Functions
 const compressImageToBase64 = (file) => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -362,85 +360,81 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
 };
 
 // ==========================================
-// PRINT ONLY VIEW (DEDICATED A4 TEMPLATE)
+// DEDICATED PRINT TEMPLATE
 // ==========================================
 function PrintOnlyView({ data, hideIsrael }) {
   if (!data) return null;
   const isAuthentic = data.result === 'authentic';
-  // Enforces max 4 images to never spill the page vertically
   const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
   const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
 
   return (
     <div className="hidden print:block print-certificate-a4" dir="rtl">
-      {/* 210x296mm precise box to fit the exact A4 paper dimensions */}
-      <div className="w-[210mm] h-[296mm] border-[8px] border-[#0a0a0a] p-[3mm] box-border relative mx-auto bg-white overflow-hidden">
-        {/* Inner gold border */}
-        <div className="w-full h-full border-[2px] border-[#d4af37] p-[8mm] flex flex-col relative box-border bg-white overflow-hidden">
+      <div className="w-full h-full border-[10px] border-[#0a0a0a] p-[4mm] box-border relative mx-auto bg-white overflow-hidden">
+        <div className="w-full h-full border-[3px] border-[#d4af37] p-[10mm] flex flex-col relative box-border bg-white overflow-hidden">
           
-          <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120mm] h-[120mm] opacity-[0.03] pointer-events-none" />
+          <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[180mm] h-[180mm] opacity-[0.03] pointer-events-none" />
           
-          <div className="absolute top-[6mm] right-[6mm] text-right">
-             <p className="text-[8px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
-             <p className="text-[12px] font-bold text-slate-800 font-mono tracking-wider m-0 mt-1 leading-none">{data.id}</p>
+          <div className="absolute top-[8mm] right-[8mm] text-right">
+             <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
+             <p className="text-base font-bold text-slate-800 font-mono tracking-wider m-0 mt-1 leading-none">{data.id}</p>
           </div>
           
-          <div className="mb-[4mm] relative z-10 pt-[2mm] flex flex-col items-center">
-            <BrandLogo className="w-[16mm] h-[16mm] mx-auto mb-[2mm] drop-shadow-md" hideIsrael={hideIsrael} />
-            <h1 className="text-[24px] font-serif tracking-widest text-[#0a0a0a] uppercase mb-1 m-0 leading-none">Certificate of Authentication</h1>
-            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[8px] uppercase m-0">Luxury Bags Israel</p>
+          <div className="mb-[6mm] relative z-10 pt-[6mm] flex flex-col items-center">
+            <BrandLogo className="w-[20mm] h-[20mm] mx-auto mb-[3mm] drop-shadow-md" hideIsrael={hideIsrael} />
+            <h1 className="text-[28px] font-serif tracking-widest text-[#0a0a0a] uppercase mb-1 m-0 leading-none">Certificate of Authentication</h1>
+            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[11px] uppercase m-0">Luxury Bags Israel</p>
           </div>
           
-          <div className={`w-full py-[3mm] mb-[6mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-              {isAuthentic ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
-              <h2 className="text-[16px] font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+          <div className={`w-full py-[4mm] mb-[8mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+              {isAuthentic ? <ShieldCheck size={32} /> : <ShieldAlert size={32} />}
+              <h2 className="text-2xl font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
           </div>
           
-          <div className="w-full max-w-[130mm] mx-auto mb-[6mm] relative z-10">
-            <div className="grid grid-cols-2 gap-y-[3mm] text-left border-b border-slate-200 pb-[4mm] mb-[4mm]" dir="ltr">
-              <div className="text-slate-500 text-[10px] uppercase tracking-widest">Brand</div>
-              <div className="font-bold text-slate-900 text-[13px] leading-none">{data.brand}</div>
-              <div className="text-slate-500 text-[10px] uppercase tracking-widest">Model</div>
-              <div className="font-bold text-slate-900 text-[13px] leading-none">{data.model}</div>
+          <div className="w-full max-w-xl mb-[8mm] relative z-10">
+            <div className="grid grid-cols-2 gap-y-[4mm] text-left border-b border-slate-200 pb-[5mm] mb-[5mm]" dir="ltr">
+              <div className="text-slate-500 text-[11px] uppercase tracking-widest">Brand</div>
+              <div className="font-bold text-slate-900 text-[16px] leading-none">{data.brand}</div>
+              <div className="text-slate-500 text-[11px] uppercase tracking-widest">Model</div>
+              <div className="font-bold text-slate-900 text-[16px] leading-none">{data.model}</div>
               {data.serialNumber && (
                 <>
-                  <div className="text-slate-500 text-[10px] uppercase tracking-widest">Serial Number</div>
-                  <div className="font-bold text-slate-900 text-[13px] leading-none">{data.serialNumber}</div>
+                  <div className="text-slate-500 text-[11px] uppercase tracking-widest">Serial Number</div>
+                  <div className="font-bold text-slate-900 text-[16px] leading-none">{data.serialNumber}</div>
                 </>
               )}
-              <div className="text-slate-500 text-[10px] uppercase tracking-widest">Date Inspected</div>
-              <div className="font-bold text-slate-900 text-[13px] leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+              <div className="text-slate-500 text-[11px] uppercase tracking-widest">Date Inspected</div>
+              <div className="font-bold text-slate-900 text-[16px] leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
             </div>
-            <p className="text-[9px] text-slate-500 italic text-center max-w-[110mm] mx-auto leading-relaxed m-0">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+            <p className="text-[11px] text-slate-500 italic text-center max-w-[400px] mx-auto leading-relaxed m-0">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
           </div>
           
           <div className="w-full relative z-10 flex-1 flex flex-col justify-center">
-            <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-[2mm] mb-[3mm] text-left m-0" dir="ltr">Inspected Elements</h3>
-            <div className="grid grid-cols-4 gap-[3mm] w-full" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-[2mm] mb-[5mm] text-left m-0" dir="ltr">Inspected Elements</h3>
+            <div className="grid grid-cols-4 gap-3 w-full">
               {imagesToDisplay.map(([part, url]) => (
                  <div key={part} className="flex flex-col items-center">
                     <img src={url} alt={part} className="w-full h-[22mm] object-cover border border-slate-200 rounded shadow-sm" />
-                    <span className="mt-[1.5mm] text-[8px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+                    <span className="mt-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
                  </div>
               ))}
               {imagesToDisplay.length === 0 && (
                  <div className="col-span-4 flex flex-col items-center text-center">
-                   <img src={data.image} className="w-[60mm] h-[22mm] object-cover border border-slate-200 rounded shadow-sm" />
-                   <span className="mt-[1.5mm] text-[8px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
+                   <img src={data.image} className="w-64 h-[25mm] object-cover border border-slate-200 rounded shadow-sm" />
+                   <span className="mt-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
                  </div>
               )}
             </div>
           </div>
           
-          {/* Footer pinned to bottom of flex container */}
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-[4mm] border-t border-slate-100">
+          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-[6mm] border-t border-slate-100">
             <div className="text-left pb-1" dir="ltr"><CertificateStamp /></div>
             <div className="flex flex-col items-center">
-              <div className="bg-white p-1 border border-slate-200 rounded shadow-sm mb-1">
-                <img src={qrCodeUrl} alt="QR Code Verification" className="w-[14mm] h-[14mm] object-contain mix-blend-multiply" crossOrigin="anonymous" />
+              <div className="bg-white p-1.5 border border-slate-200 rounded-lg shadow-sm mb-1">
+                <img src={qrCodeUrl} alt="QR Code" className="w-[14mm] h-[14mm] object-contain mix-blend-multiply" crossOrigin="anonymous" />
               </div>
-              <p className="text-[7px] text-slate-400 uppercase tracking-widest m-0 p-0">Scan to Verify</p>
+              <p className="text-[8px] text-slate-400 uppercase tracking-widest m-0 p-0">Scan to Verify</p>
             </div>
           </div>
         </div>
@@ -450,7 +444,188 @@ function PrintOnlyView({ data, hideIsrael }) {
 }
 
 // ==========================================
-// STATE MANAGER (MainApp)
+// CORE COMPONENT FOR DISPLAYING CERT ON SCREEN
+// ==========================================
+function DigitalCertificate({ data, onBack, isClientView, isRtl, hideIsrael, isPublicVerification }) {
+  if (!data) return null;
+  const isAuthentic = data.result === 'authentic';
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
+  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = data.id || 'LBI-Certificate';
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:hidden">
+      {!isPublicVerification && (
+        <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors">
+          <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור
+        </button>
+      )}
+      
+      <div className="w-full overflow-x-auto flex justify-center pb-4 scrollbar-hide no-print">
+         <div className="shrink-0 border-[10px] border-[#0a0a0a] shadow-2xl relative w-full sm:w-[210mm] max-w-full bg-white">
+            <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white">
+              <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] opacity-5 pointer-events-none" />
+              
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 text-right">
+                 <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
+                 <p className="text-sm font-bold text-slate-800 font-mono tracking-wider mt-1 m-0 leading-none">{data.id}</p>
+              </div>
+              
+              <div className="mb-8 relative z-10 pt-6">
+                <BrandLogo className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
+                <h1 className="text-2xl sm:text-4xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
+                <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
+              </div>
+              
+              <div className={`w-full py-4 mb-8 border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                  {isAuthentic ? <ShieldCheck size={32} /> : <ShieldAlert size={32} />}
+                  <h2 className="text-2xl font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+              </div>
+              
+              <div className="w-full max-w-xl mb-8 relative z-10">
+                <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Brand</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{data.brand}</div>
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Model</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{data.model}</div>
+                  {data.serialNumber && (
+                    <>
+                      <div className="text-slate-500 text-sm uppercase tracking-widest">Serial Number</div>
+                      <div className="font-bold text-slate-900 text-lg leading-none">{data.serialNumber}</div>
+                    </>
+                  )}
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Date Inspected</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+                </div>
+                <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+              </div>
+              
+              <div className="w-full relative z-10 flex-1">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                  {imagesToDisplay.map(([part, url]) => (
+                     <div key={part} className="flex flex-col items-center">
+                        <img src={url} alt={part} className="w-full h-24 sm:h-28 object-cover border border-slate-200 rounded-md shadow-sm" />
+                        <span className="mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+                     </div>
+                  ))}
+                  {imagesToDisplay.length === 0 && (
+                     <div className="col-span-2 sm:col-span-4 flex flex-col items-center">
+                       <img src={data.image} className="w-full max-w-[250px] h-32 object-cover border border-slate-200 rounded-md shadow-sm" />
+                       <span className="mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
+                     </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-6 border-t border-slate-100">
+                <div className="text-left" dir="ltr"><CertificateStamp /></div>
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-2 border border-slate-200 rounded-xl shadow-md mb-2">
+                    <img src={qrCodeUrl} alt="QR Code Verification" className="w-16 h-16 object-contain mix-blend-multiply" crossOrigin="anonymous" />
+                  </div>
+                  <p className="text-[9px] text-slate-400 uppercase tracking-widest m-0">Scan to Verify</p>
+                </div>
+              </div>
+            </div>
+         </div>
+      </div>
+      
+      {!isClientView && (
+        <div className="flex justify-center sm:justify-end pt-6 no-print">
+          <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+            <Upload size={20} /> הדפס / יצא ל-PDF
+          </button>
+        </div>
+      )}
+      
+      {isClientView && !isPublicVerification && isAuthentic && (
+        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
+          <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
+          <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
+             <button onClick={() => { navigator.clipboard.writeText(verifyUrl); alert('הקישור הועתק!'); }} className="flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-4 px-8 rounded-xl shadow-sm transition-colors"><Upload size={20} /> העתק קישור</button>
+             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> הורד תעודה (PDF)</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// ADMIN MODAL FOR VIEWING & SHARING CERT
+// ==========================================
+function AdminCertificateModal({ reqData, onClose, hideIsrael }) {
+  if (!reqData) return null;
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${reqData.id}`;
+  
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = reqData.id || 'LBI-Certificate';
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
+  };
+
+  const handleWhatsApp = () => {
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("התעודה שלך מוכנה! צפה כאן: " + verifyUrl)}`, "_blank");
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+       navigator.share({ title: 'LBI Certificate', url: verifyUrl }).catch(()=>{});
+    } else {
+       navigator.clipboard.writeText(verifyUrl);
+       alert('הקישור הועתק בהצלחה!');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print" dir="rtl">
+      <div className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
+          <div className="flex items-center gap-2 font-bold"><Award size={20} className="text-[#d4af37]" /> הופקה תעודת אימות</div>
+          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
+        </div>
+        
+        <div className="p-6 bg-slate-100 flex-1 overflow-y-auto flex flex-col items-center">
+           <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm text-center mb-6 w-full max-w-sm">
+             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+             <h3 className="font-black text-slate-800 text-lg">תעודה {reqData.id}</h3>
+             <p className="text-sm text-slate-500 mb-4">התעודה נוצרה ונשמרה בהצלחה במסד הנתונים. הלקוח יכול לצפות בה באזור האישי.</p>
+             <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-xs font-mono break-all text-left" dir="ltr">
+               {verifyUrl}
+             </div>
+           </div>
+
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+              <button onClick={handleWhatsApp} className="flex flex-col items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 p-4 rounded-xl transition-colors font-bold text-sm">
+                <Smartphone size={24} /> שלח בוואטסאפ
+              </button>
+              <button onClick={handleShare} className="flex flex-col items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 p-4 rounded-xl transition-colors font-bold text-sm">
+                <Share2 size={24} /> שתף קישור
+              </button>
+              <button onClick={handlePrint} className="flex flex-col items-center justify-center gap-2 bg-[#0a0a0a] hover:bg-black text-[#d4af37] p-4 rounded-xl transition-colors font-bold text-sm">
+                <Upload size={24} /> הורד תעודה (PDF)
+              </button>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// CORE APP LOGIC
 // ==========================================
 function MainApp() {
   const [user, setUser] = useState(null); 
@@ -620,6 +795,7 @@ function MainApp() {
     }
   };
 
+  // public verification view
   if (verifyId) {
     if (verifyStatus === 'loading') {
       return (
@@ -642,7 +818,7 @@ function MainApp() {
     }
     if (verifyStatus === 'found') {
       return (
-        <div className="min-h-screen bg-slate-50 py-10 font-sans" dir="rtl">
+        <div className="min-h-screen bg-slate-50 py-10 font-sans print:bg-white print:py-0" dir="rtl">
            <GlobalStyles />
            
            {/* מציג את תעודת ההדפסה הטהורה. ה-CSS מסתיר אותה במסך ומראה רק בהדפסה */}
@@ -655,7 +831,7 @@ function MainApp() {
              <p className="text-slate-500 mt-4 text-sm">התעודה המוצגת מטה היא רשמית ואושרה על ידי מערכות Luxury Bags Israel.</p>
            </div>
            
-           <CertificateWrapper data={verifyData} onBack={() => window.location.href = window.location.origin + window.location.pathname} isClientView={false} t={t} isRtl={isRtl} hideIsrael={hideIsrael} isPublicVerification={true} />
+           <DigitalCertificate data={verifyData} onBack={() => window.location.href = window.location.origin + window.location.pathname} isClientView={false} isRtl={isRtl} hideIsrael={hideIsrael} isPublicVerification={true} />
         </div>
       );
     }
@@ -699,13 +875,13 @@ function MainApp() {
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
           <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32 cert-view-container">
             {role === 'admin' && currentView !== 'certificate-view' ? (
-              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} t={t} isRtl={isRtl} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} />
+              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} />
             ) : currentView === 'new-request' ? (
               <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} user={user} />
             ) : currentView === 'business-pkgs' ? (
               <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} />
             ) : currentView === 'certificate-view' ? (
-              <CertificateWrapper data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={role !== 'admin'} t={t} isRtl={isRtl} hideIsrael={hideIsrael} />
+              <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={role !== 'admin'} isRtl={isRtl} hideIsrael={hideIsrael} />
             ) : currentView === 'missing-photos' ? (
               <MissingPhotosUploader t={t} geo={geo} isRtl={isRtl} req={selectedCertificate} setView={setCurrentView} user={user} updateRequest={updateRequest} />
             ) : (
@@ -1165,6 +1341,20 @@ function ClientDashboard({ t, requests, setView, onSelectCert, onProvidePhotos }
   );
 }
 
+function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
+  const isSelected = current === id;
+  return (
+    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
+          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
+        </div>
+        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
+      </div>
+    </div>
+  );
+}
+
 function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) {
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -1390,7 +1580,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
                     </div>
                   ) : (
                     <div onClick={() => triggerFileInput(part.id)} className="border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center text-center bg-slate-50 hover:border-[#d4af37]/50 cursor-pointer h-[92px] transition-colors">
-                       <BagPartIcon type={part.iconType} className="w-8 h-8 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
+                       <BagPartIcon type={partDef.iconType} className="w-8 h-8 mb-2 text-slate-400 group-hover:text-[#d4af37] transition-colors" />
                        <span className="text-[10px] font-bold text-slate-500">{part.id}</span>
                     </div>
                   )}
@@ -1428,20 +1618,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
-  const isSelected = current === id;
-  return (
-    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
-          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
-        </div>
-        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
       </div>
     </div>
   );
@@ -1636,7 +1812,14 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert 
 
   const startReviewing = (req) => { setSelectedReqId(req.firestoreId || req.id); setTimeLeft(req.paymentTrack === 'express' ? 7200 : req.paymentTrack === 'fast' ? 21600 : 43200); if(req.status !== 'waiting_for_customer') setIsTimerRunning(true); };
   const simulateAIAnalysis = () => { setIsAnalyzing(true); setTimeout(() => { setIsAnalyzing(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing', aiDraftResponse: `מנוע ה-AI מזהה פונט לא תקני בחותמת התאריך. נדרשת החלטת מומחה סופית.`, confidence: 88 }); }, 2000); };
-  const handleIssueCertificate = (verdict) => { setIsTimerRunning(false); setFinalVerdict(verdict); setShowNotificationModal(true); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: verdict }); };
+  
+  const handleIssueCertificate = async (verdict) => { 
+    setIsTimerRunning(false); 
+    setFinalVerdict(verdict); 
+    await updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: verdict });
+    setShowNotificationModal(true); 
+  };
+  
   const handleCancelAndRefund = () => { setIsTimerRunning(false); setShowCancelModal(false); alert(`שולח זיכוי והודעה: "${cancelReason}"`); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' }); setSelectedReqId(null); };
   
   const sendPhotoRequest = () => { 
@@ -1799,37 +1982,15 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert 
           </div>
         </div>
       )}
-      {showNotificationModal && <ClientNotificationModal verdict={finalVerdict} reqId={activeReq?.id} onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} hideIsrael={hideIsrael} />}
-    </div>
-  );
-}
-
-function ClientNotificationModal({ verdict, reqId, onClose, hideIsrael }) {
-  const isAuthentic = verdict === 'authentic';
-  const themeClasses = isAuthentic ? 'from-green-500 to-emerald-600 bg-green-50 border-green-200 text-green-900' : 'from-slate-600 to-red-800 bg-red-50 border-red-200 text-red-900';
-
-  return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-        <div className={`bg-gradient-to-r ${themeClasses.split(' ').slice(0, 2).join(' ')} p-4 text-white flex justify-between items-center`}>
-          <div className="flex items-center gap-2 font-bold"><Smartphone size={20} /> סימולציית הודעה ללקוח</div>
-          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
-        </div>
-        <div className="p-6 bg-slate-100 flex justify-center">
-          <div className="bg-white w-full rounded-[2rem] border-8 border-slate-800 h-[450px] overflow-y-auto shadow-inner relative flex flex-col">
-            <div className="bg-slate-800 text-white text-[10px] py-1 px-4 flex justify-between rounded-t-xl" dir="ltr"><span>09:41</span><span>100% 🔋</span></div>
-            <div className="p-4 flex-1">
-              <div className="flex items-center gap-2 mb-4 text-xs font-bold text-slate-500 border-b border-slate-100 pb-2"><Mail size={14} /> Inbox</div>
-              <div className={`rounded-xl border ${isAuthentic ? 'bg-green-50 border-green-100' : 'bg-rose-50 border-rose-100'} p-5 text-center`}>
-                <BrandLogo className="w-12 h-12 mx-auto mb-4 drop-shadow-md" hideIsrael={hideIsrael} />
-                <h3 className={`text-lg font-black mb-2 ${isAuthentic ? 'text-green-800' : 'text-slate-800'}`}>{isAuthentic ? 'חדשות מצוינות, הפריט אושר!' : 'עדכון לגבי אימות הפריט'}</h3>
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed">בדיקת הבקשה {reqId} הסתיימה.<br/><br/>{isAuthentic ? 'לאחר בחינה קפדנית, אנו שמחים לאשר כי הפריט הינו מקורי לחלוטין (Authentic).' : 'זיהינו אי-התאמות בסטנדרט הייצור. הפריט נפסל כמזויף.'}</p>
-                <button onClick={onClose} className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex justify-center items-center gap-2 ${isAuthentic ? 'bg-green-600' : 'bg-slate-800'}`}><FileText size={16} /> סגור</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
+      {/* לאחר החלטה - מוצגת חלונית הפקת תעודה/שיתוף */}
+      {showNotificationModal && (
+        <AdminCertificateModal 
+          reqData={{...activeReq, result: finalVerdict}} 
+          onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} 
+          hideIsrael={hideIsrael} 
+        />
+      )}
     </div>
   );
 }

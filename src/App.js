@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard, Instagram
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
 } from 'lucide-react';
 
 // Firebase Imports
@@ -126,7 +126,7 @@ const translations = {
     continue_photos: "להעלאת תמונות", back: "חזור לאתר", continue_track: "לבחירת מסלול", track_title: "בחירת מסלול",
     track_sub: "בחרו את מהירות הטיפול.", track_reg: "בדיקה רגילה", track_fast: "בדיקה מהירה", track_exp: "אקספרס",
     hours_12: "12 שעות", hours_6: "6 שעות", hours_2: "שעתיים", recommended: "מומלץ", coupon_label: "קוד קופון",
-    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "תשלום באשראי / ביט", send_free: "שלח בחינם",
+    coupon_placeholder: "הזינו קוד", apply: "הפעל", send_payment: "שלם באמצעות PayPal", send_free: "שלח בחינם",
     authentic: "מקורי", fake: "מזויף", pending_expert: "בבדיקה...", need_photos: "נדרשות תמונות",
     business_pkg: "חבילות לעסקים", pkg_title: "חבילות אימות לעסקים", pkg_sub: "חסכו עד 20%.",
     contact_sales: "דברו איתנו בוואטסאפ", success_title: "הבקשה הוגשה בהצלחה! 🎉",
@@ -264,36 +264,47 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
-    /* מנגנון הדפסה מתקדם - מוודא שהתעודה תודפס על עמוד A4 אחד נקי ללא כפתורים */
+    /* מנגנון הדפסה חסין כדורים - עמוד A4 אחד נקי */
     @media print {
-      @page { size: A4 portrait; margin: 5mm; }
-      body { background-color: #fff !important; }
+      @page { size: A4 portrait; margin: 0; }
+      body { margin: 0; padding: 0; background-color: #fff !important; }
       
-      /* העלמה מלאה של תפריטים, רקעים שחורים וכפתורים */
-      aside, header, .print\\:hidden { display: none !important; }
+      /* העלמה אגרסיבית של כל כפתור, תפריט ורקע מסביב */
+      .no-print, aside, header, nav, button { 
+        display: none !important; 
+      }
       
-      /* ביטול הגלילה של המערכת כדי שהדף ייפרס למלוא הגובה */
-      html, body, #root, .flex, main, .overflow-y-auto, .overflow-hidden {
+      /* איפוס של גלילת המערכת כדי למנוע היחתכות דפים */
+      #root, main, .flex, .flex-1, .overflow-y-auto, .overflow-hidden {
+        display: block !important;
         height: auto !important;
         min-height: auto !important;
         overflow: visible !important;
         position: static !important;
-        display: block !important;
       }
       
-      /* איפוס שוליים סביב התעודה */
-      .p-4, .md\\:p-8, .pb-32 { padding: 0 !important; margin: 0 !important; }
-      
-      /* עיצוב התעודה עצמה להדפסה */
+      /* "תולש" את התעודה החוצה ומדביק אותה במדויק על עמוד אחד */
       .printable-certificate {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
         box-shadow: none !important;
-        width: 100% !important;
-        max-width: none !important;
-        margin: 0 auto !important;
-        page-break-inside: avoid;
+        border: none !important;
+        z-index: 99999 !important;
+        page-break-inside: avoid !important;
       }
       
-      /* כפיית הדפסת צבעי רקע (חיוני למסגרות וצבעי אישור/שגיאה) */
+      .cert-inner {
+        height: 297mm !important;
+        box-sizing: border-box !important;
+      }
+
+      /* כפיית הדפסת צבעי רקע (מסגרות יוקרה וסטטוס) */
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -352,7 +363,7 @@ function MainApp() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [systemRequests, setSystemRequests] = useState([]);
-  const [selectedCertificate, setSelectedCertificate] = useState(null); // Used to pass the selected request to Views
+  const [selectedCertificate, setSelectedCertificate] = useState(null); 
   const [geo, setGeo] = useState({ country: 'IL', currency: 'ILS', symbol: '₪' });
   const [lang, setLang] = useState('he');
   
@@ -822,10 +833,10 @@ function LoginScreen({ onBack, onLoginSuccess, t, isRtl, lang, setLang, hideIsra
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white relative overflow-x-hidden">
       <div className={`absolute top-6 ${isRtl ? 'right-6' : 'left-6'} z-50`}>
-         <button onClick={onBack} className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold text-sm bg-white/80 px-3 py-1.5 rounded-full shadow-sm"><ChevronLeft size={16} className={isRtl ? 'rotate-180' : ''} /> {t('back') || 'חזור'}</button>
+         <button onClick={onBack} className="no-print flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold text-sm bg-white/80 px-3 py-1.5 rounded-full shadow-sm"><ChevronLeft size={16} className={isRtl ? 'rotate-180' : ''} /> {t('back') || 'חזור'}</button>
       </div>
       <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-50`}>
-        <button onClick={() => setLang(lang === 'he' ? 'en' : 'he')} className="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-slate-200 md:border-white/30 text-slate-800 md:text-white px-4 py-2 rounded-full font-bold text-xs shadow-sm hover:bg-white/30"><Globe size={14} /> {lang === 'he' ? 'EN' : 'עברית'}</button>
+        <button onClick={() => setLang(lang === 'he' ? 'en' : 'he')} className="no-print flex items-center gap-2 bg-white/20 backdrop-blur-md border border-slate-200 md:border-white/30 text-slate-800 md:text-white px-4 py-2 rounded-full font-bold text-xs shadow-sm hover:bg-white/30"><Globe size={14} /> {lang === 'he' ? 'EN' : 'עברית'}</button>
       </div>
       <div className="hidden md:flex md:w-1/2 relative bg-[#0a0a0a] items-center justify-center overflow-hidden pt-12">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40" style={{ backgroundImage: `url('${HERO_BG_IMAGES[0]}')` }} />
@@ -1062,7 +1073,8 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
            },
            onApprove: (data, actions) => {
              return actions.order.capture().then(async () => {
-                const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+                // מזהה ייחודי חדש בצורה בולטת LBI-XXXXXX
+                const newReqId = `LBI-${Math.floor(100000+Math.random()*900000)}`;
                 await addRequest({
                   id: newReqId, brand, model: model || 'N/A',
                   date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
@@ -1083,7 +1095,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages, activeUploads]);
 
   const handlePaymentSuccessFree = () => {
-    const newReqId = `REQ-${Math.floor(1000+Math.random()*9000)}`;
+    const newReqId = `LBI-${Math.floor(100000+Math.random()*900000)}`;
     addRequest({
       id: newReqId, brand, model: model || 'N/A',
       date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
@@ -1397,67 +1409,73 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 print:p-0 print:m-0 print:space-y-0 print:w-[200mm] print:max-w-none print:mx-auto">
-      <button onClick={onBack} className="print:hidden text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print">
+      <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
       
-      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-8 print:shadow-none print:p-1 print:h-[280mm] print:flex print:flex-col print:overflow-hidden">
-        <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden print:p-6 print:flex-1">
+      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
+        <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
           
-          <div className="mb-10 print:mb-6 relative z-10">
-            <BrandLogo className="w-28 h-28 print:w-20 print:h-20 mx-auto mb-6 print:mb-3 drop-shadow-xl" hideIsrael={hideIsrael} />
-            <h1 className="text-3xl md:text-5xl print:text-3xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-3 print:mb-1">Certificate of Authentication</h1>
-            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-sm print:text-xs uppercase">Luxury Bags Israel</p>
+          {/* Certificate Number Display */}
+          <div className="absolute top-6 right-6 text-right">
+             <p className="text-[9px] font-black tracking-widest text-slate-400 uppercase">Certificate No.</p>
+             <p className="text-sm font-bold text-slate-800 font-mono tracking-wider">{data.id}</p>
           </div>
           
-          <div className={`w-full py-5 mb-10 border-y-2 relative z-10 print:py-2 print:mb-6 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-            <h2 className="text-2xl md:text-3xl print:text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
-              {isAuthentic ? <><ShieldCheck size={36} className="print:w-8 print:h-8" /> Authentic</> : <><ShieldAlert size={36} className="print:w-8 print:h-8" /> Counterfeit</>}
+          <div className="mb-8 relative z-10">
+            <BrandLogo className="w-24 h-24 mx-auto mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
+            <h1 className="text-3xl md:text-4xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
+            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
+          </div>
+          
+          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+            <h2 className="text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
+              {isAuthentic ? <><ShieldCheck size={28} /> Authentic</> : <><ShieldAlert size={28} /> Counterfeit</>}
             </h2>
           </div>
           
-          <div className="w-full max-w-xl mb-12 print:mb-6 relative z-10">
-            <div className="grid grid-cols-2 gap-y-6 print:gap-y-4 text-left border-b border-slate-200 pb-6 mb-6 print:pb-4 print:mb-4" dir="ltr">
-              <div className="text-slate-500 text-sm print:text-xs uppercase tracking-widest">Brand</div>
-              <div className="font-bold text-slate-900 text-lg print:text-base">{data.brand}</div>
-              <div className="text-slate-500 text-sm print:text-xs uppercase tracking-widest">Model</div>
-              <div className="font-bold text-slate-900 text-lg print:text-base">{data.model}</div>
-              <div className="text-slate-500 text-sm print:text-xs uppercase tracking-widest">Date Inspected</div>
-              <div className="font-bold text-slate-900 text-lg print:text-base">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+          <div className="w-full max-w-xl mb-8 relative z-10">
+            <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
+              <div className="text-slate-500 text-xs uppercase tracking-widest">Brand</div>
+              <div className="font-bold text-slate-900 text-base">{data.brand}</div>
+              <div className="text-slate-500 text-xs uppercase tracking-widest">Model</div>
+              <div className="font-bold text-slate-900 text-base">{data.model}</div>
+              <div className="text-slate-500 text-xs uppercase tracking-widest">Date Inspected</div>
+              <div className="font-bold text-slate-900 text-base">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
             </div>
-            <p className="text-sm print:text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+            <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
           </div>
           
-          <div className="w-full mb-12 print:mb-4 relative z-10">
-            <h3 className="text-sm print:text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-3 mb-6 print:pb-2 print:mb-4 text-left" dir="ltr">Inspected Elements</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-3 print:gap-2">
+          <div className="w-full mb-8 relative z-10">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
+            {/* Forced 4-column grid for images, ensuring they never stretch */}
+            <div className="grid grid-cols-4 gap-2 w-full">
               {data.images && Object.entries(data.images).map(([part, url]) => (
-                 <div key={part} className="relative group flex flex-col items-center">
-                    <img src={url} alt={part} className="w-full h-28 md:h-36 print:h-20 object-cover border border-slate-200 rounded-lg shadow-sm" style={{ objectFit: 'cover' }} />
-                    <span className="absolute bottom-2 right-2 print:static print:mt-1 bg-black/60 print:bg-transparent print:text-slate-500 backdrop-blur-sm text-white text-[10px] px-2 py-1 print:p-0 rounded uppercase tracking-wider print:font-bold">{part}</span>
+                 <div key={part} className="flex flex-col items-center">
+                    <img src={url} alt={part} className="w-full h-24 object-cover border border-slate-200 rounded-md shadow-sm" />
+                    <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
                  </div>
               ))}
               {(!data.images || Object.keys(data.images).length === 0) && (
-                 <img src={data.image} className="w-full h-32 print:h-24 object-cover border border-slate-200 rounded-lg shadow-sm col-span-2 print:col-span-4" style={{ objectFit: 'cover' }} />
+                 <img src={data.image} className="w-full h-24 object-cover border border-slate-200 rounded-md shadow-sm col-span-4" />
               )}
             </div>
           </div>
           
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-8 print:pt-4 border-t border-slate-100">
+          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-4 border-t border-slate-100">
             <div className="text-left" dir="ltr"><CertificateStamp /></div>
             <div className="flex flex-col items-center">
-              <div className="bg-white p-3 print:p-2 border border-slate-200 rounded-xl shadow-md mb-3 print:mb-1">
-                <QrCode size={72} className="text-slate-800 print:w-12 print:h-12" />
+              <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-1">
+                <QrCode size={56} className="text-slate-800" />
               </div>
-              <p className="text-[9px] text-slate-400 uppercase tracking-widest">Scan to Verify</p>
-              <p className="text-xs font-bold text-slate-800 mt-1 font-mono tracking-wider">{data.id}</p>
+              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Scan to Verify</p>
             </div>
           </div>
         </div>
       </div>
       
       {!isClientView && (
-        <div className="flex justify-end pt-6 print:hidden">
+        <div className="flex justify-end pt-6 no-print">
           <button onClick={() => window.print()} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
             <Upload size={20} /> הדפס / יצא ל-PDF
           </button>
@@ -1465,7 +1483,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
       )}
       
       {isClientView && isAuthentic && (
-        <div className="print:hidden bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>

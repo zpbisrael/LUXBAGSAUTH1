@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail,
   QrCode, Shield, ShieldCheck, ShieldAlert, AlertTriangle, Smartphone, XCircle,
   Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe,
-  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard
+  Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Star, Sparkles, Check, CreditCard, Instagram
 } from 'lucide-react';
 
 // Firebase Imports
@@ -16,7 +16,7 @@ import {
   GoogleAuthProvider, signInWithPopup
 } from 'firebase/auth';
 import { 
-  getFirestore, collection, addDoc, updateDoc, doc, onSnapshot 
+  getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, getDoc, setDoc, runTransaction 
 } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -281,6 +281,7 @@ function GlobalStyles() {
         min-height: auto !important;
         overflow: visible !important;
         position: static !important;
+        background-color: white !important;
       }
       
       /* "תולש" את התעודה החוצה ומדביק אותה במדויק על עמוד אחד */
@@ -297,6 +298,7 @@ function GlobalStyles() {
         border: none !important;
         z-index: 99999 !important;
         page-break-inside: avoid !important;
+        overflow: hidden !important;
       }
       
       .cert-inner {
@@ -350,7 +352,6 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
     console.error("Telegram alert failed silently", err);
   }
 };
-
 
 // ==========================================
 // CORE APP
@@ -445,13 +446,34 @@ function MainApp() {
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
     try {
+      // Transaction to safely increment global request counter
+      const counterRef = doc(db, 'artifacts', appId, 'public', 'metadata', 'counter');
+      let newIdNum = 19201;
+
+      await runTransaction(db, async (transaction) => {
+        const counterDoc = await transaction.get(counterRef);
+        if (!counterDoc.exists()) {
+          transaction.set(counterRef, { currentSequence: newIdNum });
+        } else {
+          newIdNum = counterDoc.data().currentSequence + 1;
+          transaction.update(counterRef, { currentSequence: newIdNum });
+        }
+      });
+      
+      const finalReqId = `LBI-${newIdNum}`;
+
       await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), { 
-        ...newReqData, clientId: user.uid, clientEmail: user.email || 'Anonymous', createdAt: Date.now() 
+        ...newReqData, 
+        id: finalReqId, // Inject proper sequential ID
+        clientId: user.uid, 
+        clientEmail: user.email || 'Anonymous', 
+        createdAt: Date.now() 
       });
       setCurrentView('dashboard'); 
+      return finalReqId; // Return new ID for telegram
     } catch (err) {
       console.error("Add Request Error:", err);
-      alert("שגיאה חמורה בשמירת הנתונים: פיירבייס חוסם את הבקשה.");
+      alert("שגיאה חמורה בשמירת הנתונים: פיירבייס חוסם את הבקשה או שאין הרשאת כתיבה ל-Counter.");
       throw err; 
     }
   };
@@ -501,7 +523,7 @@ function MainApp() {
     <>
       <GlobalStyles />
       <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
-        {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
+        {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm no-print" onClick={() => setIsMobileMenuOpen(false)} />}
         <Sidebar 
            t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} 
            role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} 
@@ -1073,15 +1095,13 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
            },
            onApprove: (data, actions) => {
              return actions.order.capture().then(async () => {
-                // מזהה ייחודי חדש בצורה בולטת LBI-XXXXXX
-                const newReqId = `LBI-${Math.floor(100000+Math.random()*900000)}`;
-                await addRequest({
-                  id: newReqId, brand, model: model || 'N/A',
+                const finalReqId = await addRequest({
+                  brand, model: model || 'N/A',
                   date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
                   image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
                   images: uploadedImages
                 });
-                await sendTelegramFrontendAlert(newReqId, brand, model, paymentTrack);
+                await sendTelegramFrontendAlert(finalReqId, brand, model, paymentTrack);
                 setShowSuccess(true);
              });
            },
@@ -1094,10 +1114,9 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
     }
   }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, uploadedImages, activeUploads]);
 
-  const handlePaymentSuccessFree = () => {
-    const newReqId = `LBI-${Math.floor(100000+Math.random()*900000)}`;
-    addRequest({
-      id: newReqId, brand, model: model || 'N/A',
+  const handlePaymentSuccessFree = async () => {
+    const finalReqId = await addRequest({
+      brand, model: model || 'N/A',
       date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
       image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
       images: uploadedImages
@@ -1408,33 +1427,47 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
 function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }) {
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
+  
+  // Limiting images to max 4 to fit perfectly on A4
+  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+
+  const handlePrint = () => {
+    // Override Document Title for Saving as PDF (LBI-XXXXXX)
+    const originalTitle = document.title;
+    document.title = data.id || 'LBI-Certificate';
+    window.print();
+    // Restore Title
+    setTimeout(() => { document.title = originalTitle; }, 1000);
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print">
       <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
       
-      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative">
-        <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white">
+      {/* Container specifically sized for A4 */}
+      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-[6px] print:shadow-none print:p-0 print:w-[210mm] print:h-[297mm] print:mx-auto print:box-border print:overflow-hidden">
+        
+        <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white print:p-8 print:h-full print:box-border">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
           
-          {/* Certificate Number Display */}
-          <div className="absolute top-6 right-6 text-right">
+          <div className="absolute top-6 right-6 text-right print:top-8 print:right-8">
              <p className="text-[9px] font-black tracking-widest text-slate-400 uppercase">Certificate No.</p>
              <p className="text-sm font-bold text-slate-800 font-mono tracking-wider">{data.id}</p>
           </div>
           
-          <div className="mb-8 relative z-10">
-            <BrandLogo className="w-24 h-24 mx-auto mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
-            <h1 className="text-3xl md:text-4xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
+          <div className="mb-6 print:mb-4 relative z-10 pt-4 print:pt-6">
+            <BrandLogo className="w-24 h-24 mx-auto mb-4 print:mb-3 drop-shadow-xl" hideIsrael={hideIsrael} />
+            <h1 className="text-3xl md:text-4xl print:text-3xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
             <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
           </div>
           
-          <div className={`w-full py-4 mb-8 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-            <h2 className="text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
+          <div className={`w-full py-4 mb-6 print:mb-4 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+            <h2 className="text-xl print:text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
               {isAuthentic ? <><ShieldCheck size={28} /> Authentic</> : <><ShieldAlert size={28} /> Counterfeit</>}
             </h2>
           </div>
           
-          <div className="w-full max-w-xl mb-8 relative z-10">
+          <div className="w-full max-w-xl mb-6 print:mb-4 relative z-10">
             <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
               <div className="text-slate-500 text-xs uppercase tracking-widest">Brand</div>
               <div className="font-bold text-slate-900 text-base">{data.brand}</div>
@@ -1443,26 +1476,29 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
               <div className="text-slate-500 text-xs uppercase tracking-widest">Date Inspected</div>
               <div className="font-bold text-slate-900 text-base">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
             </div>
-            <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+            <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto print:text-[10px]">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
           </div>
           
-          <div className="w-full mb-8 relative z-10">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
-            {/* Forced 4-column grid for images, ensuring they never stretch */}
-            <div className="grid grid-cols-4 gap-2 w-full">
-              {data.images && Object.entries(data.images).map(([part, url]) => (
+          <div className="w-full mb-6 print:mb-2 relative z-10 flex-1">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 print:mb-3 text-left" dir="ltr">Inspected Elements</h3>
+            
+            <div className="grid grid-cols-4 gap-3 print:gap-2 w-full">
+              {imagesToDisplay.map(([part, url]) => (
                  <div key={part} className="flex flex-col items-center">
-                    <img src={url} alt={part} className="w-full h-24 object-cover border border-slate-200 rounded-md shadow-sm" />
-                    <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+                    <img src={url} alt={part} className="w-full h-24 print:h-28 object-cover border border-slate-200 rounded-md shadow-sm" />
+                    <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">{part}</span>
                  </div>
               ))}
-              {(!data.images || Object.keys(data.images).length === 0) && (
-                 <img src={data.image} className="w-full h-24 object-cover border border-slate-200 rounded-md shadow-sm col-span-4" />
+              {imagesToDisplay.length === 0 && (
+                 <div className="col-span-4 flex flex-col items-center">
+                   <img src={data.image} className="w-64 h-32 print:h-36 object-cover border border-slate-200 rounded-md shadow-sm" />
+                   <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">MAIN</span>
+                 </div>
               )}
             </div>
           </div>
           
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-4 border-t border-slate-100">
+          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-4 border-t border-slate-100 print:mb-4">
             <div className="text-left" dir="ltr"><CertificateStamp /></div>
             <div className="flex flex-col items-center">
               <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-1">
@@ -1476,7 +1512,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
       
       {!isClientView && (
         <div className="flex justify-end pt-6 no-print">
-          <button onClick={() => window.print()} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+          <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
             <Upload size={20} /> הדפס / יצא ל-PDF
           </button>
         </div>
@@ -1489,7 +1525,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael }
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
              <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
-             <button className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> העתק קישור</button>
+             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> הדפס / יצא ל-PDF</button>
           </div>
         </div>
       )}

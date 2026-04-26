@@ -262,14 +262,14 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
-    /* The Ultimate React PDF Print CSS - Bulletproof A4 isolation */
+    /* מנגנון בידוד הדפסה טהור - חסין כדורים! */
     @media print {
       @page { size: A4 portrait; margin: 0; }
       
-      /* Hide ALL elements by default so nothing causes blank pages */
+      /* 1. העלמה מוחלטת של כל האלמנטים בדף */
       body * { visibility: hidden; }
       
-      /* Reset body & root to ensure they don't stretch */
+      /* 2. איפוס מלא של שוליים וגלילות (למניעת דפים ריקים וחיתוכים) */
       html, body, #root { 
         height: 100% !important; 
         margin: 0 !important; 
@@ -277,12 +277,12 @@ function GlobalStyles() {
         background-color: white !important; 
       }
       
-      /* Show ONLY the certificate and its children */
+      /* 3. הצגת התעודה וכל הילדים שלה בלבד */
       .printable-certificate, .printable-certificate * { 
         visibility: visible !important; 
       }
       
-      /* Rip the certificate out of the DOM flow and force exact A4 sizing to top-left corner */
+      /* 4. "עקירת" התעודה למעלה שמאלה במידות A4 בטוחות שלא יגלשו למדפסת */
       .printable-certificate {
         position: absolute !important;
         left: 0 !important;
@@ -295,9 +295,26 @@ function GlobalStyles() {
         background: white !important;
         border: none !important;
         box-shadow: none !important;
+        page-break-inside: avoid !important;
+        transform: none !important;
       }
       
-      /* Force browser to print colors */
+      /* 5. ביטול כל ההגבלות של העוטפים של React שיכולים לקטוע את התעודה */
+      main, .flex, .flex-1, .overflow-y-auto, .overflow-hidden, .cert-view-container {
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        overflow: visible !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        transform: none !important;
+      }
+
+      /* 6. כפיית הדפסת צבעים במדויק */
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -344,7 +361,6 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
   }
 };
 
-
 // ==========================================
 // CORE APP
 // ==========================================
@@ -360,6 +376,7 @@ function MainApp() {
   const [geo, setGeo] = useState({ country: 'IL', currency: 'ILS', symbol: '₪' });
   const [lang, setLang] = useState('he');
   
+  // Public Verification State
   const [verifyId, setVerifyId] = useState(null);
   const [verifyData, setVerifyData] = useState(null);
   const [verifyStatus, setVerifyStatus] = useState('loading');
@@ -369,12 +386,14 @@ function MainApp() {
   const hideIsrael = geo.country !== 'IL'; 
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const vId = params.get('verify');
-    if (vId) {
-      setVerifyId(vId);
-      setShowLanding(false);
+    document.title = "AUTHENTICATE YOUR BAG | LBI";
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
     }
+    link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="100" fill="%231c1c1c"/><path d="M55 70 L75 120 L125 120 L145 70 Z" fill="none" stroke="%23d4af37" stroke-width="4" stroke-linejoin="round"/><rect x="75" y="70" width="50" height="50" fill="none" stroke="%23d4af37" stroke-width="4"/><path d="M85 70 C85 45, 115 45, 115 70" fill="none" stroke="%23d4af37" stroke-width="4"/></svg>';
   }, []);
 
   const handleLogout = () => { 
@@ -461,7 +480,7 @@ function MainApp() {
       let newIdNum = 19201; 
       
       try {
-        const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'main_counter');
+        const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'counters', 'main_counter');
         await runTransaction(db, async (transaction) => {
           const counterDoc = await transaction.get(counterRef);
           if (!counterDoc.exists()) {
@@ -582,7 +601,7 @@ function MainApp() {
         <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)} />
         <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
-          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32">
+          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32 cert-view-container">
             {role === 'admin' && currentView !== 'certificate-view' ? (
               <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} t={t} isRtl={isRtl} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} />
             ) : currentView === 'new-request' ? (
@@ -1469,7 +1488,7 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
   );
 }
 
-function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, isPublicVerification = false, setIsPrinting }) {
+function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, isPublicVerification = false }) {
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   
@@ -1482,21 +1501,12 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
   const handlePrint = () => {
     const originalTitle = document.title;
     document.title = data.id || 'LBI-Certificate';
-    
-    // מפעיל את מנגנון "הבידוד" של ההדפסה - מעלים את כל האתר ומשאיר רק עמוד A4 נקי
-    if (setIsPrinting) setIsPrinting(true);
-    
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => {
-        if (setIsPrinting) setIsPrinting(false);
-        document.title = originalTitle;
-      }, 500);
-    }, 800);
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:p-0 print:m-0 print:space-y-0 print:w-[190mm] print:max-w-none print:mx-auto">
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:p-0 print:m-0 print:space-y-0 print:w-[210mm] print:max-w-none print:mx-auto">
       {!isPublicVerification && (
         <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
       )}
@@ -1519,12 +1529,12 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
               <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[12px] uppercase m-0">Luxury Bags Israel</p>
             </div>
             
-            <div className={`w-full py-[4mm] mb-[10mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+            <div className={`w-full py-[2mm] mb-[6mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
                 {isAuthentic ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
                 <h2 className="text-[22px] font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
             </div>
             
-            <div className="w-full max-w-[140mm] mb-[10mm] relative z-10">
+            <div className="w-full max-w-[140mm] mb-[6mm] relative z-10">
               <div className="grid grid-cols-2 gap-y-[4mm] text-left border-b border-slate-200 pb-[5mm] mb-[5mm]" dir="ltr">
                 <div className="text-slate-500 text-[12px] uppercase tracking-widest">Brand</div>
                 <div className="font-bold text-slate-900 text-[16px] leading-none">{data.brand}</div>
@@ -1591,7 +1601,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
   );
 }
 
-function AuthenticationTool({ requests, updateRequest, hideIsrael, setIsPrinting }) {
+function AuthenticationTool({ requests, updateRequest, hideIsrael }) {
   const [selectedReqId, setSelectedReqId] = useState(null);
   const [previewCertReq, setPreviewCertReq] = useState(null); 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -1643,7 +1653,7 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, setIsPrinting
   const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
 
   if (previewCertReq) {
-    return <DigitalCertificate data={previewCertReq} onBack={() => setPreviewCertReq(null)} isClientView={false} t={(k)=>k} isRtl={true} hideIsrael={hideIsrael} setIsPrinting={setIsPrinting} />;
+    return <DigitalCertificate data={previewCertReq} onBack={() => setPreviewCertReq(null)} isClientView={false} t={(k)=>k} isRtl={true} hideIsrael={hideIsrael} />;
   }
 
   if (!activeReq) {

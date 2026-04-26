@@ -264,46 +264,58 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
-    /* מנגנון הדפסה חסין כדורים - עמוד A4 אחד נקי */
+    /* מנגנון הדפסה חסין כדורים - עמוד A4 אחד נקי ללא גלישה וללא כפתורים */
     @media print {
       @page { size: A4 portrait; margin: 0; }
-      body { margin: 0; padding: 0; background-color: #fff !important; }
       
-      /* העלמה אגרסיבית של כל כפתור, תפריט ורקע מסביב */
-      .no-print, aside, header, nav, button { 
+      /* איפוס עוטפים וכפיית רקע לבן */
+      body, html { 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        background-color: #fff !important; 
+      }
+      
+      /* העלמה אגרסיבית של כל כפתור, תפריט, ניווט ושאריות */
+      .no-print, aside, header, nav, button, .print\\:hidden { 
         display: none !important; 
       }
       
-      /* איפוס של גלילת המערכת כדי למנוע היחתכות דפים */
+      /* ביטול של גלילת המערכת כדי למנוע יצירת דפים ריקים */
       #root, main, .flex, .flex-1, .overflow-y-auto, .overflow-hidden {
         display: block !important;
         height: auto !important;
-        min-height: auto !important;
+        min-height: 0 !important;
+        width: auto !important;
+        max-width: none !important;
         overflow: visible !important;
         position: static !important;
-        background-color: white !important;
-      }
-      
-      /* "תולש" את התעודה החוצה ומדביק אותה במדויק על עמוד אחד */
-      .printable-certificate {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 210mm !important;
-        height: 297mm !important;
         margin: 0 !important;
         padding: 0 !important;
         background: white !important;
-        box-shadow: none !important;
+      }
+      
+      /* התעודה עצמה - נעולה למידות A4 מדויקות */
+      .printable-certificate {
+        position: relative !important;
+        width: 210mm !important;
+        height: 296mm !important;
+        max-height: 296mm !important;
+        margin: 0 auto !important;
+        padding: 5mm !important;
+        box-sizing: border-box !important;
         border: none !important;
-        z-index: 99999 !important;
+        box-shadow: none !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
         page-break-inside: avoid !important;
         overflow: hidden !important;
       }
       
       .cert-inner {
-        height: 297mm !important;
+        height: 100% !important;
+        border: 3px solid #d4af37 !important;
         box-sizing: border-box !important;
+        padding: 10mm !important;
       }
 
       /* כפיית הדפסת צבעי רקע (מסגרות יוקרה וסטטוס) */
@@ -486,7 +498,7 @@ function MainApp() {
     if (!user || !db) return;
     try {
       const counterRef = doc(db, 'artifacts', appId, 'public', 'metadata', 'counter');
-      let newIdNum = 19201;
+      let newIdNum = 19201; // מתחיל מ-19201
 
       await runTransaction(db, async (transaction) => {
         const counterDoc = await transaction.get(counterRef);
@@ -1525,7 +1537,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
       )}
       
       {/* Container specifically sized for A4 */}
-      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-[6px] print:shadow-none print:p-0 print:w-[210mm] print:h-[297mm] print:mx-auto print:box-border print:overflow-hidden">
+      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-0 print:shadow-none print:p-0 print:w-[210mm] print:h-[296mm] print:max-h-[296mm] print:mx-auto print:box-border print:overflow-hidden">
         
         <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white print:p-8 print:h-full print:box-border">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
@@ -1537,13 +1549,13 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
           
           <div className="mb-6 print:mb-4 relative z-10 pt-4 print:pt-6">
             <BrandLogo className="w-24 h-24 mx-auto mb-4 print:mb-3 drop-shadow-xl" hideIsrael={hideIsrael} />
-            <h1 className="text-3xl md:text-4xl print:text-3xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
+            <h1 className="text-3xl md:text-4xl print:text-[22px] print:whitespace-nowrap font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
             <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
           </div>
           
-          <div className={`w-full py-4 mb-6 print:mb-4 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-            <h2 className="text-xl print:text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
-              {isAuthentic ? <><ShieldCheck size={28} className="print:w-8 print:h-8" /> Authentic</> : <><ShieldAlert size={28} className="print:w-8 print:h-8" /> Counterfeit</>}
+          <div className={`w-full py-4 mb-6 print:py-2 print:mb-4 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+            <h2 className="text-xl print:text-xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
+              {isAuthentic ? <><ShieldCheck size={28} className="print:w-6 print:h-6" /> Authentic</> : <><ShieldAlert size={28} className="print:w-6 print:h-6" /> Counterfeit</>}
             </h2>
           </div>
           
@@ -1566,13 +1578,13 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
             <div className="grid grid-cols-4 gap-3 print:gap-2 w-full">
               {imagesToDisplay.map(([part, url]) => (
                  <div key={part} className="flex flex-col items-center">
-                    <img src={url} alt={part} className="w-full h-24 print:h-28 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
+                    <img src={url} alt={part} className="w-full h-24 print:h-20 object-cover border border-slate-200 rounded-md shadow-sm" />
                     <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">{part}</span>
                  </div>
               ))}
               {imagesToDisplay.length === 0 && (
                  <div className="col-span-4 flex flex-col items-center">
-                   <img src={data.image} className="w-64 h-32 print:h-36 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
+                   <img src={data.image} className="w-64 h-32 print:h-36 object-cover border border-slate-200 rounded-md shadow-sm" />
                    <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">MAIN</span>
                  </div>
               )}
@@ -1592,7 +1604,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
       </div>
       
       {/* Print button visible to admins or clients on standard view, but hidden on public verification URL */}
-      <div className="flex justify-center sm:justify-end pt-6 no-print">
+      <div className="flex justify-center sm:justify-end pt-6 no-print print:hidden">
         <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
           <Upload size={20} /> הדפס / יצא ל-PDF
         </button>
@@ -1600,7 +1612,7 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
       
       {/* Sharing tools for client (Only if authentic and not just public scanning) */}
       {isClientView && !isPublicVerification && isAuthentic && (
-        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+        <div className="no-print print:hidden bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>

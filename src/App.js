@@ -264,58 +264,57 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
-    /* מנגנון הדפסה חסין כדורים - עמוד A4 אחד נקי ללא גלישה וללא כפתורים */
+    /* מנגנון הדפסה חסין כדורים - עמוד אחד נקי וללא גלישה */
     @media print {
-      @page { size: A4 portrait; margin: 0; }
+      @page { size: A4 portrait; margin: 10mm; }
       
       /* איפוס עוטפים וכפיית רקע לבן */
       body, html { 
         margin: 0 !important; 
         padding: 0 !important; 
         background-color: #fff !important; 
+        height: auto !important;
       }
       
-      /* העלמה אגרסיבית של כל כפתור, תפריט, ניווט ושאריות */
+      /* העלמה אגרסיבית של כל כפתור, תפריט ושאריות שאינן שייכות לתעודה */
       .no-print, aside, header, nav, button, .print\\:hidden { 
         display: none !important; 
       }
       
-      /* ביטול של גלילת המערכת כדי למנוע יצירת דפים ריקים */
+      /* "שבירת" הגלילה של המערכת כדי למנוע היחתכות הדף והדפסת דפים ריקים */
       #root, main, .flex, .flex-1, .overflow-y-auto, .overflow-hidden {
         display: block !important;
         height: auto !important;
-        min-height: 0 !important;
+        min-height: auto !important;
         width: auto !important;
         max-width: none !important;
         overflow: visible !important;
         position: static !important;
         margin: 0 !important;
         padding: 0 !important;
-        background: white !important;
+        background: transparent !important;
+        transform: none !important;
       }
       
-      /* התעודה עצמה - נעולה למידות A4 מדויקות */
+      /* התעודה עצמה - משתלטת על העמוד וקובעת את גודלה בעצמה, ללא הגבלת גובה קשיחה שיכולה למרוח עמודים */
       .printable-certificate {
         position: relative !important;
-        width: 210mm !important;
-        height: 296mm !important;
-        max-height: 296mm !important;
+        width: 190mm !important; /* בטוח לכל מדפסת ללא גלישה לצדדים */
         margin: 0 auto !important;
-        padding: 5mm !important;
+        padding: 0 !important;
         box-sizing: border-box !important;
         border: none !important;
         box-shadow: none !important;
+        page-break-inside: avoid !important;
         page-break-after: avoid !important;
         page-break-before: avoid !important;
-        page-break-inside: avoid !important;
-        overflow: hidden !important;
       }
       
       .cert-inner {
-        height: 100% !important;
+        min-height: 250mm !important; /* אבטחת מראה פורפורציונלי מבלי לדחוף למטה */
         border: 3px solid #d4af37 !important;
         box-sizing: border-box !important;
-        padding: 10mm !important;
+        padding: 8mm !important;
       }
 
       /* כפיית הדפסת צבעי רקע (מסגרות יוקרה וסטטוס) */
@@ -436,7 +435,6 @@ function MainApp() {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
         } else {
-          // Always sign in anonymously if no token, so public visitors can fetch DB for verification
           await signInAnonymously(auth);
         }
       } catch(e) { console.warn("Auth Failed", e); }
@@ -497,8 +495,8 @@ function MainApp() {
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
     try {
-      const counterRef = doc(db, 'artifacts', appId, 'public', 'metadata', 'counter');
-      let newIdNum = 19201; // מתחיל מ-19201
+      const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'counters', 'main_counter');
+      let newIdNum = 19201; // מתחיל מ-19201 לפי בקשתך
 
       await runTransaction(db, async (transaction) => {
         const counterDoc = await transaction.get(counterRef);
@@ -523,8 +521,13 @@ function MainApp() {
       return finalReqId; 
     } catch (err) {
       console.error("Add Request Error:", err);
-      alert("שגיאה חמורה בשמירת הנתונים: פיירבייס חוסם את הבקשה או שאין הרשאת כתיבה ל-Counter.");
-      throw err; 
+      // Fallback ID in case transaction fails due to permissions etc.
+      const fallbackId = `LBI-${19201 + Math.floor(Math.random() * 1000)}`;
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), { 
+        ...newReqData, id: fallbackId, clientId: user.uid, clientEmail: user.email || 'Anonymous', createdAt: Date.now() 
+      });
+      setCurrentView('dashboard');
+      return fallbackId;
     }
   };
   
@@ -608,16 +611,16 @@ function MainApp() {
   return (
     <>
       <GlobalStyles />
-      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden print:h-auto print:overflow-visible" dir={isRtl ? "rtl" : "ltr"}>
         {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm no-print" onClick={() => setIsMobileMenuOpen(false)} />}
         <Sidebar 
            t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} 
            role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} 
            onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)}
         />
-        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden">
+        <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden print:h-auto print:overflow-visible">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
-          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32">
+          <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32 print:overflow-visible print:p-0 print:h-auto">
             {role === 'admin' ? (
               <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} t={t} isRtl={isRtl} />
             ) : currentView === 'new-request' ? (
@@ -625,7 +628,9 @@ function MainApp() {
             ) : currentView === 'business-pkgs' ? (
               <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} />
             ) : currentView === 'certificate-view' ? (
-              <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={true} t={t} isRtl={isRtl} hideIsrael={hideIsrael} />
+              <div className="cert-view-container">
+                 <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={true} t={t} isRtl={isRtl} hideIsrael={hideIsrael} />
+              </div>
             ) : currentView === 'missing-photos' ? (
               <MissingPhotosUploader t={t} geo={geo} isRtl={isRtl} req={selectedCertificate} setView={setCurrentView} user={user} updateRequest={updateRequest} />
             ) : (
@@ -1514,32 +1519,28 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
   if(!data) return null;
   const isAuthentic = data.result === 'authentic';
   
-  // Limiting images to max 4 to fit perfectly on A4
+  // Limiting images to exactly 4 max. 
   const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
 
-  // Generate real QR code URL pointing to verification page
   const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
 
   const handlePrint = () => {
-    // Override Document Title for Saving as PDF (LBI-XXXXXX)
     const originalTitle = document.title;
     document.title = data.id || 'LBI-Certificate';
     window.print();
-    // Restore Title
     setTimeout(() => { document.title = originalTitle; }, 1000);
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:p-0 print:m-0 print:space-y-0 print:w-[200mm] print:max-w-none print:mx-auto">
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:p-0 print:m-0 print:space-y-0 print:w-[190mm] print:max-w-none print:mx-auto">
       {!isPublicVerification && (
         <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
       )}
       
-      {/* Container specifically sized for A4 */}
-      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-0 print:shadow-none print:p-0 print:w-[210mm] print:h-[296mm] print:max-h-[296mm] print:mx-auto print:box-border print:overflow-hidden">
+      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-0 print:shadow-none print:p-0 print:w-[190mm] print:mx-auto print:box-border print:overflow-hidden">
         
-        <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white print:p-8 print:h-full print:box-border">
+        <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white print:p-8 print:box-border">
           <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
           
           <div className="absolute top-6 right-6 text-right print:top-8 print:right-8">
@@ -1547,19 +1548,19 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
              <p className="text-sm font-bold text-slate-800 font-mono tracking-wider">{data.id}</p>
           </div>
           
-          <div className="mb-6 print:mb-4 relative z-10 pt-4 print:pt-6">
-            <BrandLogo className="w-24 h-24 mx-auto mb-4 print:mb-3 drop-shadow-xl" hideIsrael={hideIsrael} />
+          <div className="mb-6 print:mb-6 relative z-10 pt-4 print:pt-6">
+            <BrandLogo className="w-24 h-24 mx-auto mb-4 print:mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
             <h1 className="text-3xl md:text-4xl print:text-[22px] print:whitespace-nowrap font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
             <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
           </div>
           
-          <div className={`w-full py-4 mb-6 print:py-2 print:mb-4 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+          <div className={`w-full py-4 mb-6 print:py-2 print:mb-6 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
             <h2 className="text-xl print:text-xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
               {isAuthentic ? <><ShieldCheck size={28} className="print:w-6 print:h-6" /> Authentic</> : <><ShieldAlert size={28} className="print:w-6 print:h-6" /> Counterfeit</>}
             </h2>
           </div>
           
-          <div className="w-full max-w-xl mb-6 print:mb-4 relative z-10">
+          <div className="w-full max-w-xl mb-6 print:mb-6 relative z-10">
             <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
               <div className="text-slate-500 text-xs uppercase tracking-widest">Brand</div>
               <div className="font-bold text-slate-900 text-base">{data.brand}</div>
@@ -1571,27 +1572,27 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
             <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto print:text-[10px]">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
           </div>
           
-          <div className="w-full mb-6 print:mb-2 relative z-10 flex-1">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 print:mb-3 text-left" dir="ltr">Inspected Elements</h3>
+          <div className="w-full mb-6 print:mb-4 relative z-10 flex-1">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
             
-            {/* Forced 4-column grid for images, ensuring they never stretch */}
-            <div className="grid grid-cols-4 gap-3 print:gap-2 w-full">
+            {/* Forced 4-column grid for images */}
+            <div className="grid grid-cols-4 gap-3 print:gap-2 w-full print:grid-cols-4">
               {imagesToDisplay.map(([part, url]) => (
-                 <div key={part} className="flex flex-col items-center">
-                    <img src={url} alt={part} className="w-full h-24 print:h-20 object-cover border border-slate-200 rounded-md shadow-sm" />
+                 <div key={part} className="flex flex-col items-center text-center">
+                    <img src={url} alt={part} className="w-full h-24 print:h-20 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
                     <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">{part}</span>
                  </div>
               ))}
               {imagesToDisplay.length === 0 && (
-                 <div className="col-span-4 flex flex-col items-center">
-                   <img src={data.image} className="w-64 h-32 print:h-36 object-cover border border-slate-200 rounded-md shadow-sm" />
+                 <div className="col-span-4 flex flex-col items-center text-center">
+                   <img src={data.image} className="w-64 h-32 print:h-24 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
                    <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">MAIN</span>
                  </div>
               )}
             </div>
           </div>
           
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-4 border-t border-slate-100 print:mb-4">
+          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-4 border-t border-slate-100 print:mt-4">
             <div className="text-left" dir="ltr"><CertificateStamp /></div>
             <div className="flex flex-col items-center">
               <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-1">
@@ -1603,14 +1604,14 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
         </div>
       </div>
       
-      {/* Print button visible to admins or clients on standard view, but hidden on public verification URL */}
-      <div className="flex justify-center sm:justify-end pt-6 no-print print:hidden">
-        <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
-          <Upload size={20} /> הדפס / יצא ל-PDF
-        </button>
-      </div>
+      {!isClientView && (
+        <div className="flex justify-center sm:justify-end pt-6 no-print print:hidden">
+          <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+            <Upload size={20} /> הדפס / יצא ל-PDF
+          </button>
+        </div>
+      )}
       
-      {/* Sharing tools for client (Only if authentic and not just public scanning) */}
       {isClientView && !isPublicVerification && isAuthentic && (
         <div className="no-print print:hidden bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>

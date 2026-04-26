@@ -172,6 +172,7 @@ const translations = {
 // ==========================================
 // ICONS & UI HELPERS
 // ==========================================
+
 function InstagramIcon({ size = 24, className = "" }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -198,13 +199,13 @@ function BrandLogo({ className = "w-16 h-16", hideIsrael = false }) {
 
 function CertificateStamp() {
   return (
-    <div className="relative w-24 h-24 flex items-center justify-center">
-      <div className="absolute inset-0 border-4 border-slate-200 rounded-full animate-[spin_20s_linear_infinite] opacity-50" style={{ borderStyle: 'double' }}></div>
+    <div className="relative flex items-center justify-center" style={{ width: '80px', height: '80px' }}>
+      <div className="absolute inset-0 border-4 border-slate-200 rounded-full opacity-50" style={{ borderStyle: 'double' }}></div>
       <div className="absolute inset-2 border border-slate-300 rounded-full"></div>
       <div className="text-center">
-        <p className="text-[8px] font-black tracking-widest text-slate-400 uppercase">Certified By</p>
-        <p className="text-[12px] font-bold text-[#1c1c1c] tracking-wider mt-1">LBI</p>
-        <p className="text-[6px] font-bold text-[#d4af37] tracking-[0.2em] mt-1 uppercase">Est. 2016</p>
+        <p className="font-black tracking-widest text-slate-400 uppercase m-0 p-0" style={{ fontSize: '7px' }}>Certified By</p>
+        <p className="font-bold text-[#1c1c1c] tracking-wider m-0 p-0" style={{ fontSize: '11px', marginTop: '2px' }}>LBI</p>
+        <p className="font-bold text-[#d4af37] tracking-[0.2em] uppercase m-0 p-0" style={{ fontSize: '6px', marginTop: '2px' }}>Est. 2016</p>
       </div>
     </div>
   );
@@ -261,21 +262,42 @@ function GlobalStyles() {
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap'); 
     * { font-family: 'Assistant', system-ui, sans-serif !important; }
     
+    /* The Ultimate React PDF Print CSS - Bulletproof A4 isolation */
     @media print {
       @page { size: A4 portrait; margin: 0; }
-      body, html { 
+      
+      /* Hide ALL elements by default so nothing causes blank pages */
+      body * { visibility: hidden; }
+      
+      /* Reset body & root to ensure they don't stretch */
+      html, body, #root { 
+        height: 100% !important; 
         margin: 0 !important; 
         padding: 0 !important; 
-        background-color: #fff !important; 
+        background-color: white !important; 
       }
-      .no-print { display: none !important; }
       
-      #root {
-        display: block !important;
+      /* Show ONLY the certificate and its children */
+      .printable-certificate, .printable-certificate * { 
+        visibility: visible !important; 
+      }
+      
+      /* Rip the certificate out of the DOM flow and force exact A4 sizing to top-left corner */
+      .printable-certificate {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 5mm !important;
+        box-sizing: border-box !important;
+        background: white !important;
+        border: none !important;
+        box-shadow: none !important;
       }
       
+      /* Force browser to print colors */
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -322,87 +344,9 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
   }
 };
 
-// ==========================================
-// PRINT ONLY VIEW (DEDICATED A4 TEMPLATE)
-// ==========================================
-function PrintOnlyView({ data, hideIsrael }) {
-  if (!data) return null;
-  const isAuthentic = data.result === 'authentic';
-  // Ensures exactly 4 images max are displayed, and no more.
-  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
-  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
-
-  return (
-    <div className="bg-white w-[210mm] h-[296mm] mx-auto box-border relative font-sans overflow-hidden" dir="rtl">
-      <div className="w-full h-full border-[10px] border-[#0a0a0a] p-[4mm] box-border relative">
-        <div className="w-full h-full border-[3px] border-[#d4af37] p-[10mm] flex flex-col items-center text-center relative box-border bg-white overflow-hidden">
-          
-          <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[180mm] h-[180mm] opacity-[0.03] pointer-events-none" />
-          
-          <div className="absolute top-[8mm] right-[8mm] text-right">
-             <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
-             <p className="text-base font-bold text-slate-800 font-mono tracking-wider m-0 mt-1 leading-none">{data.id}</p>
-          </div>
-          
-          <div className="mb-[6mm] relative z-10 pt-[6mm]">
-            <BrandLogo className="w-24 h-24 mx-auto mb-3 drop-shadow-md" hideIsrael={hideIsrael} />
-            <h1 className="text-[28px] font-serif tracking-widest text-[#0a0a0a] uppercase mb-1 m-0 leading-none">Certificate of Authentication</h1>
-            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[11px] uppercase m-0">Luxury Bags Israel</p>
-          </div>
-          
-          <div className={`w-full py-[4mm] mb-[8mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-              {isAuthentic ? <ShieldCheck size={32} /> : <ShieldAlert size={32} />}
-              <h2 className="text-2xl font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
-          </div>
-          
-          <div className="w-full max-w-xl mb-[8mm] relative z-10">
-            <div className="grid grid-cols-2 gap-y-[4mm] text-left border-b border-slate-200 pb-[5mm] mb-[5mm]" dir="ltr">
-              <div className="text-slate-500 text-[11px] uppercase tracking-widest">Brand</div>
-              <div className="font-bold text-slate-900 text-[16px] leading-none">{data.brand}</div>
-              <div className="text-slate-500 text-[11px] uppercase tracking-widest">Model</div>
-              <div className="font-bold text-slate-900 text-[16px] leading-none">{data.model}</div>
-              <div className="text-slate-500 text-[11px] uppercase tracking-widest">Date Inspected</div>
-              <div className="font-bold text-slate-900 text-[16px] leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
-            </div>
-            <p className="text-[11px] text-slate-500 italic text-center max-w-[400px] mx-auto leading-relaxed m-0">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
-          </div>
-          
-          <div className="w-full relative z-10 flex-1">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-[2mm] mb-[5mm] text-left m-0" dir="ltr">Inspected Elements</h3>
-            <div className="grid grid-cols-4 gap-3 w-full">
-              {imagesToDisplay.map(([part, url]) => (
-                 <div key={part} className="flex flex-col items-center">
-                    <img src={url} alt={part} className="w-full h-[22mm] object-cover border border-slate-200 rounded shadow-sm" />
-                    <span className="mt-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
-                 </div>
-              ))}
-              {imagesToDisplay.length === 0 && (
-                 <div className="col-span-4 flex flex-col items-center text-center">
-                   <img src={data.image} className="w-64 h-[25mm] object-cover border border-slate-200 rounded shadow-sm" />
-                   <span className="mt-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
-                 </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-[6mm] border-t border-slate-100">
-            <div className="text-left pb-1" dir="ltr"><CertificateStamp /></div>
-            <div className="flex flex-col items-center">
-              <div className="bg-white p-1.5 border border-slate-200 rounded-lg shadow-sm mb-1">
-                <img src={qrCodeUrl} alt="QR Code" className="w-[14mm] h-[14mm] object-contain mix-blend-multiply" crossOrigin="anonymous" />
-              </div>
-              <p className="text-[8px] text-slate-400 uppercase tracking-widest m-0 p-0">Scan to Verify</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ==========================================
-// CORE APP STATE MANAGER
+// CORE APP
 // ==========================================
 function MainApp() {
   const [user, setUser] = useState(null); 
@@ -416,7 +360,6 @@ function MainApp() {
   const [geo, setGeo] = useState({ country: 'IL', currency: 'ILS', symbol: '₪' });
   const [lang, setLang] = useState('he');
   
-  const [isPrinting, setIsPrinting] = useState(false);
   const [verifyId, setVerifyId] = useState(null);
   const [verifyData, setVerifyData] = useState(null);
   const [verifyStatus, setVerifyStatus] = useState('loading');
@@ -515,10 +458,10 @@ function MainApp() {
   const addRequest = async (newReqData) => { 
     if (!user || !db) return;
     try {
-      const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'main_counter');
-      let newIdNum = 19201;
-
+      let newIdNum = 19201; 
+      
       try {
+        const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'main_counter');
         await runTransaction(db, async (transaction) => {
           const counterDoc = await transaction.get(counterRef);
           if (!counterDoc.exists()) {
@@ -529,8 +472,21 @@ function MainApp() {
           }
         });
       } catch (e) {
-        console.warn("Transaction failed, using fallback ID", e);
-        newIdNum = 19201 + Math.floor(Math.random() * 1000);
+        console.warn("Transaction failed, using fallback query", e);
+        try {
+          const querySnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'));
+          let maxId = 19200;
+          querySnapshot.forEach(d => {
+             const data = d.data();
+             if (data.id && data.id.startsWith('LBI-')) {
+                 const num = parseInt(data.id.replace('LBI-', ''));
+                 if (!isNaN(num) && num > maxId) maxId = num;
+             }
+          });
+          newIdNum = maxId + 1;
+        } catch(err2) {
+          newIdNum = 19201 + Math.floor(Math.random() * 1000);
+        }
       }
       
       const finalReqId = `LBI-${newIdNum}`;
@@ -559,16 +515,6 @@ function MainApp() {
       console.error("Update Request Error:", err);
     }
   };
-
-  // מנגנון בידוד ההדפסה: כשמדפיסים, שאר האתר נעלם ומשאיר רק את התעודה!
-  if (isPrinting) {
-    return (
-      <div className="bg-white m-0 p-0 w-full h-full min-h-screen overflow-hidden">
-         <GlobalStyles />
-         <PrintOnlyView data={verifyData || selectedCertificate} hideIsrael={hideIsrael} />
-      </div>
-    );
-  }
 
   if (verifyId) {
     if (verifyStatus === 'loading') {
@@ -600,7 +546,7 @@ function MainApp() {
              </div>
              <p className="text-slate-500 mt-4 text-sm">התעודה המוצגת מטה היא רשמית ואושרה על ידי מערכות Luxury Bags Israel.</p>
            </div>
-           <DigitalCertificate data={verifyData} onBack={() => window.location.href = window.location.origin + window.location.pathname} isClientView={false} t={t} isRtl={isRtl} hideIsrael={hideIsrael} isPublicVerification={true} setIsPrinting={setIsPrinting} />
+           <DigitalCertificate data={verifyData} onBack={() => window.location.href = window.location.origin + window.location.pathname} isClientView={false} t={t} isRtl={isRtl} hideIsrael={hideIsrael} isPublicVerification={true} />
         </div>
       );
     }
@@ -630,19 +576,21 @@ function MainApp() {
     <>
       <GlobalStyles />
       <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
-        {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm no-print" onClick={() => setIsMobileMenuOpen(false)} />}
+        <div className="no-print">
+          {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
+        </div>
         <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} role={role} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} hideIsrael={hideIsrael} onBackToSite={() => setShowLanding(true)} />
         <main className="flex-1 flex flex-col h-[100dvh] w-full overflow-hidden">
           <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
           <div className="flex-1 overflow-y-auto flex flex-col p-4 md:p-8 pb-32">
             {role === 'admin' && currentView !== 'certificate-view' ? (
-              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} t={t} isRtl={isRtl} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} setIsPrinting={setIsPrinting} />
+              <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} hideIsrael={hideIsrael} t={t} isRtl={isRtl} onSelectCert={(req) => { setSelectedCertificate(req); setCurrentView('certificate-view'); }} />
             ) : currentView === 'new-request' ? (
               <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} user={user} />
             ) : currentView === 'business-pkgs' ? (
               <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} />
             ) : currentView === 'certificate-view' ? (
-              <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={role !== 'admin'} t={t} isRtl={isRtl} hideIsrael={hideIsrael} setIsPrinting={setIsPrinting} />
+              <DigitalCertificate data={selectedCertificate} onBack={() => setCurrentView('dashboard')} isClientView={role !== 'admin'} t={t} isRtl={isRtl} hideIsrael={hideIsrael} />
             ) : currentView === 'missing-photos' ? (
               <MissingPhotosUploader t={t} geo={geo} isRtl={isRtl} req={selectedCertificate} setView={setCurrentView} user={user} updateRequest={updateRequest} />
             ) : (
@@ -1016,7 +964,7 @@ function Sidebar({ t, currentView, setCurrentView, role, isOpen, onClose, onLogo
   const clientMenu = [{ id: 'dashboard', label: t('my_checks'), icon: <LayoutDashboard size={20} /> }, { id: 'new-request', label: t('new_request'), icon: <PlusCircle size={20} /> }];
   const menuItems = role === 'admin' ? adminMenu : clientMenu;
   return (
-    <aside className={`fixed md:static inset-y-0 ${t('hello') === 'שלום' ? 'right-0' : 'left-0'} w-72 md:w-64 bg-[#1c1c1c] text-slate-300 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : (t('hello') === 'שלום' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0')}`}>
+    <aside className={`no-print fixed md:static inset-y-0 ${t('hello') === 'שלום' ? 'right-0' : 'left-0'} w-72 md:w-64 bg-[#1c1c1c] text-slate-300 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : (t('hello') === 'שלום' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0')}`}>
       <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-black/20">
         <div className="flex items-center gap-3"><BrandLogo className="w-10 h-10" hideIsrael={hideIsrael} /><div><p className="text-[10px] tracking-[0.2em] text-[#d4af37] uppercase font-bold">{role === 'admin' ? 'Agent Network' : 'Client Portal'}</p></div></div>
         <button onClick={onClose} className="md:hidden p-2"><X size={24} /></button>
@@ -1553,74 +1501,74 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
         <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור</button>
       )}
       
-      <div className="printable-certificate bg-white border-[12px] border-[#0a0a0a] p-2 shadow-2xl relative print:border-0 print:shadow-none print:p-0 print:w-[190mm] print:mx-auto print:box-border print:overflow-hidden">
-        
-        <div className="cert-inner border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white print:p-8 print:box-border">
-          <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-5 pointer-events-none" />
-          
-          <div className="absolute top-6 right-6 text-right print:top-8 print:right-8">
-             <p className="text-[9px] font-black tracking-widest text-slate-400 uppercase">Certificate No.</p>
-             <p className="text-sm font-bold text-slate-800 font-mono tracking-wider">{data.id}</p>
-          </div>
-          
-          <div className="mb-6 print:mb-6 relative z-10 pt-4 print:pt-6">
-            <BrandLogo className="w-24 h-24 mx-auto mb-4 print:mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
-            <h1 className="text-3xl md:text-4xl print:text-[22px] print:whitespace-nowrap font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
-            <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
-          </div>
-          
-          <div className={`w-full py-4 mb-6 print:py-2 print:mb-4 border-y-2 relative z-10 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-            <h2 className="text-xl print:text-xl font-black uppercase tracking-widest flex items-center justify-center gap-3">
-              {isAuthentic ? <><ShieldCheck size={28} className="print:w-6 print:h-6" /> Authentic</> : <><ShieldAlert size={28} className="print:w-6 print:h-6" /> Counterfeit</>}
-            </h2>
-          </div>
-          
-          <div className="w-full max-w-xl mb-6 print:mb-6 relative z-10">
-            <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
-              <div className="text-slate-500 text-xs uppercase tracking-widest">Brand</div>
-              <div className="font-bold text-slate-900 text-base">{data.brand}</div>
-              <div className="text-slate-500 text-xs uppercase tracking-widest">Model</div>
-              <div className="font-bold text-slate-900 text-base">{data.model}</div>
-              <div className="text-slate-500 text-xs uppercase tracking-widest">Date Inspected</div>
-              <div className="font-bold text-slate-900 text-base">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
-            </div>
-            <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto print:text-[10px]">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
-          </div>
-          
-          <div className="w-full mb-6 print:mb-4 relative z-10 flex-1">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
+      {/* Container specifically sized to display neatly on screen and print perfectly */}
+      <div className="w-full overflow-x-auto flex justify-center pb-4 no-print scrollbar-hide">
+        <div className="printable-certificate shrink-0 bg-white w-[210mm] h-[297mm] box-border border-[10px] border-[#0a0a0a] p-[4mm] shadow-2xl relative">
+          <div className="w-full h-full border-[3px] border-[#d4af37] p-[10mm] flex flex-col items-center text-center relative box-border bg-white overflow-hidden">
             
-            {/* Forced 4-column grid for images */}
-            <div className="grid grid-cols-4 gap-3 print:gap-2 w-full print:grid-cols-4">
-              {imagesToDisplay.map(([part, url]) => (
-                 <div key={part} className="flex flex-col items-center text-center">
-                    <img src={url} alt={part} className="w-full h-24 print:h-20 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
-                    <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">{part}</span>
-                 </div>
-              ))}
-              {imagesToDisplay.length === 0 && (
-                 <div className="col-span-4 flex flex-col items-center text-center">
-                   <img src={data.image} className="w-64 h-32 print:h-24 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
-                   <span className="mt-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-[8px]">MAIN</span>
-                 </div>
-              )}
+            <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[160mm] h-[160mm] opacity-[0.03] pointer-events-none" />
+            
+            <div className="absolute top-[8mm] right-[8mm] text-right">
+               <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
+               <p className="text-[16px] font-bold text-slate-800 font-mono tracking-wider m-0 mt-1 leading-none">{data.id}</p>
             </div>
-          </div>
-          
-          <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-4 border-t border-slate-100 print:mt-4">
-            <div className="text-left" dir="ltr"><CertificateStamp /></div>
-            <div className="flex flex-col items-center">
-              <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm mb-1">
-                <img src={qrCodeUrl} alt="QR Code Verification" className="w-14 h-14 print:w-12 print:h-12 object-contain mix-blend-multiply" crossOrigin="anonymous" />
+            
+            <div className="mb-[8mm] relative z-10 pt-[6mm]">
+              <BrandLogo className="w-[20mm] h-[20mm] mx-auto mb-3 drop-shadow-md" hideIsrael={hideIsrael} />
+              <h1 className="text-[32px] font-serif tracking-widest text-[#0a0a0a] uppercase mb-1 m-0 leading-none">Certificate of Authentication</h1>
+              <p className="text-[#d4af37] font-bold tracking-[0.4em] text-[12px] uppercase m-0">Luxury Bags Israel</p>
+            </div>
+            
+            <div className={`w-full py-[4mm] mb-[10mm] border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                {isAuthentic ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
+                <h2 className="text-[22px] font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+            </div>
+            
+            <div className="w-full max-w-[140mm] mb-[10mm] relative z-10">
+              <div className="grid grid-cols-2 gap-y-[4mm] text-left border-b border-slate-200 pb-[5mm] mb-[5mm]" dir="ltr">
+                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Brand</div>
+                <div className="font-bold text-slate-900 text-[16px] leading-none">{data.brand}</div>
+                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Model</div>
+                <div className="font-bold text-slate-900 text-[16px] leading-none">{data.model}</div>
+                <div className="text-slate-500 text-[12px] uppercase tracking-widest">Date Inspected</div>
+                <div className="font-bold text-slate-900 text-[16px] leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
               </div>
-              <p className="text-[8px] text-slate-400 uppercase tracking-widest">Scan to Verify</p>
+              <p className="text-[11px] text-slate-500 italic text-center max-w-[120mm] mx-auto leading-relaxed m-0">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+            </div>
+            
+            <div className="w-full relative z-10 flex-1">
+              <h3 className="text-[12px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-[2mm] mb-[4mm] text-left m-0" dir="ltr">Inspected Elements</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
+                {imagesToDisplay.map(([part, url]) => (
+                   <div key={part} className="flex flex-col items-center text-center">
+                      <img src={url} alt={part} className="w-full h-[25mm] object-cover border border-slate-200 rounded-sm shadow-sm" />
+                      <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+                   </div>
+                ))}
+                {imagesToDisplay.length === 0 && (
+                   <div className="col-span-4 flex flex-col items-center text-center">
+                     <img src={data.image} className="w-[80mm] h-[30mm] object-cover border border-slate-200 rounded-sm shadow-sm" />
+                     <span className="mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
+                   </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-[6mm] border-t border-slate-100">
+              <div className="text-left pb-1" dir="ltr"><CertificateStamp /></div>
+              <div className="flex flex-col items-center">
+                <div className="bg-white p-1.5 border border-slate-200 rounded-md shadow-sm mb-1">
+                  <img src={qrCodeUrl} alt="QR Code Verification" className="w-[14mm] h-[14mm] object-contain mix-blend-multiply" crossOrigin="anonymous" />
+                </div>
+                <p className="text-[8px] text-slate-400 uppercase tracking-widest m-0 p-0">Scan to Verify</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
       
       {!isClientView && (
-        <div className="flex justify-center sm:justify-end pt-6 no-print print:hidden">
+        <div className="flex justify-center sm:justify-end pt-6 no-print">
           <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
             <Upload size={20} /> הדפס / יצא ל-PDF
           </button>
@@ -1628,14 +1576,14 @@ function DigitalCertificate({ data, onBack, isClientView, t, isRtl, hideIsrael, 
       )}
       
       {isClientView && !isPublicVerification && isAuthentic && (
-        <div className="no-print print:hidden bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
           <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
           <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
              <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
-             <button onClick={() => { navigator.clipboard.writeText(verifyUrl); alert('הקישור הועתק!'); }} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-white font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> העתק קישור</button>
-             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-4 px-8 rounded-xl shadow-sm transition-colors"><Upload size={20} /> הורד תעודה (PDF)</button>
+             <button onClick={() => { navigator.clipboard.writeText(verifyUrl); alert('הקישור הועתק!'); }} className="flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-4 px-8 rounded-xl shadow-sm transition-colors"><Upload size={20} /> העתק קישור</button>
+             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> הורד תעודה (PDF)</button>
           </div>
         </div>
       )}

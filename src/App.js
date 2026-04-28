@@ -304,6 +304,7 @@ function useImageUploader(user, showToast) {
     const currentPart = uploadingPart;
     setUploadingPart(null);
 
+    // Generate local preview (Base64) to show user instantly
     const reader = new FileReader();
     reader.onerror = () => showToast('שגיאה בקריאת הקובץ.', 'error');
     reader.readAsDataURL(file);
@@ -320,11 +321,12 @@ function useImageUploader(user, showToast) {
         const snapshot = await uploadBytes(fileRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         
+        // Replace temp base64 with absolute Firestore URL
         setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
       } catch (err) {
         console.error("Storage upload failed", err);
         showToast('שגיאה בהעלאת התמונה לשרת המאובטח.', 'error');
-        removeImage(currentPart); 
+        removeImage(currentPart); // Revert preview if upload failed
       } finally {
         setActiveUploads(prev => Math.max(0, prev - 1));
       }
@@ -358,7 +360,6 @@ function MainApp() {
   const isRtl = lang === 'he' || lang === 'ar';
   const hideIsrael = geo.country !== 'IL'; 
 
-  // Wrap showToast in useCallback so it doesn't break dependent useEffects
   const showToast = useCallback((msg, type = 'success') => {
     setToastMsg({ text: msg, type });
     setTimeout(() => setToastMsg(null), 4000);
@@ -407,6 +408,7 @@ function MainApp() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser && currentUser.email) {
+        // SECURE ADMIN CHECK - Only exact matches allowed
         setRole(ADMIN_EMAILS.includes(currentUser.email.toLowerCase()) ? 'admin' : 'client');
       } else {
         setRole('client');
@@ -419,6 +421,7 @@ function MainApp() {
     if (verifyId && user && db) {
       const fetchVerification = async () => {
         try {
+          // SECURE QUERY: Don't fetch all docs! Use limit(1)
           const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), where('id', '==', verifyId), limit(1));
           const snapshot = await getDocs(q);
           if (!snapshot.empty) {
@@ -466,7 +469,7 @@ function MainApp() {
           const counterDoc = await transaction.get(counterRef);
           if (!counterDoc.exists()) {
             transaction.set(counterRef, { currentSequence: 19201 });
-            newIdNum = 19201;
+            newIdNum = 19201; // FIXED: ensure the first ID gets correctly assigned
           } else {
             newIdNum = (counterDoc.data().currentSequence || 19200) + 1;
             transaction.update(counterRef, { currentSequence: newIdNum });
@@ -479,6 +482,7 @@ function MainApp() {
       
       const finalReqId = `LBI-${newIdNum}`;
 
+      // Sanitize text inputs before saving
       const sanitizedData = { ...newReqData };
       if (sanitizedData.brand) sanitizedData.brand = sanitizedData.brand.trim();
       if (sanitizedData.model) sanitizedData.model = sanitizedData.model.trim();
@@ -1068,7 +1072,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   const [paymentTrack, setPaymentTrack] = useState('regular');
   const [paypalLoaded, setPaypalLoaded] = useState(false);
 
-  const { uploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
+  const { uploadedImages, setUploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
 
   // Data ref to avoid stale closures in the PayPal callback without triggering effect restarts
   const formDataRef = useRef({});
@@ -1077,22 +1081,25 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   });
 
   useEffect(() => {
-    const checkPayPal = setInterval(() => {
-       if (window.paypal) {
-          setPaypalLoaded(true);
-          clearInterval(checkPayPal);
-       }
-    }, 200);
-
-    const scriptId = 'paypal-sdk-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
-      script.async = true;
-      document.body.appendChild(script);
-    }
-    return () => clearInterval(checkPayPal);
+    const loadPaypal = () => {
+      if (window.paypal) {
+        setPaypalLoaded(true);
+        return;
+      }
+      const scriptId = 'paypal-sdk-script';
+      let script = document.getElementById(scriptId);
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
+        script.async = true;
+        script.onload = () => setPaypalLoaded(true);
+        document.body.appendChild(script);
+      } else {
+        script.onload = () => setPaypalLoaded(true);
+      }
+    };
+    loadPaypal();
   }, [geo.currency]);
 
   const handleApplyCoupon = () => {
@@ -1102,9 +1109,9 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   };
 
   useEffect(() => {
-    if (step !== 3 || isDiscountApplied || showSuccess || !paypalLoaded || !window.paypal) return;
+    if (step !== 3 || isDiscountApplied || showSuccess || !window.paypal) return;
 
-    const containerId = 'paypal-button-container';
+    const containerId = `paypal-btn-${paymentTrack}`;
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -1112,7 +1119,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
     const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
 
     let isMounted = true;
-    setTimeout(() => {
+    const timerId = setTimeout(() => {
        if (!isMounted || !document.getElementById(containerId)) return;
        try {
           window.paypal.Buttons({
@@ -1142,8 +1149,11 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
        }
     }, 100);
 
-    return () => { isMounted = false; };
-  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, paypalLoaded]); // Removed unstable dependencies to fix vanishing button
+    return () => {
+      isMounted = false;
+      clearTimeout(timerId);
+    };
+  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, paypalLoaded, addRequest, showToast]);
 
   const handlePaymentSuccessFree = async () => {
     await addRequest({
@@ -1155,7 +1165,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
     setShowSuccess(true);
   };
 
-  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setStep(1); };
+  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
 
   if (showSuccess) {
     return (
@@ -1291,7 +1301,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
               ) : (
                 <div className="relative z-0 min-h-[150px] w-full bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
                   {!paypalLoaded && <div className="flex justify-center p-8"><RefreshCcw className="animate-spin text-slate-400" /></div>}
-                  <div id="paypal-button-container" className="w-full"></div>
+                  {paypalLoaded && <div id={`paypal-btn-${paymentTrack}`} className="w-full"></div>}
                 </div>
               )}
 
@@ -1299,6 +1309,20 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
+  const isSelected = current === id;
+  return (
+    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
+          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
+        </div>
+        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
       </div>
     </div>
   );
@@ -1378,6 +1402,32 @@ function MissingPhotosUploader({ t, geo, isRtl, req, setView, user, updateReques
           <button onClick={handleNoBetterPhotos} className="w-full bg-slate-100 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">אין לי אפשרות לצלם תמונה טובה יותר</button>
           <button onClick={() => setView('dashboard')} className="w-full text-slate-400 text-sm mt-2 hover:text-slate-600 font-bold transition-colors">חזור</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function BusinessPackages({ t, geo, isRtl, setView }) {
+  const packages = [
+    { title: 'Bronze', checks: 10, free: 2, discount: '15%', price: geo.currency === 'ILS' ? 850 : 250 },
+    { title: 'Silver', checks: 50, free: 10, discount: '17%', price: geo.currency === 'ILS' ? 4150 : 1200 },
+    { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
+  ];
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
+      <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
+      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 font-bold">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {packages.map((pkg, idx) => (
+          <div key={idx} className={`bg-white rounded-3xl p-8 border shadow-sm relative overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'border-[#d4af37] ring-1 ring-[#d4af37]/20' : 'border-slate-200'}`}>
+             {idx === 1 && <div className="absolute top-0 inset-x-0 bg-[#d4af37] text-black text-[10px] font-bold text-center py-1 uppercase tracking-widest">Most Popular</div>}
+             <div className="absolute top-6 right-6 bg-slate-900 text-white text-xs font-black px-2.5 py-1 rounded">- {pkg.discount}</div>
+             <h3 className={`text-2xl font-black mb-1 mt-4 ${idx === 1 ? 'text-[#d4af37]' : 'text-slate-800'}`}>{pkg.title}</h3>
+             <p className="text-slate-500 text-sm mb-8 font-medium">{pkg.checks} Authentications<br/><span className="text-green-600">+ {pkg.free} Free Checks</span></p>
+             <div className="text-4xl font-black text-slate-900 mb-8" dir="ltr">{geo.symbol}{pkg.price}</div>
+             <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
+          </div>
+        ))}
       </div>
     </div>
   );

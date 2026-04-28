@@ -84,7 +84,7 @@ try {
 // ==========================================
 // SECURITY & CONSTANTS
 // ==========================================
-const ADMIN_EMAILS = ['admin@luxurybagsisrael.com', 'support@luxurybags.co.il', 'ohad270@gmail.com']; // REPLACE WITH REAL ADMIN EMAILS
+const ADMIN_EMAILS = ['admin@luxurybagsisrael.com', 'support@luxurybags.co.il', 'ohad270@gmail.com']; 
 const HERO_BG_IMAGE = "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=2000&q=80";
 
 const LUXURY_BRANDS = ["Louis Vuitton", "Chanel", "Hermes", "Dior", "Gucci", "Prada", "Saint Laurent", "Celine", "Fendi", "Balenciaga", "Rolex", "Cartier"];
@@ -304,7 +304,6 @@ function useImageUploader(user, showToast) {
     const currentPart = uploadingPart;
     setUploadingPart(null);
 
-    // Generate local preview (Base64) to show user instantly
     const reader = new FileReader();
     reader.onerror = () => showToast('שגיאה בקריאת הקובץ.', 'error');
     reader.readAsDataURL(file);
@@ -321,12 +320,11 @@ function useImageUploader(user, showToast) {
         const snapshot = await uploadBytes(fileRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         
-        // Replace temp base64 with absolute Firestore URL
         setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
       } catch (err) {
         console.error("Storage upload failed", err);
         showToast('שגיאה בהעלאת התמונה לשרת המאובטח.', 'error');
-        removeImage(currentPart); // Revert preview if upload failed
+        removeImage(currentPart); 
       } finally {
         setActiveUploads(prev => Math.max(0, prev - 1));
       }
@@ -360,10 +358,11 @@ function MainApp() {
   const isRtl = lang === 'he' || lang === 'ar';
   const hideIsrael = geo.country !== 'IL'; 
 
-  const showToast = (msg, type = 'success') => {
+  // Wrap showToast in useCallback so it doesn't break dependent useEffects
+  const showToast = useCallback((msg, type = 'success') => {
     setToastMsg({ text: msg, type });
     setTimeout(() => setToastMsg(null), 4000);
-  };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -390,7 +389,7 @@ function MainApp() {
       }, 7200000); 
     }
     return () => clearTimeout(sessionTimer);
-  }, [user, isRtl, verifyId]);
+  }, [user, isRtl, verifyId, showToast]);
 
   useEffect(() => {
     if (!auth) return;
@@ -408,7 +407,6 @@ function MainApp() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser && currentUser.email) {
-        // SECURE ADMIN CHECK - Only exact matches allowed
         setRole(ADMIN_EMAILS.includes(currentUser.email.toLowerCase()) ? 'admin' : 'client');
       } else {
         setRole('client');
@@ -421,7 +419,6 @@ function MainApp() {
     if (verifyId && user && db) {
       const fetchVerification = async () => {
         try {
-          // SECURE QUERY: Don't fetch all docs! Use limit(1)
           const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), where('id', '==', verifyId), limit(1));
           const snapshot = await getDocs(q);
           if (!snapshot.empty) {
@@ -469,7 +466,7 @@ function MainApp() {
           const counterDoc = await transaction.get(counterRef);
           if (!counterDoc.exists()) {
             transaction.set(counterRef, { currentSequence: 19201 });
-            newIdNum = 19201; // FIXED: ensure the first ID gets correctly assigned
+            newIdNum = 19201;
           } else {
             newIdNum = (counterDoc.data().currentSequence || 19200) + 1;
             transaction.update(counterRef, { currentSequence: newIdNum });
@@ -482,7 +479,6 @@ function MainApp() {
       
       const finalReqId = `LBI-${newIdNum}`;
 
-      // Sanitize text inputs before saving
       const sanitizedData = { ...newReqData };
       if (sanitizedData.brand) sanitizedData.brand = sanitizedData.brand.trim();
       if (sanitizedData.model) sanitizedData.model = sanitizedData.model.trim();
@@ -502,7 +498,7 @@ function MainApp() {
       showToast("שגיאה בשמירת הבקשה במסד הנתונים.", "error");
       throw err; 
     }
-  }, [user, db]);
+  }, [user, db, showToast]);
   
   const updateRequest = async (firestoreId, updates) => {
     if (!user || !db) return;
@@ -1059,20 +1055,6 @@ function ClientDashboard({ t, requests, setView, onSelectCert, onProvidePhotos }
   );
 }
 
-function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
-  const isSelected = current === id;
-  return (
-    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
-          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
-        </div>
-        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
-      </div>
-    </div>
-  );
-}
-
 function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, showToast }) {
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -1086,16 +1068,31 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   const [paymentTrack, setPaymentTrack] = useState('regular');
   const [paypalLoaded, setPaypalLoaded] = useState(false);
 
-  const paypalRendered = useRef(false);
+  const { uploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
 
-  const { uploadedImages, setUploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
+  // Data ref to avoid stale closures in the PayPal callback without triggering effect restarts
+  const formDataRef = useRef({});
+  useEffect(() => {
+    formDataRef.current = { brand, model, serialNumber, uploadedImages, paymentTrack };
+  });
 
   useEffect(() => {
+    const checkPayPal = setInterval(() => {
+       if (window.paypal) {
+          setPaypalLoaded(true);
+          clearInterval(checkPayPal);
+       }
+    }, 200);
+
     const scriptId = 'paypal-sdk-script';
-    if (document.getElementById(scriptId)) { setPaypalLoaded(true); return; }
-    const script = document.createElement('script'); script.id = scriptId;
-    script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
-    script.async = true; script.onload = () => setPaypalLoaded(true); document.body.appendChild(script);
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+    return () => clearInterval(checkPayPal);
   }, [geo.currency]);
 
   const handleApplyCoupon = () => {
@@ -1105,41 +1102,48 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   };
 
   useEffect(() => {
-    if (step !== 3 || isDiscountApplied || showSuccess || activeUploads > 0 || !paypalLoaded || !window.paypal) return;
+    if (step !== 3 || isDiscountApplied || showSuccess || !paypalLoaded || !window.paypal) return;
 
-    const container = document.getElementById('paypal-button-container');
+    const containerId = 'paypal-button-container';
+    const container = document.getElementById(containerId);
     if (!container) return;
 
     container.innerHTML = ''; 
-    
     const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
 
-    try {
-      window.paypal.Buttons({
-        createOrder: (data, actions) => {
-          return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
-        },
-        onApprove: (data, actions) => {
-          return actions.order.capture().then(async () => {
-             const finalReqId = await addRequest({
-               brand, model: model || 'N/A', serialNumber: serialNumber || '',
-               date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
-               image: uploadedImages['front'] || Object.values(uploadedImages)[0] || HERO_BG_IMAGE,
-               images: uploadedImages
-             });
-             await sendTelegramFrontendAlert(finalReqId, brand, model, paymentTrack);
-             setShowSuccess(true);
-          });
-        },
-        onError: (err) => {
-          console.error("PayPal Error:", err);
-          showToast("שגיאה במערכת התשלומים, נסה שנית.", "error");
-        }
-      }).render('#paypal-button-container');
-    } catch (err) {
-      console.error("PayPal Render Error:", err);
-    }
-  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, paypalLoaded, activeUploads, addRequest, brand, model, serialNumber, uploadedImages, showToast]);
+    let isMounted = true;
+    setTimeout(() => {
+       if (!isMounted || !document.getElementById(containerId)) return;
+       try {
+          window.paypal.Buttons({
+            createOrder: (data, actions) => {
+              return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
+            },
+            onApprove: (data, actions) => {
+              return actions.order.capture().then(async () => {
+                 const fd = formDataRef.current;
+                 const finalReqId = await addRequest({
+                   brand: fd.brand, model: fd.model || 'N/A', serialNumber: fd.serialNumber || '',
+                   date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack: fd.paymentTrack,
+                   image: fd.uploadedImages['front'] || Object.values(fd.uploadedImages)[0] || HERO_BG_IMAGE,
+                   images: fd.uploadedImages
+                 });
+                 await sendTelegramFrontendAlert(finalReqId, fd.brand, fd.model, fd.paymentTrack);
+                 setShowSuccess(true);
+              });
+            },
+            onError: (err) => {
+              console.error("PayPal Error:", err);
+              showToast("שגיאה במערכת התשלומים, נסה שנית.", "error");
+            }
+          }).render('#' + containerId);
+       } catch(err) {
+          console.error("Failed rendering PayPal:", err);
+       }
+    }, 100);
+
+    return () => { isMounted = false; };
+  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, paypalLoaded]); // Removed unstable dependencies to fix vanishing button
 
   const handlePaymentSuccessFree = async () => {
     await addRequest({
@@ -1151,7 +1155,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
     setShowSuccess(true);
   };
 
-  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
+  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setStep(1); };
 
   if (showSuccess) {
     return (
@@ -1264,7 +1268,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
                 );
               })}
             </div>
-            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => { paypalRendered.current = false; setStep(3); }} disabled={Object.keys(uploadedImages).length === 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
+            <div className="pt-6 flex gap-3"><button onClick={() => setStep(1)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">{t('back')}</button><button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length === 0} className="flex-[2] bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors">{t('continue_track')}</button></div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in">

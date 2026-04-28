@@ -358,7 +358,218 @@ const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
 };
 
 // ==========================================
-// CORE APP
+// DEDICATED PRINT TEMPLATE
+// ==========================================
+function PrintOnlyView({ data, hideIsrael }) {
+  if (!data) return null;
+  const isAuthentic = data.result === 'authentic';
+  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
+
+  return (
+    <div className="hidden print:block print-certificate-a4 bg-white" dir="rtl">
+      <div style={{ width: '210mm', height: '296mm', margin: '0 auto', boxSizing: 'border-box', padding: '10mm' }}>
+        <div style={{ width: '100%', height: '100%', border: '8px solid #0a0a0a', padding: '4mm', boxSizing: 'border-box' }}>
+          <div style={{ width: '100%', height: '100%', border: '2px solid #d4af37', padding: '8mm', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', position: 'relative', backgroundColor: 'white', overflow: 'hidden' }}>
+            
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.03, pointerEvents: 'none' }}>
+              <BrandLogo className="" style={{ width: '160mm', height: '160mm' }} hideIsrael={hideIsrael} />
+            </div>
+            
+            <div style={{ position: 'absolute', top: '6mm', right: '6mm', textAlign: 'right' }}>
+               <p style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.1em', color: '#94a3b8', textTransform: 'uppercase', margin: 0, lineHeight: 1 }}>Certificate No.</p>
+               <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', fontFamily: 'monospace', letterSpacing: '0.05em', margin: 0, marginTop: '2px', lineHeight: 1 }}>{data.id}</p>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '8mm', paddingTop: '6mm', position: 'relative', zIndex: 10 }}>
+              <BrandLogo className="" style={{ width: '20mm', height: '20mm', marginBottom: '3mm' }} hideIsrael={hideIsrael} />
+              <h1 style={{ fontSize: '28px', fontFamily: 'serif', letterSpacing: '0.1em', color: '#0a0a0a', textTransform: 'uppercase', margin: 0, marginBottom: '2px', lineHeight: 1 }}>Certificate of Authentication</h1>
+              <p style={{ color: '#d4af37', fontWeight: 'bold', letterSpacing: '0.4em', fontSize: '10px', textTransform: 'uppercase', margin: 0 }}>Luxury Bags Israel</p>
+            </div>
+            
+            <div style={{ width: '100%', padding: '4mm 0', marginBottom: '8mm', borderTop: '2px solid #e2e8f0', borderBottom: '2px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', backgroundColor: isAuthentic ? '#f0fdf4' : '#fef2f2', borderColor: isAuthentic ? '#bbf7d0' : '#fecaca', color: isAuthentic ? '#166534' : '#991b1b', position: 'relative', zIndex: 10 }}>
+                {isAuthentic ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
+                <h2 style={{ fontSize: '22px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1 }}>{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+            </div>
+            
+            <div style={{ width: '100%', maxWidth: '140mm', margin: '0 auto', marginBottom: '8mm', position: 'relative', zIndex: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: '4mm', textAlign: 'left', borderBottom: '1px solid #e2e8f0', paddingBottom: '5mm', marginBottom: '5mm' }} dir="ltr">
+                <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Brand</div>
+                <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{data.brand}</div>
+                
+                <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Model</div>
+                <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{data.model}</div>
+                
+                {data.serialNumber && (
+                  <>
+                    <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Serial Number</div>
+                    <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{data.serialNumber}</div>
+                  </>
+                )}
+                
+                <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Date Inspected</div>
+                <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+              </div>
+              <p style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic', textAlign: 'center', maxWidth: '120mm', margin: '0 auto', lineHeight: 1.5 }}>This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+            </div>
+            
+            <div style={{ width: '100%', position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid #e2e8f0', paddingBottom: '2mm', marginBottom: '4mm', textAlign: 'left', margin: 0 }} dir="ltr">Inspected Elements</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '4mm', width: '100%' }}>
+                {imagesToDisplay.map(([part, url]) => (
+                   <div key={part} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <img src={url} alt={part} style={{ width: '100%', height: '22mm', objectFit: 'cover', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                      <span style={{ marginTop: '2mm', fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{part}</span>
+                   </div>
+                ))}
+                {imagesToDisplay.length === 0 && (
+                   <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                     <img src={data.image} style={{ width: '60mm', height: '22mm', objectFit: 'cover', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                     <span style={{ marginTop: '2mm', fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>MAIN</span>
+                   </div>
+                )}
+              </div>
+            </div>
+            
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', position: 'relative', zIndex: 10, marginTop: 'auto', paddingTop: '4mm', borderTop: '1px solid #f1f5f9' }}>
+              <div style={{ textAlign: 'left', paddingBottom: '4px' }} dir="ltr"><CertificateStamp /></div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ backgroundColor: 'white', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '4px' }}>
+                  <img src={qrCodeUrl} alt="QR Code" style={{ width: '14mm', height: '14mm', objectFit: 'contain', mixBlendMode: 'multiply' }} crossOrigin="anonymous" />
+                </div>
+                <p style={{ fontSize: '8px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, padding: 0 }}>Scan to Verify</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// CORE COMPONENT FOR DISPLAYING CERT ON SCREEN
+// ==========================================
+function DigitalCertificate({ data, onBack, isClientView, isRtl, hideIsrael, isPublicVerification }) {
+  if (!data) return null;
+  const isAuthentic = data.result === 'authentic';
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
+  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = data.id || 'LBI-Certificate';
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:hidden">
+      {!isPublicVerification && (
+        <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors">
+          <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור
+        </button>
+      )}
+      
+      <div className="w-full overflow-x-auto flex justify-center pb-4 scrollbar-hide no-print">
+         <div className="shrink-0 border-[10px] border-[#0a0a0a] shadow-2xl relative w-full sm:w-[210mm] max-w-full bg-white">
+            <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white">
+              <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] opacity-5 pointer-events-none" />
+              
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 text-right">
+                 <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
+                 <p className="text-sm font-bold text-slate-800 font-mono tracking-wider mt-1 m-0 leading-none">{data.id}</p>
+              </div>
+              
+              <div className="mb-8 relative z-10 pt-6">
+                <BrandLogo className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
+                <h1 className="text-2xl sm:text-4xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
+                <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
+              </div>
+              
+              <div className={`w-full py-4 mb-8 border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                  {isAuthentic ? <ShieldCheck size={32} /> : <ShieldAlert size={32} />}
+                  <h2 className="text-2xl font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+              </div>
+              
+              <div className="w-full max-w-xl mb-8 relative z-10">
+                <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Brand</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{data.brand}</div>
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Model</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{data.model}</div>
+                  {data.serialNumber && (
+                    <>
+                      <div className="text-slate-500 text-sm uppercase tracking-widest">Serial Number</div>
+                      <div className="font-bold text-slate-900 text-lg leading-none">{data.serialNumber}</div>
+                    </>
+                  )}
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Date Inspected</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+                </div>
+                <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+              </div>
+              
+              <div className="w-full relative z-10 flex-1">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                  {imagesToDisplay.map(([part, url]) => (
+                     <div key={part} className="flex flex-col items-center">
+                        <img src={url} alt={part} className="w-full h-24 sm:h-28 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
+                        <span className="mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+                     </div>
+                  ))}
+                  {imagesToDisplay.length === 0 && (
+                     <div className="col-span-2 sm:col-span-4 flex flex-col items-center">
+                       <img src={data.image} className="w-full max-w-[250px] h-32 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
+                       <span className="mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
+                     </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-6 border-t border-slate-100">
+                <div className="text-left" dir="ltr"><CertificateStamp /></div>
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-2 border border-slate-200 rounded-xl shadow-md mb-2">
+                    <img src={qrCodeUrl} alt="QR Code Verification" className="w-16 h-16 object-contain mix-blend-multiply" crossOrigin="anonymous" />
+                  </div>
+                  <p className="text-[9px] text-slate-400 uppercase tracking-widest m-0">Scan to Verify</p>
+                </div>
+              </div>
+            </div>
+         </div>
+      </div>
+      
+      {!isClientView && (
+        <div className="flex justify-center sm:justify-end pt-6 no-print">
+          <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+            <Upload size={20} /> הדפס / יצא ל-PDF
+          </button>
+        </div>
+      )}
+      
+      {isClientView && !isPublicVerification && isAuthentic && (
+        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
+          <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
+          <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
+             <button onClick={() => { navigator.clipboard.writeText(verifyUrl); alert('הקישור הועתק!'); }} className="flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-4 px-8 rounded-xl shadow-sm transition-colors"><Upload size={20} /> העתק קישור</button>
+             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> הורד תעודה (PDF)</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// STATE MANAGER (MainApp)
 // ==========================================
 function MainApp() {
   const [user, setUser] = useState(null); 
@@ -381,14 +592,12 @@ function MainApp() {
   const hideIsrael = geo.country !== 'IL'; 
 
   useEffect(() => {
-    document.title = "AUTHENTICATE YOUR BAG | LBI";
-    let link = document.querySelector("link[rel~='icon']");
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
+    const params = new URLSearchParams(window.location.search);
+    const vId = params.get('verify');
+    if (vId) {
+      setVerifyId(vId);
+      setShowLanding(false);
     }
-    link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="100" fill="%231c1c1c"/><path d="M55 70 L75 120 L125 120 L145 70 Z" fill="none" stroke="%23d4af37" stroke-width="4" stroke-linejoin="round"/><rect x="75" y="70" width="50" height="50" fill="none" stroke="%23d4af37" stroke-width="4"/><path d="M85 70 C85 45, 115 45, 115 70" fill="none" stroke="%23d4af37" stroke-width="4"/></svg>';
   }, []);
 
   const handleLogout = () => { 
@@ -429,15 +638,6 @@ function MainApp() {
       }
     });
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const vId = params.get('verify');
-    if (vId) {
-      setVerifyId(vId);
-      setShowLanding(false);
-    }
   }, []);
 
   useEffect(() => {
@@ -539,6 +739,7 @@ function MainApp() {
     }
   };
 
+  // public verification view
   if (verifyId) {
     if (verifyStatus === 'loading') {
       return (
@@ -563,6 +764,9 @@ function MainApp() {
       return (
         <div className="min-h-screen bg-slate-50 py-10 font-sans print:bg-white print:py-0" dir="rtl">
            <GlobalStyles />
+           
+           <PrintOnlyView data={verifyData} hideIsrael={hideIsrael} />
+
            <div className="max-w-3xl mx-auto mb-6 text-center animate-in slide-in-from-top-4 no-print">
              <div className="inline-flex items-center gap-2 bg-green-100 border border-green-200 text-green-800 px-6 py-3 rounded-full font-bold text-sm shadow-sm">
                <CheckCircle size={20}/> אומת בהצלחה מול שרתי LBI
@@ -599,7 +803,12 @@ function MainApp() {
   return (
     <>
       <GlobalStyles />
-      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden print:h-auto print:overflow-visible" dir={isRtl ? "rtl" : "ltr"}>
+      
+      {selectedCertificate && currentView === 'certificate-view' && (
+        <PrintOnlyView data={selectedCertificate} hideIsrael={hideIsrael} />
+      )}
+      
+      <div className="flex h-[100dvh] bg-slate-50 text-slate-900 font-sans overflow-hidden print:hidden" dir={isRtl ? "rtl" : "ltr"}>
         <div className="no-print">
           {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
         </div>
@@ -1074,20 +1283,6 @@ function ClientDashboard({ t, requests, setView, onSelectCert, onProvidePhotos }
   );
 }
 
-function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
-  const isSelected = current === id;
-  return (
-    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
-          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
-        </div>
-        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
-      </div>
-    </div>
-  );
-}
-
 function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) {
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -1105,14 +1300,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   const [uploadingPart, setUploadingPart] = useState(null);
   const [activeUploads, setActiveUploads] = useState(0);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    const scriptId = 'paypal-sdk-script';
-    if (document.getElementById(scriptId)) { setPaypalLoaded(true); return; }
-    const script = document.createElement('script'); script.id = scriptId;
-    script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
-    script.async = true; script.onload = () => setPaypalLoaded(true); document.body.appendChild(script);
-  }, [geo.currency]);
 
   const handleApplyCoupon = () => {
     if (['LUXBAGFREE', 'LUXBAGCHECK'].includes(couponCode.trim().toUpperCase())) {
@@ -1168,36 +1355,72 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user }) 
   };
 
   useEffect(() => {
-    if (paypalLoaded && window.paypal && !isDiscountApplied && step === 3 && !showSuccess && activeUploads === 0) {
-       const container = document.getElementById('paypal-button-container');
-       if (container && container.innerHTML === '') {
-         const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
+    if (step !== 3 || isDiscountApplied || showSuccess || activeUploads > 0) return;
 
-         window.paypal.Buttons({
-           createOrder: (data, actions) => {
-             return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
-           },
-           onApprove: (data, actions) => {
-             return actions.order.capture().then(async () => {
-                const finalReqId = await addRequest({
-                  brand, model: model || 'N/A',
-                  serialNumber: serialNumber || '',
-                  date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
-                  image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
-                  images: uploadedImages
-                });
-                await sendTelegramFrontendAlert(finalReqId, brand, model, paymentTrack);
-                setShowSuccess(true);
-             });
-           },
-           onError: (err) => {
-             console.error("PayPal Error:", err);
-             alert("שגיאה במערכת התשלומים, נסה שנית.");
-           }
-         }).render('#paypal-button-container');
-       }
+    let hasRendered = false;
+
+    const renderPayPal = () => {
+      if (hasRendered || !window.paypal) return;
+      const container = document.getElementById('paypal-button-container');
+      if (container) {
+        hasRendered = true;
+        container.innerHTML = ''; 
+        setPaypalLoaded(true);
+        
+        const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
+
+        window.paypal.Buttons({
+          createOrder: (data, actions) => {
+            return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
+          },
+          onApprove: (data, actions) => {
+            return actions.order.capture().then(async () => {
+               const finalReqId = await addRequest({
+                 brand, model: model || 'N/A',
+                 serialNumber: serialNumber || '',
+                 date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
+                 image: uploadedImages['front'] || Object.values(uploadedImages)[0] || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80',
+                 images: uploadedImages
+               });
+               await sendTelegramFrontendAlert(finalReqId, brand, model, paymentTrack);
+               setShowSuccess(true);
+            });
+          },
+          onError: (err) => {
+            console.error("PayPal Error:", err);
+            alert("שגיאה במערכת התשלומים, נסה שנית.");
+          }
+        }).render('#paypal-button-container');
+      }
+    };
+
+    if (window.paypal) {
+      renderPayPal();
+    } else {
+      const scriptId = 'paypal-sdk-script';
+      let script = document.getElementById(scriptId);
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
+        script.async = true;
+        document.body.appendChild(script);
+      }
+      
+      script.addEventListener('load', renderPayPal);
+      const interval = setInterval(() => {
+        if (window.paypal) {
+          renderPayPal();
+          clearInterval(interval);
+        }
+      }, 500);
+
+      return () => {
+        script.removeEventListener('load', renderPayPal);
+        clearInterval(interval);
+      };
     }
-  }, [paypalLoaded, isDiscountApplied, step, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, serialNumber, uploadedImages, activeUploads]);
+  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, serialNumber, uploadedImages, activeUploads]);
 
   const handlePaymentSuccessFree = async () => {
     const finalReqId = await addRequest({
@@ -1484,249 +1707,6 @@ function MissingPhotosUploader({ t, geo, isRtl, req, setView, user, updateReques
           <button onClick={() => setView('dashboard')} className="w-full text-slate-400 text-sm mt-2 hover:text-slate-600 font-bold transition-colors">חזור</button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function BusinessPackages({ t, geo, isRtl, setView }) {
-  const packages = [
-    { title: 'Bronze', checks: 10, free: 2, discount: '15%', price: geo.currency === 'ILS' ? 850 : 250 },
-    { title: 'Silver', checks: 50, free: 10, discount: '17%', price: geo.currency === 'ILS' ? 4150 : 1200 },
-    { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
-  ];
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
-      <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
-      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 font-bold">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {packages.map((pkg, idx) => (
-          <div key={idx} className={`bg-white rounded-3xl p-8 border shadow-sm relative overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'border-[#d4af37] ring-1 ring-[#d4af37]/20' : 'border-slate-200'}`}>
-             {idx === 1 && <div className="absolute top-0 inset-x-0 bg-[#d4af37] text-black text-[10px] font-bold text-center py-1 uppercase tracking-widest">Most Popular</div>}
-             <div className="absolute top-6 right-6 bg-slate-900 text-white text-xs font-black px-2.5 py-1 rounded">- {pkg.discount}</div>
-             <h3 className={`text-2xl font-black mb-1 mt-4 ${idx === 1 ? 'text-[#d4af37]' : 'text-slate-800'}`}>{pkg.title}</h3>
-             <p className="text-slate-500 text-sm mb-8 font-medium">{pkg.checks} Authentications<br/><span className="text-green-600">+ {pkg.free} Free Checks</span></p>
-             <div className="text-4xl font-black text-slate-900 mb-8" dir="ltr">{geo.symbol}{pkg.price}</div>
-             <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert }) {
-  const [selectedReqId, setSelectedReqId] = useState(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [finalVerdict, setFinalVerdict] = useState(null); 
-  const [timeLeft, setTimeLeft] = useState(7200); 
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [selectedParts, setSelectedParts] = useState([]);
-  const [customMessage, setCustomMessage] = useState('');
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-
-  const activeReq = (requests || []).find(r => r && (r.id === selectedReqId || r.firestoreId === selectedReqId));
-
-  const pendingRequests = (requests || []).filter(r => r && r.status !== 'completed' && r.status !== 'refunded');
-  const completedRequests = (requests || []).filter(r => r && (r.status === 'completed' || r.status === 'refunded'));
-
-  useEffect(() => {
-    let interval = null;
-    if (isTimerRunning && timeLeft > 0) interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-    else if (!isTimerRunning && timeLeft !== 0) clearInterval(interval);
-    return () => clearInterval(interval);
-  }, [isTimerRunning, timeLeft]);
-
-  const formatTime = (sec) => `${Math.floor(sec / 3600).toString().padStart(2, '0')}:${Math.floor((sec % 3600) / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
-
-  const safeDateRender = (timestamp) => {
-    if (!timestamp) return 'תאריך לא ידוע';
-    try { return new Date(timestamp).toLocaleDateString('he-IL'); } 
-    catch(e) { return 'תאריך שגוי'; }
-  };
-
-  const startReviewing = (req) => { setSelectedReqId(req.firestoreId || req.id); setTimeLeft(req.paymentTrack === 'express' ? 7200 : req.paymentTrack === 'fast' ? 21600 : 43200); if(req.status !== 'waiting_for_customer') setIsTimerRunning(true); };
-  const simulateAIAnalysis = () => { setIsAnalyzing(true); setTimeout(() => { setIsAnalyzing(false); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'reviewing', aiDraftResponse: `מנוע ה-AI מזהה פונט לא תקני בחותמת התאריך. נדרשת החלטת מומחה סופית.`, confidence: 88 }); }, 2000); };
-  
-  const handleIssueCertificate = async (verdict) => { 
-    setIsTimerRunning(false); 
-    setFinalVerdict(verdict); 
-    await updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: verdict });
-    setShowNotificationModal(true); 
-  };
-  
-  const handleCancelAndRefund = () => { setIsTimerRunning(false); setShowCancelModal(false); alert(`שולח זיכוי והודעה: "${cancelReason}"`); updateRequest(activeReq.firestoreId || activeReq.id, { status: 'completed', result: 'refunded' }); setSelectedReqId(null); };
-  
-  const sendPhotoRequest = () => { 
-    if (!selectedParts.length && !customMessage.trim()) return; 
-    setIsTimerRunning(false); 
-    updateRequest(activeReq.firestoreId || activeReq.id, { 
-      status: 'waiting_for_customer',
-      missingParts: selectedParts,
-      missingPhotosMsg: customMessage
-    }); 
-    setSelectedReqId(null); 
-  };
-  
-  const togglePartSelection = (id) => setSelectedParts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
-
-  if (!activeReq) {
-    return (
-      <div className="max-w-6xl mx-auto animate-in fade-in pb-24" dir="rtl">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
-          <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-            <h3 className="text-slate-500 text-xs md:text-sm font-medium mb-1">בקשות ממתינות לבדיקה</h3>
-            <p className="text-2xl md:text-3xl font-bold text-slate-800">{pendingRequests.length}</p>
-          </div>
-          <div className="bg-teal-900 p-4 md:p-6 rounded-2xl shadow-md text-white col-span-2 md:col-span-2 relative overflow-hidden">
-            <div className="relative z-10">
-              <h3 className="text-teal-100 text-xs md:text-sm font-medium mb-1">סטטוס מנוע AI Core</h3>
-              <p className="text-xl md:text-2xl font-bold flex items-center gap-2">מערכת יציבה ופעילה</p>
-              <p className="text-xs text-teal-200 mt-2">סה"כ רשומות במסד הנתונים: {requests.length}</p>
-            </div>
-            <BrandLogo className="absolute top-0 left-0 w-48 h-48 opacity-10 transform -translate-x-1/4 -translate-y-1/4" hideIsrael={hideIsrael} />
-          </div>
-        </div>
-        
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">תור משימות לבדיקה</h2>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-10">
-          {pendingRequests.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-slate-500">אין בקשות פתוחות כרגע. הכל נבדק!</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {pendingRequests.map(req => (
-                <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => startReviewing(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer group">
-                  <div className="flex items-center gap-4"><img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand} className="w-12 h-12 rounded object-cover border border-slate-200" /><div><h4 className="font-bold text-slate-800 text-sm">{req?.brand || 'מותג לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4><p className="text-xs text-slate-500">{req?.id || 'מזהה חסר'} • <span className="font-bold">{req?.paymentTrack || 'רגיל'}</span></p></div></div>
-                  <div className="flex items-center gap-3"><span className={`text-[10px] px-2 py-1 rounded-full font-bold ${req?.status === 'waiting_for_customer' ? 'bg-amber-100 text-amber-700' : req?.status === 'pending_payment' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>{req?.status === 'waiting_for_customer' ? 'ממתין לתמונות' : req?.status === 'pending_payment' ? 'ממתין לתשלום' : 'ממתין ל-AI'}</span><button className="text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100">פתח תיק <ArrowRight size={14} className="inline ml-1"/></button></div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ADMIN HISTORY VIEW */}
-        {completedRequests.length > 0 && (
-          <>
-            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2"><Clock size={20}/> היסטוריית בדיקות עבר</h2>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden opacity-80">
-              <div className="divide-y divide-slate-100">
-                {completedRequests.map(req => (
-                  <div key={req.firestoreId || req.id || Math.random().toString()} onClick={() => onSelectCert(req)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors">
-                    <div className="flex items-center gap-4"><img src={req?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} alt={req?.brand} className="w-12 h-12 rounded object-cover border border-slate-200 grayscale" /><div><h4 className="font-bold text-slate-800 text-sm">{req?.brand || 'לא צוין'} <span className="text-xs text-slate-500 font-normal">{req?.model || ''}</span></h4><p className="text-xs text-slate-500">{req?.id || 'ללא מזהה'} • {safeDateRender(req?.createdAt)}</p></div></div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold border ${req?.result === 'authentic' ? 'bg-green-50 text-green-700 border-green-100' : req?.result === 'refunded' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                        {req?.result === 'authentic' ? 'מקורי' : req?.result === 'refunded' ? 'בוטל/זוכה' : 'מזויף'}
-                      </span>
-                      <ChevronLeft size={16} className="text-slate-400" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-24 animate-in fade-in duration-500" dir="rtl">
-      <button onClick={() => setSelectedReqId(null)} className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-2"><ChevronRight size={18} /> חזור לתור המשימות</button>
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-4"><img src={activeReq?.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'} className="w-16 h-16 rounded-xl border border-slate-200 object-cover" /><div><h2 className="font-bold text-slate-800 text-lg">בקשה {activeReq?.id}</h2><p className="text-sm text-slate-500">{activeReq?.brand} • מסלול: <span className="font-bold text-red-500">{activeReq?.paymentTrack}</span></p></div></div>
-        <div className={`flex items-center gap-3 px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 shadow-inner ${activeReq?.status === 'waiting_for_customer' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-slate-900 text-teal-400 border-slate-800'}`}><span dir="ltr">{formatTime(timeLeft)}</span>{activeReq?.status === 'waiting_for_customer' ? <PauseCircle size={24} /> : <Timer size={24} className="animate-pulse" />}</div>
-      </div>
-
-      {activeReq?.status === 'pending' && (
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><h2 className="text-xl font-bold text-slate-800 mb-2">שלב 1: סריקת AI</h2><button onClick={simulateAIAnalysis} disabled={isAnalyzing} className="px-6 py-3.5 bg-teal-800 text-white rounded-xl font-bold flex gap-2">{isAnalyzing ? 'מנתח...' : 'הפעל סריקה'}</button></div>
-      )}
-
-      {(activeReq?.status === 'pending' || activeReq?.status === 'reviewing' || activeReq?.status === 'waiting_for_customer' || activeReq?.status === 'pending_payment') && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="bg-[#1c1c1c] p-4 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2 text-sm text-[#d4af37]"><CheckCircle size={18} className="mr-1" /> ממצאי סריקת ה-AI</h3><span className="bg-white/10 px-3 py-1 rounded-full text-xs">ודאות: {activeReq?.confidence || 'ממתין'}</span></div>
-              <div className="p-5 md:p-6 space-y-6">
-                <div><h4 className="text-xs font-bold text-slate-400 uppercase mb-2">המלצת המערכת</h4><div className="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-wrap">{activeReq?.aiDraftResponse || 'ממתין לבדיקה'}</div></div>
-                <div className="border-t border-slate-100 pt-6">
-                  <h4 className="font-black text-slate-800 mb-4 text-lg">החלטת מומחה סופית</h4>
-                  <div className="flex gap-3 mb-4"><button onClick={() => handleIssueCertificate('authentic')} disabled={activeReq?.status === 'waiting_for_customer' || activeReq?.status === 'pending_payment' || activeReq?.status === 'pending'} className="flex-1 py-4 bg-green-50 text-green-800 font-bold rounded-xl disabled:opacity-50"><ShieldCheck className="inline mr-2"/>אשר כמקורי</button><button onClick={() => handleIssueCertificate('fake')} disabled={activeReq?.status === 'waiting_for_customer' || activeReq?.status === 'pending_payment' || activeReq?.status === 'pending'} className="flex-1 py-4 bg-red-50 text-red-800 font-bold rounded-xl disabled:opacity-50"><ShieldAlert className="inline mr-2"/>פסול כמזויף</button></div>
-                  <div className="flex gap-4 border-t border-slate-100 pt-4 mt-2"><button onClick={() => setShowCancelModal(true)} className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline">לא ניתן לאימות? בטל וזכה לקוח</button></div>
-                </div>
-              </div>
-            </div>
-            
-            {/* ADMIN IMAGE GALLERY */}
-            {activeReq?.images && Object.keys(activeReq.images).length > 0 && (
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-5">
-                <h3 className="font-bold text-slate-800 mb-4">תמונות הלקוח ({Object.keys(activeReq.images).length})</h3>
-                {activeReq.clientNotes && (
-                   <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-sm mb-4">
-                     <strong>הערת לקוח:</strong> {activeReq.clientNotes}
-                   </div>
-                )}
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(activeReq.images).map(([part, url]) => (
-                    <div key={part} className="relative group">
-                       <img src={url} alt={part} className="w-full h-24 object-cover border border-slate-200 rounded" />
-                       <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm">{part}</span>
-                       <a href={url} target="_blank" className="absolute inset-0 bg-black/0 hover:bg-black/20 transition flex items-center justify-center opacity-0 group-hover:opacity-100"><Search className="text-white w-6 h-6" /></a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-              <div className="bg-slate-50 p-4 border-b border-slate-100"><h3 className="font-bold text-slate-800 flex items-center gap-2"><ImagePlus size={18} className="text-teal-600" /> ניהול תמונות מול לקוח</h3></div>
-              <div className="p-5">
-                {(activeReq?.status === 'reviewing' || activeReq?.status === 'pending') && !selectedParts.length && !customMessage && (
-                  <div className="text-center"><div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500"><Camera size={28} /></div><h4 className="font-bold text-slate-800 mb-2">תמונות חסרות?</h4><button onClick={() => setCustomMessage(' ')} className="w-full py-3 bg-amber-100 text-amber-800 font-bold rounded-xl text-sm">פתח בקשת השלמה</button></div>
-                )}
-                {(activeReq?.status === 'reviewing' || activeReq?.status === 'pending') && customMessage !== '' && (
-                  <div className="animate-in slide-in-from-right-4 duration-300">
-                    <p className="text-xs font-bold text-slate-600 mb-3">סמן איזה אזור הלקוח נדרש לצלם שוב:</p>
-                    <div className="grid grid-cols-4 gap-2 mb-4">{BAG_PARTS.map(part => (<div key={part.id} onClick={() => togglePartSelection(part.id)} className={`aspect-square rounded-lg border-2 flex items-center justify-center cursor-pointer ${selectedParts.includes(part.id) ? 'border-teal-500 bg-teal-50 text-teal-600' : 'border-slate-200 text-slate-400'}`}><BagPartIcon type={part.iconType} className="w-6 h-6" /></div>))}</div>
-                    <textarea placeholder="הערה ללקוח..." value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs mb-3"></textarea>
-                    <div className="flex gap-2"><button onClick={() => setCustomMessage('')} className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-lg">ביטול</button><button onClick={sendPhotoRequest} disabled={selectedParts.length === 0 && !customMessage.trim()} className="flex-[2] py-2 bg-teal-800 text-white font-bold text-xs rounded-lg disabled:opacity-50">שלח ללקוח והקפא זמן</button></div>
-                  </div>
-                )}
-                {activeReq?.status === 'waiting_for_customer' && (
-                  <div className="text-center"><div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500 animate-pulse"><Clock size={28} /></div><h4 className="font-bold text-amber-600 mb-2">ממתין לתמונות מהלקוח</h4><p className="text-xs text-slate-500 mb-2">הלקוח קיבל מייל ויכול להעלות את התמונות מהאזור האישי שלו.</p></div>
-                )}
-                {activeReq?.status === 'pending_payment' && (
-                  <div className="text-center"><div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-500 animate-pulse"><CreditCard size={28} /></div><h4 className="font-bold text-blue-600 mb-2">ממתין לאישור תשלום</h4><p className="text-xs text-slate-500 mb-2">ברגע שהלקוח יאשר את התשלום במיניסייט, הבקשה תשתחרר אוטומטית לבדיקה.</p>
-                    <button onClick={() => updateRequest(activeReq.firestoreId || activeReq.id, { status: 'pending' })} className="mt-4 w-full py-2 bg-blue-50 text-blue-700 font-bold text-xs rounded-lg border border-blue-200">עקוף ידנית ואשר תשלום</button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showCancelModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><HandCoins size={20} className="text-slate-500"/> זיכוי לקוח</h3>
-            <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="הזן סיבה להחזר..." className="w-full h-24 border border-slate-200 rounded-lg p-3 text-sm mb-4"></textarea>
-            <div className="flex gap-3"><button onClick={()=>setShowCancelModal(false)} className="flex-1 py-2 bg-slate-100 text-slate-600 font-bold rounded-lg">חזור</button><button onClick={handleCancelAndRefund} disabled={!cancelReason} className="flex-1 py-2 bg-slate-900 text-white font-bold rounded-lg disabled:opacity-50">בצע זיכוי</button></div>
-          </div>
-        </div>
-      )}
-      
-      {/* לאחר החלטה - מוצגת חלונית הפקת תעודה/שיתוף */}
-      {showNotificationModal && (
-        <AdminCertificateModal 
-          reqData={{...activeReq, result: finalVerdict}} 
-          onClose={() => { setShowNotificationModal(false); setSelectedReqId(null); }} 
-          hideIsrael={hideIsrael} 
-        />
-      )}
     </div>
   );
 }

@@ -284,18 +284,18 @@ function useImageUploader(user, showToast) {
   const [activeUploads, setActiveUploads] = useState(0);
   const fileInputRef = useRef(null);
 
-  const triggerFileInput = (partId) => {
+  const triggerFileInput = useCallback((partId) => {
     setUploadingPart(partId);
     if (fileInputRef.current) fileInputRef.current.click();
-  };
+  }, []);
 
-  const removeImage = (partId) => {
+  const removeImage = useCallback((partId) => {
     setUploadedImages(prev => {
       const newImgs = {...prev};
       delete newImgs[partId];
       return newImgs;
     });
-  };
+  }, []);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -703,6 +703,112 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
         </div>
       </section>
 
+      <section className="bg-[#fafafa] py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
+           <div className="w-full lg:w-1/2">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-bold leading-tight">{t('israeli_title')}</h2>
+              <p className="text-lg text-slate-600 leading-relaxed mb-8">{t('israeli_desc')}</p>
+              <div className="space-y-4">
+                 <div className="flex items-start gap-4"><div className="mt-1 bg-teal-50 p-2 rounded-full text-teal-700"><Check size={20}/></div><p className="text-slate-700 font-medium">{t('israeli_point_1')}</p></div>
+                 <div className="flex items-start gap-4"><div className="mt-1 bg-teal-50 p-2 rounded-full text-teal-700"><ShieldCheck size={20}/></div><p className="text-slate-700 font-medium">{t('israeli_point_2')}</p></div>
+                 <div className="flex items-start gap-4"><div className="mt-1 bg-teal-50 p-2 rounded-full text-teal-700"><QrCode size={20}/></div><p className="text-slate-700 font-medium">{t('israeli_point_3')}</p></div>
+              </div>
+              <div className="mt-10 flex justify-start">
+                 <button onClick={onGoToLogin} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
+                   <ShieldCheck size={20} /> {user ? t('client_portal') : t('cta_primary')}
+                 </button>
+              </div>
+           </div>
+           <div className="w-full lg:w-1/2 relative flex justify-center">
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#d4af37]/30 to-transparent rounded-full blur-[80px] -z-10"></div>
+              <img 
+                src="/shopping.webp" 
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80"; }}
+                alt="Luxury Bag Authentication" 
+                className="relative z-10 rounded-3xl shadow-2xl object-cover h-[400px] md:h-[500px] w-full max-w-md border-4 border-white/10" 
+              />
+              <div className="absolute -bottom-6 -left-6 md:-left-10 bg-white p-5 md:p-6 rounded-2xl shadow-2xl border border-slate-100 flex items-center gap-4 animate-bounce z-20">
+                 <div className="bg-green-100 p-3 rounded-full text-green-600"><CheckCircle size={28}/></div>
+                 <div><p className="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-wider">Status</p><p className="text-lg md:text-xl font-black text-slate-900">100% Authentic</p></div>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      <section className="py-24 bg-[#0a0a0a] text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#d4af37]/10 rounded-full blur-[100px] -z-10"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-900/20 rounded-full blur-[100px] -z-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 font-bold">{t('why_us')}</h2>
+            <div className="w-24 h-1 bg-[#d4af37] mx-auto rounded-full"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-10 rounded-3xl hover:bg-white/10 transition-all hover:-translate-y-2 group">
+              <div className="w-16 h-16 bg-[#d4af37]/20 rounded-2xl flex items-center justify-center text-[#d4af37] mb-8 group-hover:scale-110 transition-transform"><Cpu size={32} /></div>
+              <h3 className="text-2xl font-bold text-white mb-4">{t('why_1_title')}</h3>
+              <p className="text-slate-400 leading-relaxed text-lg">{t('why_1_desc')}</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-10 rounded-3xl hover:bg-white/10 transition-all hover:-translate-y-2 group">
+              <div className="w-16 h-16 bg-[#d4af37]/20 rounded-2xl flex items-center justify-center text-[#d4af37] mb-8 group-hover:scale-110 transition-transform"><Award size={32} /></div>
+              <h3 className="text-2xl font-bold text-white mb-4">{t('why_2_title')}</h3>
+              <p className="text-slate-400 leading-relaxed text-lg">{t('why_2_desc')}</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-10 rounded-3xl hover:bg-white/10 transition-all hover:-translate-y-2 group">
+              <div className="w-16 h-16 bg-[#d4af37]/20 rounded-2xl flex items-center justify-center text-[#d4af37] mb-8 group-hover:scale-110 transition-transform"><Shield size={32} /></div>
+              <h3 className="text-2xl font-bold text-white mb-4">{t('why_3_title')}</h3>
+              <p className="text-slate-400 leading-relaxed text-lg">{t('why_3_desc')}</p>
+            </div>
+          </div>
+          <div className="mt-16 flex justify-center">
+             <button onClick={onGoToLogin} className="bg-white text-[#0a0a0a] font-bold px-10 py-4 rounded-full shadow-xl text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105">
+               <CheckCircle size={20} /> {user ? t('client_portal') : (isRtl ? 'התחילו אימות עכשיו' : 'Start Authentication')}
+             </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 font-bold">{t('how_title')}</h2>
+            <div className="w-24 h-1 bg-slate-900 mx-auto rounded-full"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+             <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-0.5 bg-slate-200 -z-10"></div>
+             <div className="text-center relative z-10 group">
+                <div className="w-32 h-32 mx-auto bg-white border-4 border-slate-100 group-hover:border-[#d4af37] text-slate-800 rounded-full flex items-center justify-center mb-8 shadow-xl transition-colors relative">
+                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#d4af37] text-black font-black flex items-center justify-center rounded-full text-lg">1</div>
+                   <Camera size={40} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">{t('how_1_title')}</h3>
+                <p className="text-slate-600 text-lg px-4">{t('how_1_desc')}</p>
+             </div>
+             <div className="text-center relative z-10 group">
+                <div className="w-32 h-32 mx-auto bg-white border-4 border-slate-100 group-hover:border-[#d4af37] text-slate-800 rounded-full flex items-center justify-center mb-8 shadow-xl transition-colors relative">
+                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#d4af37] text-black font-black flex items-center justify-center rounded-full text-lg">2</div>
+                   <Search size={40} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">{t('how_2_title')}</h3>
+                <p className="text-slate-600 text-lg px-4">{t('how_2_desc')}</p>
+             </div>
+             <div className="text-center relative z-10 group">
+                <div className="w-32 h-32 mx-auto bg-[#0a0a0a] border-4 border-[#0a0a0a] group-hover:border-[#d4af37] text-[#d4af37] rounded-full flex items-center justify-center mb-8 shadow-xl transition-colors relative">
+                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#d4af37] text-black font-black flex items-center justify-center rounded-full text-lg">3</div>
+                   <FileText size={40} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">{t('how_3_title')}</h3>
+                <p className="text-slate-600 text-lg px-4">{t('how_3_desc')}</p>
+             </div>
+          </div>
+          <div className="mt-20 text-center">
+            <button onClick={onGoToLogin} className="bg-slate-900 hover:bg-black text-white font-bold px-12 py-5 rounded-full shadow-2xl text-xl flex items-center justify-center gap-3 mx-auto transition-transform hover:scale-105">
+               {user ? t('client_portal') : t('nav_start')} <ArrowRight size={24} className={`inline ${isRtl ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#fafafa] py-24 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
            <h2 className="text-3xl font-black text-center text-slate-900 mb-12 font-bold">{t('reviews_title')}</h2>
@@ -724,6 +830,19 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo, hideIs
                <ShieldCheck size={20} /> {user ? t('client_portal') : t('nav_start')}
              </button>
            </div>
+        </div>
+      </section>
+      
+      <section className="bg-[#0a0a0a] text-white py-20 border-t border-white/10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#d4af37]/20 to-transparent opacity-30"></div>
+        <div className="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+           <div>
+             <h2 className="text-3xl md:text-4xl font-black mb-4 font-bold">{t('b2b_title') || 'בעלי בוטיק? הצטרפו לתוכנית העסקים'}</h2>
+             <p className="text-slate-400 text-lg max-w-xl">רכשו חבילות אימות בכמות גדולה, חסכו עד 20% וקבלו מסלול אקספרס ישיר לצוות המומחים שלנו.</p>
+           </div>
+           <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="bg-[#d4af37] text-black font-black px-8 py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-white transition-colors w-full md:w-auto whitespace-nowrap">
+              <Briefcase size={20} /> {isRtl ? 'דברו איתנו בוואטסאפ' : 'Contact via WhatsApp'}
+           </button>
         </div>
       </section>
 
@@ -954,32 +1073,6 @@ function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, hig
   );
 }
 
-function BusinessPackages({ t, geo, isRtl, setView }) {
-  const packages = [
-    { title: 'Bronze', checks: 10, free: 2, discount: '15%', price: geo.currency === 'ILS' ? 850 : 250 },
-    { title: 'Silver', checks: 50, free: 10, discount: '17%', price: geo.currency === 'ILS' ? 4150 : 1200 },
-    { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
-  ];
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
-      <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
-      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 font-bold">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {packages.map((pkg, idx) => (
-          <div key={idx} className={`bg-white rounded-3xl p-8 border shadow-sm relative overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'border-[#d4af37] ring-1 ring-[#d4af37]/20' : 'border-slate-200'}`}>
-             {idx === 1 && <div className="absolute top-0 inset-x-0 bg-[#d4af37] text-black text-[10px] font-bold text-center py-1 uppercase tracking-widest">Most Popular</div>}
-             <div className="absolute top-6 right-6 bg-slate-900 text-white text-xs font-black px-2.5 py-1 rounded">- {pkg.discount}</div>
-             <h3 className={`text-2xl font-black mb-1 mt-4 ${idx === 1 ? 'text-[#d4af37]' : 'text-slate-800'}`}>{pkg.title}</h3>
-             <p className="text-slate-500 text-sm mb-8 font-medium">{pkg.checks} Authentications<br/><span className="text-green-600">+ {pkg.free} Free Checks</span></p>
-             <div className="text-4xl font-black text-slate-900 mb-8" dir="ltr">{geo.symbol}{pkg.price}</div>
-             <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, showToast }) {
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -991,11 +1084,11 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   const [couponMessage, setCouponMessage] = useState(null);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
   const [paymentTrack, setPaymentTrack] = useState('regular');
-  
   const [paypalLoaded, setPaypalLoaded] = useState(false);
+
   const paypalRendered = useRef(false);
 
-  const { uploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
+  const { uploadedImages, setUploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
 
   useEffect(() => {
     const scriptId = 'paypal-sdk-script';
@@ -1012,50 +1105,41 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   };
 
   useEffect(() => {
-    if (step !== 3 || isDiscountApplied || showSuccess || activeUploads > 0) return;
+    if (step !== 3 || isDiscountApplied || showSuccess || activeUploads > 0 || !paypalLoaded || !window.paypal) return;
 
-    const renderPayPal = () => {
-      if (paypalRendered.current || !window.paypal) return;
-      const container = document.getElementById('paypal-button-container');
-      if (container) {
-        paypalRendered.current = true;
-        container.innerHTML = ''; 
-        setPaypalLoaded(true);
-        
-        const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
+    const container = document.getElementById('paypal-button-container');
+    if (!container) return;
 
-        window.paypal.Buttons({
-          createOrder: (data, actions) => {
-            return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
-          },
-          onApprove: (data, actions) => {
-            return actions.order.capture().then(async () => {
-               const finalReqId = await addRequest({
-                 brand, model: model || 'N/A', serialNumber: serialNumber || '',
-                 date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
-                 image: uploadedImages['front'] || Object.values(uploadedImages)[0] || HERO_BG_IMAGE,
-                 images: uploadedImages
-               });
-               await sendTelegramFrontendAlert(finalReqId, brand, model, paymentTrack);
-               setShowSuccess(true);
-            });
-          },
-          onError: (err) => {
-            console.error("PayPal Error:", err);
-            showToast("שגיאה במערכת התשלומים, נסה שנית.", "error");
-          }
-        }).render('#paypal-button-container');
-      }
-    };
+    container.innerHTML = ''; 
+    
+    const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
 
-    if (window.paypal) { renderPayPal(); } 
-    else {
-      const interval = setInterval(() => {
-        if (window.paypal) { renderPayPal(); clearInterval(interval); }
-      }, 500);
-      return () => clearInterval(interval);
+    try {
+      window.paypal.Buttons({
+        createOrder: (data, actions) => {
+          return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
+        },
+        onApprove: (data, actions) => {
+          return actions.order.capture().then(async () => {
+             const finalReqId = await addRequest({
+               brand, model: model || 'N/A', serialNumber: serialNumber || '',
+               date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
+               image: uploadedImages['front'] || Object.values(uploadedImages)[0] || HERO_BG_IMAGE,
+               images: uploadedImages
+             });
+             await sendTelegramFrontendAlert(finalReqId, brand, model, paymentTrack);
+             setShowSuccess(true);
+          });
+        },
+        onError: (err) => {
+          console.error("PayPal Error:", err);
+          showToast("שגיאה במערכת התשלומים, נסה שנית.", "error");
+        }
+      }).render('#paypal-button-container');
+    } catch (err) {
+      console.error("PayPal Render Error:", err);
     }
-  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, addRequest, brand, model, serialNumber, uploadedImages, activeUploads, showToast]);
+  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, paypalLoaded, activeUploads, addRequest, brand, model, serialNumber, uploadedImages, showToast]);
 
   const handlePaymentSuccessFree = async () => {
     await addRequest({
@@ -1067,7 +1151,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
     setShowSuccess(true);
   };
 
-  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); paypalRendered.current = false; setStep(1); };
+  const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setUploadedImages({}); setStep(1); };
 
   if (showSuccess) {
     return (
@@ -1110,18 +1194,36 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
                    </label>
 
                    {itemType === 'Bag/תיק' && BRAND_MODELS[brand] ? (
-                     <select value={model} onChange={e => setModel(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors">
+                     <select
+                       value={model}
+                       onChange={e => setModel(e.target.value)}
+                       className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
+                     >
                        <option value="">{isRtl ? "בחרו דגם מתוך הרשימה" : "Select model"}</option>
                        {BRAND_MODELS[brand].map(m => <option key={m} value={m}>{m}</option>)}
                      </select>
                    ) : (
-                     <input type="text" value={model} onChange={e => setModel(e.target.value)} placeholder={t('model_placeholder')} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors" />
+                     <input
+                       type="text"
+                       value={model}
+                       onChange={e => setModel(e.target.value)}
+                       placeholder={t('model_placeholder')}
+                       className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
+                     />
                    )}
                  </div>
                  
                  <div>
-                   <label className="block text-sm font-bold text-slate-700 mb-2">{t('serial_number')}</label>
-                   <input type="text" value={serialNumber} onChange={e => setSerialNumber(e.target.value)} placeholder={t('serial_placeholder')} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors" />
+                   <label className="block text-sm font-bold text-slate-700 mb-2">
+                     {t('serial_number')}
+                   </label>
+                   <input
+                     type="text"
+                     value={serialNumber}
+                     onChange={e => setSerialNumber(e.target.value)}
+                     placeholder={t('serial_placeholder')}
+                     className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 px-4 outline-none focus:border-[#d4af37] transition-colors"
+                   />
                  </div>
                </div>
              )}
@@ -1147,7 +1249,9 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
                     {uploadedImages[part.id] ? (
                       <div className="border-2 border-slate-200 rounded-xl p-1 relative overflow-hidden">
                         <img src={uploadedImages[part.id]} alt={part.id} className="w-full h-20 object-cover rounded-lg" />
-                        <button onClick={(e) => { e.stopPropagation(); removeImage(part.id); }} className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md z-10 transition-colors"><X size={14} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); removeImage(part.id); }} className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md z-10 transition-colors">
+                          <X size={14} />
+                        </button>
                         <span className="absolute bottom-1 right-1 z-10 bg-black/70 text-white text-[10px] px-1.5 rounded">{part.id}</span>
                       </div>
                     ) : (
@@ -1497,6 +1601,36 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert,
           hideIsrael={hideIsrael} 
         />
       )}
+    </div>
+  );
+}
+
+function ClientNotificationModal({ verdict, reqId, onClose, hideIsrael }) {
+  const isAuthentic = verdict === 'authentic';
+  const themeClasses = isAuthentic ? 'from-green-500 to-emerald-600 bg-green-50 border-green-200 text-green-900' : 'from-slate-600 to-red-800 bg-red-50 border-red-200 text-red-900';
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" dir="rtl">
+      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className={`bg-gradient-to-r ${themeClasses.split(' ').slice(0, 2).join(' ')} p-4 text-white flex justify-between items-center`}>
+          <div className="flex items-center gap-2 font-bold"><Smartphone size={20} /> סימולציית הודעה ללקוח</div>
+          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
+        </div>
+        <div className="p-6 bg-slate-100 flex justify-center">
+          <div className="bg-white w-full rounded-[2rem] border-8 border-slate-800 h-[450px] overflow-y-auto shadow-inner relative flex flex-col">
+            <div className="bg-slate-800 text-white text-[10px] py-1 px-4 flex justify-between rounded-t-xl" dir="ltr"><span>09:41</span><span>100% 🔋</span></div>
+            <div className="p-4 flex-1">
+              <div className="flex items-center gap-2 mb-4 text-xs font-bold text-slate-500 border-b border-slate-100 pb-2"><Mail size={14} /> Inbox</div>
+              <div className={`rounded-xl border ${isAuthentic ? 'bg-green-50 border-green-100' : 'bg-rose-50 border-rose-100'} p-5 text-center`}>
+                <BrandLogo className="w-12 h-12 mx-auto mb-4 drop-shadow-md" hideIsrael={hideIsrael} />
+                <h3 className={`text-lg font-black mb-2 ${isAuthentic ? 'text-green-800' : 'text-slate-800'}`}>{isAuthentic ? 'חדשות מצוינות, הפריט אושר!' : 'עדכון לגבי אימות הפריט'}</h3>
+                <p className="text-sm text-slate-600 mb-6 leading-relaxed">בדיקת הבקשה {reqId} הסתיימה.<br/><br/>{isAuthentic ? 'לאחר בחינה קפדנית, אנו שמחים לאשר כי הפריט הינו מקורי לחלוטין (Authentic).' : 'זיהינו אי-התאמות בסטנדרט הייצור. הפריט נפסל כמזויף.'}</p>
+                <button onClick={onClose} className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex justify-center items-center gap-2 ${isAuthentic ? 'bg-green-600' : 'bg-slate-800'}`}><FileText size={16} /> סגור</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

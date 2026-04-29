@@ -317,7 +317,8 @@ function useImageUploader(user, showToast) {
       setActiveUploads(prev => prev + 1);
       try {
         const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-        const fileRef = storageRef(storage, `artifacts/${appId}/users/${user.uid}/images/${Date.now()}_${safeName}`);
+        // Fixed path to be strictly inside public data for avoiding permission issues
+        const fileRef = storageRef(storage, `artifacts/${appId}/public/data/images/${Date.now()}_${safeName}`);
         const snapshot = await uploadBytes(fileRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         
@@ -360,6 +361,7 @@ function MainApp() {
   const isRtl = lang === 'he' || lang === 'ar';
   const hideIsrael = geo.country !== 'IL'; 
 
+  // Wrap showToast in useCallback so it doesn't break dependent useEffects
   const showToast = useCallback((msg, type = 'success') => {
     setToastMsg({ text: msg, type });
     setTimeout(() => setToastMsg(null), 4000);
@@ -1059,6 +1061,20 @@ function ClientDashboard({ t, requests, setView, onSelectCert, onProvidePhotos }
   );
 }
 
+function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
+  const isSelected = current === id;
+  return (
+    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
+          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
+        </div>
+        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
+      </div>
+    </div>
+  );
+}
+
 function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, showToast }) {
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -1128,15 +1144,20 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
             },
             onApprove: (data, actions) => {
               return actions.order.capture().then(async () => {
-                 const fd = formDataRef.current;
-                 const finalReqId = await addRequest({
-                   brand: fd.brand, model: fd.model || 'N/A', serialNumber: fd.serialNumber || '',
-                   date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack: fd.paymentTrack,
-                   image: fd.uploadedImages['front'] || Object.values(fd.uploadedImages)[0] || HERO_BG_IMAGE,
-                   images: fd.uploadedImages
-                 });
-                 await sendTelegramFrontendAlert(finalReqId, fd.brand, fd.model, fd.paymentTrack);
-                 setShowSuccess(true);
+                 try {
+                   const fd = formDataRef.current;
+                   const finalReqId = await addRequest({
+                     brand: fd.brand, model: fd.model || 'N/A', serialNumber: fd.serialNumber || '',
+                     date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack: fd.paymentTrack,
+                     image: fd.uploadedImages['front'] || Object.values(fd.uploadedImages)[0] || HERO_BG_IMAGE,
+                     images: fd.uploadedImages
+                   });
+                   await sendTelegramFrontendAlert(finalReqId, fd.brand, fd.model, fd.paymentTrack);
+                   setShowSuccess(true);
+                 } catch (dbErr) {
+                   console.error("DB Save Error:", dbErr);
+                   showToast("התשלום בוצע, אך אירעה שגיאה בשמירת הבקשה. פנה לתמיכה.", "error");
+                 }
               });
             },
             onError: (err) => {
@@ -1314,20 +1335,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   );
 }
 
-function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
-  const isSelected = current === id;
-  return (
-    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-[#d4af37] bg-[#d4af37]/5 shadow-md' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></div>}</div>
-          <div><span className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">{tag}</span>}</span><span className={`text-sm flex items-center gap-1 mt-1 font-medium ${highlight}`}><Clock size={14} /> {hours}</span></div>
-        </div>
-        <span className="font-black text-2xl text-slate-900" dir="ltr">{geo.symbol}{price}</span>
-      </div>
-    </div>
-  );
-}
-
 function MissingPhotosUploader({ t, geo, isRtl, req, setView, user, updateRequest, showToast }) {
   const { uploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
 
@@ -1402,32 +1409,6 @@ function MissingPhotosUploader({ t, geo, isRtl, req, setView, user, updateReques
           <button onClick={handleNoBetterPhotos} className="w-full bg-slate-100 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">אין לי אפשרות לצלם תמונה טובה יותר</button>
           <button onClick={() => setView('dashboard')} className="w-full text-slate-400 text-sm mt-2 hover:text-slate-600 font-bold transition-colors">חזור</button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function BusinessPackages({ t, geo, isRtl, setView }) {
-  const packages = [
-    { title: 'Bronze', checks: 10, free: 2, discount: '15%', price: geo.currency === 'ILS' ? 850 : 250 },
-    { title: 'Silver', checks: 50, free: 10, discount: '17%', price: geo.currency === 'ILS' ? 4150 : 1200 },
-    { title: 'Gold', checks: 100, free: 25, discount: '20%', price: geo.currency === 'ILS' ? 7900 : 2300 }
-  ];
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-24">
-      <button onClick={() => setView('new-request')} className="text-slate-500 font-medium flex items-center gap-1 mb-2 hover:text-slate-800"><ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}</button>
-      <div className="text-center mb-12"><Briefcase className="w-16 h-16 mx-auto text-[#d4af37] mb-4" /><h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 font-bold">{t('pkg_title')}</h2><p className="text-slate-500 max-w-lg mx-auto">{t('pkg_sub')}</p></div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {packages.map((pkg, idx) => (
-          <div key={idx} className={`bg-white rounded-3xl p-8 border shadow-sm relative overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'border-[#d4af37] ring-1 ring-[#d4af37]/20' : 'border-slate-200'}`}>
-             {idx === 1 && <div className="absolute top-0 inset-x-0 bg-[#d4af37] text-black text-[10px] font-bold text-center py-1 uppercase tracking-widest">Most Popular</div>}
-             <div className="absolute top-6 right-6 bg-slate-900 text-white text-xs font-black px-2.5 py-1 rounded">- {pkg.discount}</div>
-             <h3 className={`text-2xl font-black mb-1 mt-4 ${idx === 1 ? 'text-[#d4af37]' : 'text-slate-800'}`}>{pkg.title}</h3>
-             <p className="text-slate-500 text-sm mb-8 font-medium">{pkg.checks} Authentications<br/><span className="text-green-600">+ {pkg.free} Free Checks</span></p>
-             <div className="text-4xl font-black text-slate-900 mb-8" dir="ltr">{geo.symbol}{pkg.price}</div>
-             <button onClick={() => window.open('https://wa.me/972540000000?text=שלום, אשמח לשמוע פרטים על חבילות אימות לעסקים', '_blank')} className="mt-auto w-full bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 rounded-xl">{t('contact_sales')}</button>
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -1655,36 +1636,6 @@ function AuthenticationTool({ requests, updateRequest, hideIsrael, onSelectCert,
           hideIsrael={hideIsrael} 
         />
       )}
-    </div>
-  );
-}
-
-function ClientNotificationModal({ verdict, reqId, onClose, hideIsrael }) {
-  const isAuthentic = verdict === 'authentic';
-  const themeClasses = isAuthentic ? 'from-green-500 to-emerald-600 bg-green-50 border-green-200 text-green-900' : 'from-slate-600 to-red-800 bg-red-50 border-red-200 text-red-900';
-
-  return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-        <div className={`bg-gradient-to-r ${themeClasses.split(' ').slice(0, 2).join(' ')} p-4 text-white flex justify-between items-center`}>
-          <div className="flex items-center gap-2 font-bold"><Smartphone size={20} /> סימולציית הודעה ללקוח</div>
-          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
-        </div>
-        <div className="p-6 bg-slate-100 flex justify-center">
-          <div className="bg-white w-full rounded-[2rem] border-8 border-slate-800 h-[450px] overflow-y-auto shadow-inner relative flex flex-col">
-            <div className="bg-slate-800 text-white text-[10px] py-1 px-4 flex justify-between rounded-t-xl" dir="ltr"><span>09:41</span><span>100% 🔋</span></div>
-            <div className="p-4 flex-1">
-              <div className="flex items-center gap-2 mb-4 text-xs font-bold text-slate-500 border-b border-slate-100 pb-2"><Mail size={14} /> Inbox</div>
-              <div className={`rounded-xl border ${isAuthentic ? 'bg-green-50 border-green-100' : 'bg-rose-50 border-rose-100'} p-5 text-center`}>
-                <BrandLogo className="w-12 h-12 mx-auto mb-4 drop-shadow-md" hideIsrael={hideIsrael} />
-                <h3 className={`text-lg font-black mb-2 ${isAuthentic ? 'text-green-800' : 'text-slate-800'}`}>{isAuthentic ? 'חדשות מצוינות, הפריט אושר!' : 'עדכון לגבי אימות הפריט'}</h3>
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed">בדיקת הבקשה {reqId} הסתיימה.<br/><br/>{isAuthentic ? 'לאחר בחינה קפדנית, אנו שמחים לאשר כי הפריט הינו מקורי לחלוטין (Authentic).' : 'זיהינו אי-התאמות בסטנדרט הייצור. הפריט נפסל כמזויף.'}</p>
-                <button onClick={onClose} className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex justify-center items-center gap-2 ${isAuthentic ? 'bg-green-600' : 'bg-slate-800'}`}><FileText size={16} /> סגור</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

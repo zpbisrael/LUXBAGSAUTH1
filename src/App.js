@@ -412,6 +412,7 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
         <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] font-bold px-6 py-2 rounded-full hover:bg-black transition-colors">{t('nav_login')}</button>
       </header>
 
+      {/* HERO SECTION */}
       <section className="relative py-24 px-6 overflow-hidden flex flex-col items-center text-center">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-100 to-slate-50 -z-10" />
         <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100/50 border border-yellow-200 text-yellow-800 text-sm font-semibold">
@@ -429,7 +430,42 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
         </button>
       </section>
 
-      <section className="py-20 bg-white px-6">
+      {/* LUXURY BRANDS BANNER */}
+      <div className="bg-[#1c1c1c] py-8 overflow-hidden border-y border-[#d4af37]/20">
+        <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center items-center gap-x-8 gap-y-4 md:gap-x-16 opacity-60 font-serif tracking-widest text-white/80 uppercase font-black text-lg md:text-2xl">
+          <span>Louis Vuitton</span><span className="hidden md:inline text-[#d4af37]">•</span>
+          <span>Chanel</span><span className="hidden md:inline text-[#d4af37]">•</span>
+          <span>Hermès</span><span className="hidden md:inline text-[#d4af37]">•</span>
+          <span>Dior</span><span className="hidden md:inline text-[#d4af37]">•</span>
+          <span>Gucci</span><span className="hidden md:inline text-[#d4af37]">•</span>
+          <span>Prada</span>
+        </div>
+      </div>
+
+      {/* STATISTICS SECTION */}
+      <section className="py-16 bg-white border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-100 rtl:divide-x-reverse">
+          <div>
+            <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">+10,000</div>
+            <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">פריטים שאומתו</div>
+          </div>
+          <div>
+            <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">₪45M</div>
+            <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">שווי שניצל מזיופים</div>
+          </div>
+          <div>
+            <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">100%</div>
+            <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">דיוק באחריות</div>
+          </div>
+          <div>
+            <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">24/7</div>
+            <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">זמינות מומחים</div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHY US SECTION */}
+      <section className="py-20 bg-slate-50 px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-16">{t('why_us')}</h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -442,10 +478,11 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
     </div>
   );
 }
+
 function FeatureCard({ icon, title, desc }) {
   return (
-    <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-shadow">
-      <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 text-teal-700">{icon}</div>
+    <div className="bg-white p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-shadow">
+      <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 text-teal-700">{icon}</div>
       <h3 className="text-xl font-bold mb-3">{title}</h3>
       <p className="text-slate-600">{desc}</p>
     </div>

@@ -246,7 +246,9 @@ function MainApp() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState('client');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState(() => {
+    return new URLSearchParams(window.location.search).get('checkout') === 'success' ? 'new-request' : 'dashboard';
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [systemRequests, setSystemRequests] = useState([]);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
@@ -740,8 +742,16 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   const [model, setModel] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
   const [paymentTrack, setPaymentTrack] = useState('regular');
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(() => {
+    return new URLSearchParams(window.location.search).get('checkout') === 'success';
+  });
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (showSuccess) {
+       window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [showSuccess]);
 
   const { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader();
 
@@ -776,8 +786,6 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
           images: uploadedImages
       });
       
-      setShowSuccess(true);
-
       // --- META PIXEL EVENT TRACKING ---
       if (typeof window !== 'undefined' && window.fbq) {
         const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
@@ -789,10 +797,17 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
       }
       // ---------------------------------
 
+      const checkoutLinks = {
+        regular: "https://luxurybagsisrael.com/shop/32c5986f-d99d-4f59-a89f-89842258a7ec",
+        fast: "https://luxurybagsisrael.com/shop/authenticateyourbag",
+        express: "https://luxurybagsisrael.com/shop/57520b28-0fb9-4e41-bd0b-c9d858790007"
+      };
+      
+      window.location.href = checkoutLinks[paymentTrack] || checkoutLinks.regular;
+
     } catch(err) {
       console.error(err);
       alert('שגיאה בשמירת הבקשה. אנא פנה לתמיכה.');
-    } finally {
       setIsSaving(false);
     }
   };
@@ -884,7 +899,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
             </div>
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="w-1/3 bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
-              <button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length < 2} className="w-2/3 bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors disabled:opacity-50">
+              <button onClick={() => setStep(3)} disabled={Object.keys(uploadedImages).length < 3} className="w-2/3 bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors disabled:opacity-50">
                 {t('continue_track')}
               </button>
             </div>
@@ -894,17 +909,14 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="grid gap-4">
-               <TrackOption id="regular" title={t('track_reg')} hours="24-48h" price={geo.currency==='ILS'?99:29} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
+               <TrackOption id="regular" title={t('track_reg')} hours="12-24 שעות" price={geo.currency==='ILS'?99:29} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
                <TrackOption id="fast" title={t('track_fast')} hours={t('hours_12')} price={geo.currency==='ILS'?129:39} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-teal-600 font-bold" tag="Popular" />
                <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={geo.currency==='ILS'?149:49} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-rose-600 font-bold" tag="Priority" />
             </div>
             
             <div className="pt-6 border-t border-slate-100">
-              <a href={`https://paypal.me/ohad270/${amountToCharge}${geo.currency}`} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-[#003087] text-white font-bold py-4 rounded-xl hover:bg-[#001f5c] transition-colors shadow-lg">
-                 <HandCoins size={20} /> {t('send_payment_link')} - {geo.symbol}{amountToCharge}
-              </a>
-              <button onClick={() => handlePaymentSuccess('pending_payment')} disabled={isSaving} className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-xl hover:bg-teal-700 transition-colors shadow-md disabled:opacity-50">
-                 {isSaving ? 'שומר בקשה...' : t('already_paid')}
+              <button onClick={() => handlePaymentSuccess('pending_payment')} disabled={isSaving} className="w-full flex items-center justify-center gap-2 bg-teal-600 text-white font-bold py-4 rounded-xl hover:bg-teal-700 transition-colors shadow-lg disabled:opacity-50">
+                 <HandCoins size={20} /> {isSaving ? 'שומר ומעביר לתשלום...' : `מעבר לתשלום מאובטח וסיום`}
               </button>
               <button onClick={() => setStep(2)} className="w-full mt-4 bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
             </div>

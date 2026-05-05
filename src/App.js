@@ -267,10 +267,13 @@ function MainApp() {
     if (!auth) return;
     const initCanvasAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else if (process.env.NODE_ENV === 'development') {
-          await signInAnonymously(auth);
+        // מונע התחברות אנונימית אוטומטית למעט בסביבת הקנבס, כדי לא לדלג על דף הנחיתה באתר האמיתי
+        if (typeof __initial_auth_token !== 'undefined') {
+          if (__initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
         }
       } catch(e) { console.warn("Custom Auth Failed", e); }
     };

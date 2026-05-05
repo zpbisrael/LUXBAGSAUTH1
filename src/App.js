@@ -21,6 +21,36 @@ import {
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // ==========================================
+// META PIXEL (FACEBOOK) INTEGRATION
+// ==========================================
+function MetaPixel() {
+  useEffect(() => {
+    // Only initialize once
+    if (window.fbq) return;
+    
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    window.fbq('init', '1438850480805983');
+    window.fbq('track', 'PageView');
+  }, []);
+
+  return (
+    <noscript>
+      <img height="1" width="1" style={{ display: 'none' }}
+           src="https://www.facebook.com/tr?id=1438850480805983&ev=PageView&noscript=1"
+           alt="Meta Pixel" />
+    </noscript>
+  );
+}
+
+// ==========================================
 // WATCHDOG (ERROR BOUNDARY)
 // ==========================================
 class ErrorBoundary extends React.Component {
@@ -276,6 +306,217 @@ function BagPartIcon({ type, className = "w-8 h-8" }) {
 }
 
 // ==========================================
+// DEDICATED PRINT TEMPLATE
+// ==========================================
+function PrintOnlyView({ data, hideIsrael }) {
+  if (!data) return null;
+  const isAuthentic = data.result === 'authentic';
+  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
+
+  return (
+    <div className="hidden print:block print-certificate-a4 bg-white" dir="rtl">
+      <div style={{ width: '210mm', height: '296mm', margin: '0 auto', boxSizing: 'border-box', padding: '10mm' }}>
+        <div style={{ width: '100%', height: '100%', border: '8px solid #0a0a0a', padding: '4mm', boxSizing: 'border-box' }}>
+          <div style={{ width: '100%', height: '100%', border: '2px solid #d4af37', padding: '8mm', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', position: 'relative', backgroundColor: 'white', overflow: 'hidden' }}>
+            
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.03, pointerEvents: 'none' }}>
+              <BrandLogo className="" style={{ width: '160mm', height: '160mm' }} hideIsrael={hideIsrael} />
+            </div>
+            
+            <div style={{ position: 'absolute', top: '6mm', right: '6mm', textAlign: 'right' }}>
+               <p style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.1em', color: '#94a3b8', textTransform: 'uppercase', margin: 0, lineHeight: 1 }}>Certificate No.</p>
+               <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', fontFamily: 'monospace', letterSpacing: '0.05em', margin: 0, marginTop: '2px', lineHeight: 1 }}>{data.id}</p>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '8mm', paddingTop: '6mm', position: 'relative', zIndex: 10 }}>
+              <BrandLogo className="" style={{ width: '20mm', height: '20mm', marginBottom: '3mm' }} hideIsrael={hideIsrael} />
+              <h1 style={{ fontSize: '28px', fontFamily: 'serif', letterSpacing: '0.1em', color: '#0a0a0a', textTransform: 'uppercase', margin: 0, marginBottom: '2px', lineHeight: 1 }}>Certificate of Authentication</h1>
+              <p style={{ color: '#d4af37', fontWeight: 'bold', letterSpacing: '0.4em', fontSize: '10px', textTransform: 'uppercase', margin: 0 }}>Luxury Bags Israel</p>
+            </div>
+            
+            <div style={{ width: '100%', padding: '4mm 0', marginBottom: '8mm', borderTop: '2px solid #e2e8f0', borderBottom: '2px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', backgroundColor: isAuthentic ? '#f0fdf4' : '#fef2f2', borderColor: isAuthentic ? '#bbf7d0' : '#fecaca', color: isAuthentic ? '#166534' : '#991b1b', position: 'relative', zIndex: 10 }}>
+                {isAuthentic ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
+                <h2 style={{ fontSize: '22px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1 }}>{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+            </div>
+            
+            <div style={{ width: '100%', maxWidth: '140mm', margin: '0 auto', marginBottom: '8mm', position: 'relative', zIndex: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: '4mm', textAlign: 'left', borderBottom: '1px solid #e2e8f0', paddingBottom: '5mm', marginBottom: '5mm' }} dir="ltr">
+                <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Brand</div>
+                <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{data.brand}</div>
+                
+                <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Model</div>
+                <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{data.model}</div>
+                
+                {data.serialNumber && (
+                  <>
+                    <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Serial Number</div>
+                    <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{data.serialNumber}</div>
+                  </>
+                )}
+                
+                <div style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Date Inspected</div>
+                <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', lineHeight: 1 }}>{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+              </div>
+              <p style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic', textAlign: 'center', maxWidth: '120mm', margin: '0 auto', lineHeight: 1.5 }}>This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+            </div>
+            
+            <div style={{ width: '100%', position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid #e2e8f0', paddingBottom: '2mm', marginBottom: '4mm', textAlign: 'left', margin: 0 }} dir="ltr">Inspected Elements</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '4mm', width: '100%' }}>
+                {imagesToDisplay.map(([part, url]) => (
+                   <div key={part} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <img src={url} alt={part} style={{ width: '100%', height: '22mm', objectFit: 'cover', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                      <span style={{ marginTop: '2mm', fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{part}</span>
+                   </div>
+                ))}
+                {imagesToDisplay.length === 0 && (
+                   <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                     <img src={data.image} style={{ width: '60mm', height: '22mm', objectFit: 'cover', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                     <span style={{ marginTop: '2mm', fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>MAIN</span>
+                   </div>
+                )}
+              </div>
+            </div>
+            
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', position: 'relative', zIndex: 10, marginTop: 'auto', paddingTop: '4mm', borderTop: '1px solid #f1f5f9' }}>
+              <div style={{ textAlign: 'left', paddingBottom: '4px' }} dir="ltr"><CertificateStamp /></div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ backgroundColor: 'white', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '4px' }}>
+                  <img src={qrCodeUrl} alt="QR Code" style={{ width: '14mm', height: '14mm', objectFit: 'contain', mixBlendMode: 'multiply' }} crossOrigin="anonymous" />
+                </div>
+                <p style={{ fontSize: '8px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, padding: 0 }}>Scan to Verify</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// CORE COMPONENT FOR DISPLAYING CERT ON SCREEN
+// ==========================================
+function DigitalCertificate({ data, onBack, isClientView, isRtl, hideIsrael, isPublicVerification }) {
+  if (!data) return null;
+  const isAuthentic = data.result === 'authentic';
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${data.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}&margin=0`;
+  const imagesToDisplay = data.images ? Object.entries(data.images).slice(0, 4) : [];
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = data.id || 'LBI-Certificate';
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-4 pb-24 animate-in zoom-in-95 no-print print:hidden">
+      {!isPublicVerification && (
+        <button onClick={onBack} className="no-print text-slate-500 font-medium flex items-center gap-1 mb-4 hover:text-slate-800 transition-colors">
+          <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> חזור
+        </button>
+      )}
+      
+      <div className="w-full overflow-x-auto flex justify-center pb-4 scrollbar-hide no-print">
+         <div className="shrink-0 border-[10px] border-[#0a0a0a] shadow-2xl relative w-full sm:w-[210mm] max-w-full bg-white">
+            <div className="border-[3px] border-[#d4af37] p-8 md:p-14 relative flex flex-col items-center text-center overflow-hidden bg-white">
+              <BrandLogo className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] opacity-5 pointer-events-none" />
+              
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 text-right">
+                 <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase m-0 leading-none">Certificate No.</p>
+                 <p className="text-sm font-bold text-slate-800 font-mono tracking-wider mt-1 m-0 leading-none">{data.id}</p>
+              </div>
+              
+              <div className="mb-8 relative z-10 pt-6">
+                <BrandLogo className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 drop-shadow-xl" hideIsrael={hideIsrael} />
+                <h1 className="text-2xl sm:text-4xl font-serif tracking-widest text-[#0a0a0a] uppercase mb-2">Certificate of Authentication</h1>
+                <p className="text-[#d4af37] font-bold tracking-[0.4em] text-xs uppercase">Luxury Bags Israel</p>
+              </div>
+              
+              <div className={`w-full py-4 mb-8 border-y-2 relative z-10 flex items-center justify-center gap-3 ${isAuthentic ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                  {isAuthentic ? <ShieldCheck size={32} /> : <ShieldAlert size={32} />}
+                  <h2 className="text-2xl font-black uppercase tracking-widest m-0 leading-none">{isAuthentic ? 'Authentic' : 'Counterfeit'}</h2>
+              </div>
+              
+              <div className="w-full max-w-xl mb-8 relative z-10">
+                <div className="grid grid-cols-2 gap-y-4 text-left border-b border-slate-200 pb-4 mb-4" dir="ltr">
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Brand</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{data.brand}</div>
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Model</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{data.model}</div>
+                  {data.serialNumber && (
+                    <>
+                      <div className="text-slate-500 text-sm uppercase tracking-widest">Serial Number</div>
+                      <div className="font-bold text-slate-900 text-lg leading-none">{data.serialNumber}</div>
+                    </>
+                  )}
+                  <div className="text-slate-500 text-sm uppercase tracking-widest">Date Inspected</div>
+                  <div className="font-bold text-slate-900 text-lg leading-none">{new Date(data.createdAt).toLocaleDateString('en-GB')}</div>
+                </div>
+                <p className="text-xs text-slate-500 italic text-center max-w-md mx-auto">This item has been rigorously inspected by our experts combining decades of human experience and advanced AI protocols.</p>
+              </div>
+              
+              <div className="w-full relative z-10 flex-1">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4 text-left" dir="ltr">Inspected Elements</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                  {imagesToDisplay.map(([part, url]) => (
+                     <div key={part} className="flex flex-col items-center">
+                        <img src={url} alt={part} className="w-full h-24 sm:h-28 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
+                        <span className="mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{part}</span>
+                     </div>
+                  ))}
+                  {imagesToDisplay.length === 0 && (
+                     <div className="col-span-2 sm:col-span-4 flex flex-col items-center">
+                       <img src={data.image} className="w-full max-w-[250px] h-32 object-cover border border-slate-200 rounded-md shadow-sm" style={{ objectFit: 'cover' }} />
+                       <span className="mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">MAIN</span>
+                     </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="w-full flex justify-between items-end relative z-10 mt-auto pt-6 border-t border-slate-100">
+                <div className="text-left" dir="ltr"><CertificateStamp /></div>
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-2 border border-slate-200 rounded-xl shadow-md mb-2">
+                    <img src={qrCodeUrl} alt="QR Code Verification" className="w-16 h-16 object-contain mix-blend-multiply" crossOrigin="anonymous" />
+                  </div>
+                  <p className="text-[9px] text-slate-400 uppercase tracking-widest m-0">Scan to Verify</p>
+                </div>
+              </div>
+            </div>
+         </div>
+      </div>
+      
+      {!isClientView && (
+        <div className="flex justify-center sm:justify-end pt-6 no-print">
+          <button onClick={handlePrint} className="bg-[#0a0a0a] hover:bg-black text-[#d4af37] px-8 py-4 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+            <Upload size={20} /> הדפס / יצא ל-PDF
+          </button>
+        </div>
+      )}
+      
+      {isClientView && !isPublicVerification && isAuthentic && (
+        <div className="no-print bg-white border border-slate-200 p-8 rounded-3xl shadow-lg mt-8 text-center animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -z-10"></div>
+          <h3 className="font-black text-slate-900 text-2xl mb-3 flex items-center justify-center gap-2">איזה יופי, הפריט מקורי! <Sparkles className="text-[#d4af37]" /></h3>
+          <p className="text-slate-600 mb-8 max-w-md mx-auto">שתפו את התעודה עם העוקבים שלכם או השתמשו בה כדי למכור את הפריט בביטחון מלא. סמנו אותנו! <span className="font-bold text-slate-900">@LuxuryBagsIsrael</span></p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+             <button className="flex items-center justify-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold py-4 px-8 rounded-xl shadow-md hover:scale-105 transition-transform"><InstagramIcon size={20}/> שתפו בסטורי</button>
+             <button onClick={() => { navigator.clipboard.writeText(verifyUrl); alert('הקישור הועתק!'); }} className="flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-4 px-8 rounded-xl shadow-sm transition-colors"><Upload size={20} /> העתק קישור</button>
+             <button onClick={handlePrint} className="flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-black text-[#d4af37] font-bold py-4 px-8 rounded-xl shadow-md transition-colors"><Upload size={20} /> הורד תעודה (PDF)</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
 // CUSTOM HOOKS (DRY CODE)
 // ==========================================
 function useImageUploader(user, showToast) {
@@ -394,6 +635,21 @@ function MainApp() {
     return () => clearTimeout(sessionTimer);
   }, [user, isRtl, verifyId, showToast]);
 
+  const sendTelegramFrontendAlert = async (reqId, brand, model, paymentTrack) => {
+    const token = "8628800853:AAGwwiVHEii4ao5PO93sWN9755BiQkijDH8";
+    const chatId = "6397836431";
+    const message = `💰 <b>התקבלה בקשת אימות חדשה!</b>\n\n<b>מזהה:</b> #${reqId}\n<b>מותג:</b> ${brand}\n<b>דגם:</b> ${model || 'לא צוין'}\n<b>מסלול:</b> ${paymentTrack}\n\nהיכנס למערכת כדי להתחיל בבדיקה.`;
+    try {
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+      });
+    } catch (err) {
+      console.error("Telegram alert failed silently", err);
+    }
+  };
+
   useEffect(() => {
     if (!auth) return;
     const initCanvasAuth = async () => {
@@ -461,7 +717,9 @@ function MainApp() {
   }, [user, role, verifyId]);
 
   const addRequest = useCallback(async (newReqData) => { 
-    if (!user || !db) return;
+    if (!user || !db) {
+       throw new Error("מערכת הנתונים לא מחוברת");
+    }
     try {
       let newIdNum = 19201; 
       
@@ -471,7 +729,7 @@ function MainApp() {
           const counterDoc = await transaction.get(counterRef);
           if (!counterDoc.exists()) {
             transaction.set(counterRef, { currentSequence: 19201 });
-            newIdNum = 19201; // FIXED: ensure the first ID gets correctly assigned
+            newIdNum = 19201; 
           } else {
             newIdNum = (counterDoc.data().currentSequence || 19200) + 1;
             transaction.update(counterRef, { currentSequence: newIdNum });
@@ -484,35 +742,50 @@ function MainApp() {
       
       const finalReqId = `LBI-${newIdNum}`;
 
-      // Sanitize text inputs before saving
-      const sanitizedData = { ...newReqData };
-      if (sanitizedData.brand) sanitizedData.brand = sanitizedData.brand.trim();
-      if (sanitizedData.model) sanitizedData.model = sanitizedData.model.trim();
-      if (sanitizedData.serialNumber) sanitizedData.serialNumber = sanitizedData.serialNumber.trim();
-      
-      // Filter out base64 images to prevent 1MB Firestore limit crash
+      // Strictly safe payload for Firestore
       const safeImages = {};
-      if (sanitizedData.images) {
-        for (const [k, v] of Object.entries(sanitizedData.images)) {
-           if (v && !v.startsWith('data:image')) {
-              safeImages[k] = v;
-           }
-        }
-      }
-      sanitizedData.images = safeImages;
-      
-      if (sanitizedData.image && sanitizedData.image.startsWith('data:image')) {
-         sanitizedData.image = Object.values(safeImages)[0] || HERO_BG_IMAGE;
+      if (newReqData.images) {
+        Object.entries(newReqData.images).forEach(([k, v]) => {
+          // Reject any image that is still base64 (starts with data:image)
+          if (v && typeof v === 'string' && !v.startsWith('data:image')) {
+            safeImages[k] = v;
+          }
+        });
       }
 
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), { 
-        ...sanitizedData, 
+      let mainImage = newReqData.image;
+      if (!mainImage || mainImage.startsWith('data:image')) {
+         mainImage = Object.values(safeImages)[0] || HERO_BG_IMAGE;
+      }
+
+      const payload = { 
         id: finalReqId, 
         clientId: user.uid, 
         clientEmail: user.email || 'Anonymous', 
-        createdAt: Date.now() 
+        createdAt: Date.now(),
+        brand: newReqData.brand ? String(newReqData.brand).trim() : 'N/A',
+        model: newReqData.model ? String(newReqData.model).trim() : 'N/A',
+        serialNumber: newReqData.serialNumber ? String(newReqData.serialNumber).trim() : '',
+        date: newReqData.date || new Date().toLocaleDateString('en-GB'),
+        status: newReqData.status || 'pending',
+        paymentTrack: newReqData.paymentTrack || 'regular',
+        image: mainImage,
+        images: safeImages
+      };
+
+      // Ensure absolutely no undefined values exist
+      Object.keys(payload).forEach(key => {
+         if (payload[key] === undefined) {
+             delete payload[key];
+         }
       });
+
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests'), payload);
       setCurrentView('dashboard'); 
+      
+      // Send telegram alert immediately after successfully saving request
+      await sendTelegramFrontendAlert(finalReqId, payload.brand, payload.model, payload.paymentTrack);
+      
       return finalReqId; 
     } catch (err) {
       console.error("Add Request Error:", err);
@@ -574,6 +847,7 @@ function MainApp() {
     return (
       <>
         <GlobalStyles />
+        <MetaPixel />
         <LandingPage t={t} geo={geo} isRtl={isRtl} lang={lang} setLang={setLang} setGeo={setGeo} hideIsrael={hideIsrael} user={user} onGoToLogin={() => { setShowLanding(false); if (!user) setShowLoginModal(true); }} onLogout={handleLogout} />
       </>
     );
@@ -583,6 +857,7 @@ function MainApp() {
     return (
       <>
         <GlobalStyles />
+        <MetaPixel />
         {toastMsg && <Toast message={toastMsg.text} type={toastMsg.type} onClose={() => setToastMsg(null)} />}
         <div dir={isRtl ? "rtl" : "ltr"} className="relative">
           <LoginScreen t={t} isRtl={isRtl} lang={lang} setLang={setLang} hideIsrael={hideIsrael} onBack={() => { setShowLoginModal(false); setShowLanding(true); }} onLoginSuccess={() => setShowLoginModal(false)} showToast={showToast} />
@@ -594,6 +869,7 @@ function MainApp() {
   return (
     <>
       <GlobalStyles />
+      <MetaPixel />
       {toastMsg && <Toast message={toastMsg.text} type={toastMsg.type} onClose={() => setToastMsg(null)} />}
       
       {selectedCertificate && currentView === 'certificate-view' && (
@@ -1127,36 +1403,8 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
   const [couponMessage, setCouponMessage] = useState(null);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
   const [paymentTrack, setPaymentTrack] = useState('regular');
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
 
-  const { uploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
-
-  const formDataRef = useRef({});
-  useEffect(() => {
-    formDataRef.current = { brand, model, serialNumber, uploadedImages, paymentTrack };
-  });
-
-  useEffect(() => {
-    const loadPaypal = () => {
-      if (window.paypal) {
-        setPaypalLoaded(true);
-        return;
-      }
-      const scriptId = 'paypal-sdk-script';
-      let script = document.getElementById(scriptId);
-      if (!script) {
-        script = document.createElement('script');
-        script.id = scriptId;
-        script.src = `https://www.paypal.com/sdk/js?client-id=Abl9tf9osl-4AxIDVVUNAGaWU3O-AaZiSexD6BGVw7VmLpb5ecU25xRWcEwR0JHT_nU10LbKcegIn3zE&currency=${geo.currency === 'ILS' ? 'ILS' : 'USD'}`;
-        script.async = true;
-        script.onload = () => setPaypalLoaded(true);
-        document.body.appendChild(script);
-      } else {
-        script.onload = () => setPaypalLoaded(true);
-      }
-    };
-    loadPaypal();
-  }, [geo.currency]);
+  const { uploadedImages, setUploadedImages, activeUploads, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader(user, showToast);
 
   const handleApplyCoupon = () => {
     if (['LUXBAGFREE', 'LUXBAGCHECK'].includes(couponCode.trim().toUpperCase())) {
@@ -1164,66 +1412,20 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
     } else { setCouponMessage({ type: 'error', text: isRtl ? 'קוד שגוי' : 'Invalid code' }); setIsDiscountApplied(false); }
   };
 
-  useEffect(() => {
-    if (step !== 3 || isDiscountApplied || showSuccess || !window.paypal) return;
-
-    const containerId = `paypal-btn-${paymentTrack}`;
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    container.innerHTML = ''; 
-    const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
-
-    let isMounted = true;
-    const timerId = setTimeout(() => {
-       if (!isMounted || !document.getElementById(containerId)) return;
-       try {
-          window.paypal.Buttons({
-            createOrder: (data, actions) => {
-              return actions.order.create({ purchase_units: [{ amount: { value: amountToCharge.toString() } }] });
-            },
-            onApprove: (data, actions) => {
-              return actions.order.capture().then(async () => {
-                 try {
-                   const fd = formDataRef.current;
-                   const finalReqId = await addRequest({
-                     brand: fd.brand, model: fd.model || 'N/A', serialNumber: fd.serialNumber || '',
-                     date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack: fd.paymentTrack,
-                     image: fd.uploadedImages['front'] || Object.values(fd.uploadedImages)[0] || HERO_BG_IMAGE,
-                     images: fd.uploadedImages
-                   });
-                   await sendTelegramFrontendAlert(finalReqId, fd.brand, fd.model, fd.paymentTrack);
-                   setShowSuccess(true);
-                 } catch (dbErr) {
-                   console.error("DB Save Error:", dbErr);
-                   showToast("התשלום בוצע, אך אירעה שגיאה בשמירת הבקשה. פנה לתמיכה.", "error");
-                 }
-              });
-            },
-            onError: (err) => {
-              console.error("PayPal Error:", err);
-              showToast("שגיאה במערכת התשלומים, נסה שנית.", "error");
-            }
-          }).render('#' + containerId);
-       } catch(err) {
-          console.error("Failed rendering PayPal:", err);
-       }
-    }, 100);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timerId);
-    };
-  }, [step, isDiscountApplied, paymentTrack, showSuccess, geo.currency, paypalLoaded, addRequest, showToast]);
-
-  const handlePaymentSuccessFree = async () => {
-    await addRequest({
-      brand, model: model || 'N/A', serialNumber: serialNumber || '',
-      date: new Date().toLocaleDateString('en-GB'), status: 'pending', paymentTrack,
-      image: uploadedImages['front'] || Object.values(uploadedImages)[0] || HERO_BG_IMAGE,
-      images: uploadedImages
-    });
-    setShowSuccess(true);
+  const handlePaymentSuccess = async () => {
+    try {
+      await addRequest({
+        brand, model: model || 'N/A', serialNumber: serialNumber || '',
+        date: new Date().toLocaleDateString('en-GB'), 
+        status: isDiscountApplied ? 'pending' : 'pending_payment', 
+        paymentTrack,
+        image: uploadedImages['front'] || Object.values(uploadedImages)[0] || HERO_BG_IMAGE,
+        images: uploadedImages
+      });
+      setShowSuccess(true);
+    } catch(e) {
+      console.error(e);
+    }
   };
 
   const handleReset = () => { setBrand(''); setItemType(''); setModel(''); setSerialNumber(''); setCouponCode(''); setIsDiscountApplied(false); setPaymentTrack('regular'); setShowSuccess(false); setStep(1); };
@@ -1354,20 +1556,61 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView, user, sh
               <div className="flex gap-2"><input type="text" value={couponCode} onChange={e => { setCouponCode(e.target.value); setCouponMessage(null); }} placeholder={t('coupon_placeholder')} className="flex-1 bg-white border border-slate-200 rounded-lg py-3 px-4 uppercase text-sm outline-none focus:border-[#d4af37]" disabled={isDiscountApplied} /><button onClick={handleApplyCoupon} disabled={!couponCode || isDiscountApplied} className="bg-slate-800 text-[#d4af37] font-bold py-3 px-6 rounded-lg disabled:opacity-50 hover:bg-slate-900 transition-colors">{t('apply')}</button></div>
               {couponMessage && <p className={`mt-2 text-xs font-bold ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>{couponMessage.text}</p>}
             </div>
-            <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
-              <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
+            
+            {/* PAYPAL ME INTEGRATION */}
+            {isDiscountApplied ? (
+              <div className="pt-6 flex flex-col gap-3 border-t border-slate-100 mt-6">
+                <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
+                <button onClick={handlePaymentSuccess} className="w-full bg-[#0a0a0a] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors">{t('send_free')}</button>
+              </div>
+            ) : (
+              <div className="pt-6 border-t border-slate-100 mt-6">
+                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center animate-in fade-in">
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">תשלום מאובטח ב-PayPal</h3>
+                  <p className="text-slate-600 mb-6 text-sm">
+                    כדי להשלים את הבקשה, אנא לחץ על הכפתור מטה להעברת התשלום. 
+                    <br/>
+                    <b>לאחר סיום התשלום, חזור לכאן ולחץ על "שילמתי, שלח בקשה".</b>
+                  </p>
 
-              {isDiscountApplied ? (
-                <button onClick={handlePaymentSuccessFree} className="w-full bg-[#0a0a0a] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors">{t('send_free')}</button>
-              ) : (
-                <div className="relative z-0 min-h-[150px] w-full bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
-                  {!paypalLoaded && <div className="flex justify-center p-8"><RefreshCcw className="animate-spin text-slate-400" /></div>}
-                  <div id={`paypal-btn-${paymentTrack}`} className="w-full"></div>
+                  {(() => {
+                    const amountToCharge = paymentTrack === 'express' 
+                      ? (geo.currency === 'ILS' ? 149 : 49) 
+                      : paymentTrack === 'fast' 
+                        ? (geo.currency === 'ILS' ? 129 : 39) 
+                        : (geo.currency === 'ILS' ? 99 : 29);
+
+                    return (
+                      <div className="space-y-4">
+                        <button 
+                          onClick={() => window.open(`https://paypal.me/ohad270/${amountToCharge}${geo.currency === 'ILS' ? 'ILS' : 'USD'}`, '_blank')}
+                          className="w-full bg-[#003087] hover:bg-[#001c52] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md"
+                        >
+                          לתשלום {geo.symbol}{amountToCharge} דרך PayPal
+                        </button>
+
+                        <div className="relative flex items-center py-2">
+                          <div className="flex-grow border-t border-slate-200"></div>
+                          <span className="flex-shrink-0 mx-4 text-slate-400 text-xs">לאחר ששילמת</span>
+                          <div className="flex-grow border-t border-slate-200"></div>
+                        </div>
+
+                        <button 
+                          onClick={handlePaymentSuccess}
+                          className="w-full bg-[#0a0a0a] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors shadow-lg"
+                        >
+                          שילמתי, שלח בקשה לבדיקה
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
-              )}
-
-              <button onClick={() => setView('business-pkgs')} className="text-sm font-bold text-slate-500 hover:text-slate-800 mt-4 flex justify-center items-center gap-2"><Briefcase size={16} /> {t('business_pkg')}</button>
-            </div>
+                <button onClick={() => setStep(2)} className="w-full mt-4 text-slate-500 font-medium hover:text-slate-800 transition-colors">
+                  חזור לשלב הקודם
+                </button>
+              </div>
+            )}
+            <button onClick={() => setView('business-pkgs')} className="w-full text-sm font-bold text-slate-500 hover:text-slate-800 mt-4 flex justify-center items-center gap-2"><Briefcase size={16} /> {t('business_pkg')}</button>
           </div>
         )}
       </div>

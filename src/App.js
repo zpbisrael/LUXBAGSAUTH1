@@ -1,10 +1,10 @@
 /* eslint-disable */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft, LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail, QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle, Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe, Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Download, Share2 } from 'lucide-react';
+import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft, LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail, QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle, Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe, Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Download, Share2, Star, CheckSquare, TrendingUp } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, runTransaction, query, where, getDocs } from 'firebase/firestore';
 
 // ==========================================
@@ -37,6 +37,7 @@ try {
 const ADMIN_EMAILS = ['admin@luxurybags.co.il', 'ohad270@gmail.com', 'ohad@luxurybags.co.il'];
 const TELEGRAM_TOKEN = "8628800853:AAGwwiVHEii4ao5PO93sWN9755BiQkijDH8";
 const TELEGRAM_CHAT_ID = "6397836431";
+const VALID_COUPONS = ['LUXBAGSVIP10', 'LBIFREE', 'OHAD100', 'VIP100']; // קודי קופון לבדיקת חינם
 
 const sendTelegramMessage = async (message) => {
   try {
@@ -58,9 +59,9 @@ const translations = {
     nav_login: "התחברות", nav_start: "התחילו אימות", hero_title: "אפס פשרות. אפס זיופים.",
     hero_subtitle_il: "הסטנדרט החדש של האימות בישראל. טכנולוגיית AI בשירות מומחים אנושיים.",
     cta_primary: "אמתו את הפריט שלכם", cta_secondary: "איך זה עובד?", trusted_by: "אנו מאמתים את מותגי העל המובילים",
-    why_us: "למה לבחור בנו?", why_1_title: "שילוב של AI ומומחים", why_1_desc: "החלטה סופית ע\"י מומחה אנושי.",
-    why_2_title: "אחריות ואמינות", why_2_desc: "מוכר ע\"י פלטפורמות כמו PayPal ו-eBay.",
-    why_3_title: "מהירות חסרת תקדים", why_3_desc: "תעודה דיגיטלית תוך שעות ספורות.",
+    why_us: "למה קניינים בוחרים בנו?", why_1_title: "שילוב של AI ומומחים", why_1_desc: "החלטה סופית ע\"י מומחה אנושי וטכנולוגיית בינה מלאכותית שמזהה את הפרטים הקטנים ביותר.",
+    why_2_title: "אחריות ואמינות", why_2_desc: "התעודות שלנו מוכרות ע\"י פלטפורמות הסליקה והמסחר הגדולות בעולם, כולל PayPal ו-eBay.",
+    why_3_title: "מהירות חסרת תקדים", why_3_desc: "תעודה דיגיטלית רשמית בתוך שעות ספורות, כדי שלא תפספסו אף עסקת מכירה.",
     welcome: "ברוכים הבאים", welcome_sub: "התחברו כדי לעקוב אחר הבקשות.",
     signup_title: "יצירת חשבון", signup_sub: "הצטרפו והתחילו לאמת.",
     full_name: "שם מלא", email: "כתובת אימייל", password: "סיסמה",
@@ -178,34 +179,19 @@ function GlobalStyles() {
   return (
     <style dangerouslySetInnerHTML={{__html: `
       @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap');
+      html { scroll-behavior: smooth; }
       * { font-family: 'Assistant', system-ui, sans-serif !important; }
       
       /* PRINT ISOLATION CSS */
       @media print {
-        body * {
-          visibility: hidden;
-        }
-        #print-certificate-container, #print-certificate-container * {
-          visibility: visible;
-        }
+        body * { visibility: hidden; }
+        #print-certificate-container, #print-certificate-container * { visibility: visible; }
         #print-certificate-container {
-          position: fixed;
-          left: 0;
-          top: 0;
-          width: 210mm;
-          height: 297mm;
-          margin: 0;
-          padding: 0;
-          overflow: hidden;
-          background: white;
-          z-index: 9999;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
+          position: fixed; left: 0; top: 0; width: 210mm; height: 297mm; margin: 0; padding: 0;
+          overflow: hidden; background: white; z-index: 9999;
+          -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
-        @page {
-          size: A4;
-          margin: 0;
-        }
+        @page { size: A4; margin: 0; }
       }
     `}} />
   );
@@ -267,7 +253,6 @@ function MainApp() {
     if (!auth) return;
     const initCanvasAuth = async () => {
       try {
-        // מונע התחברות אנונימית אוטומטית למעט בסביבת הקנבס, כדי לא לדלג על דף הנחיתה באתר האמיתי
         if (typeof __initial_auth_token !== 'undefined') {
           if (__initial_auth_token) {
             await signInWithCustomToken(auth, __initial_auth_token);
@@ -315,7 +300,6 @@ function MainApp() {
     try {
       const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
       
-      // Sanitization: Remove Heavy Base64 & undefined fields before saving
       const cleanData = JSON.parse(JSON.stringify(newReqData));
       if (cleanData.images) {
           Object.keys(cleanData.images).forEach(key => {
@@ -332,8 +316,8 @@ function MainApp() {
         createdAt: Date.now() 
       });
 
-      // Send Telegram Notification
-      sendTelegramMessage(`התקבלה בקשת אימות חדשה!\n\nלקוח: ${user.email}\nמותג: ${cleanData.brand}\nדגם: ${cleanData.model}\nסטטוס: ממתין לתשלום`);
+      const statusText = cleanData.status === 'paid' ? 'שולמה בהצלחה (קופון)' : 'ממתין לתשלום';
+      sendTelegramMessage(`התקבלה בקשת אימות חדשה!\n\nלקוח: ${user.email}\nמותג: ${cleanData.brand}\nדגם: ${cleanData.model}\nסטטוס: ${statusText}`);
 
     } catch(err) {
       console.error("Error saving request", err);
@@ -370,9 +354,7 @@ function MainApp() {
                <button onClick={() => setSelectedCertificate(null)} className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-6">
                  <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}
                </button>
-               {/* Screen View */}
                <ScreenCertificateView data={selectedCertificate} isClientView={role === 'client'} t={t} isRtl={isRtl} />
-               {/* Hidden Print View */}
                <PrintCertificateView data={selectedCertificate} />
             </div>
           ) : currentView === 'dashboard' ? (
@@ -392,21 +374,15 @@ function MainApp() {
 }
 
 // ==========================================
-// LANDING PAGE
+// LANDING PAGE (EXTENDED WITH FULL SECTIONS)
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
-  const [showDev, setShowDev] = useState(false);
-  useEffect(() => { if (window.location.search.includes('dev=true')) setShowDev(true); }, []);
-  
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" dir={isRtl ? "rtl" : "ltr"}>
-      {showDev && (
-        <div className="bg-slate-900 text-white text-xs p-1 flex gap-4 justify-center">
-          <button onClick={() => { setGeo({ country: 'IL', currency: 'ILS', symbol: '₪' }); setLang('he'); }} className="font-bold hover:text-teal-400">IL</button>
-          <button onClick={() => { setGeo({ country: 'US', currency: 'USD', symbol: '$' }); setLang('en'); }} className="font-bold hover:text-teal-400">US</button>
-        </div>
-      )}
-      
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <BrandLogo className="w-12 h-12" />
         <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] font-bold px-6 py-2 rounded-full hover:bg-black transition-colors">{t('nav_login')}</button>
@@ -425,8 +401,8 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
         <p className="text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl font-medium">
           {t('hero_subtitle_il')}
         </p>
-        <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] text-lg font-bold px-10 py-5 rounded-full shadow-2xl hover:scale-105 transition-transform">
-          {t('cta_primary')}
+        <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] text-lg font-bold px-10 py-5 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center gap-2">
+          {t('cta_primary')} <ArrowRight size={20} className={isRtl ? 'rotate-180' : ''} />
         </button>
       </section>
 
@@ -442,37 +418,133 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
         </div>
       </div>
 
-      {/* STATISTICS SECTION */}
+      {/* STATISTICS SECTION (Clickable) */}
       <section className="py-16 bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-100 rtl:divide-x-reverse">
-          <div>
+          <div onClick={() => scrollTo('why-us')} className="cursor-pointer hover:bg-slate-50 transition-colors p-4 rounded-2xl">
             <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">+10,000</div>
             <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">פריטים שאומתו</div>
           </div>
-          <div>
+          <div onClick={() => scrollTo('why-us')} className="cursor-pointer hover:bg-slate-50 transition-colors p-4 rounded-2xl">
             <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">₪45M</div>
             <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">שווי שניצל מזיופים</div>
           </div>
-          <div>
+          <div onClick={() => scrollTo('why-us')} className="cursor-pointer hover:bg-slate-50 transition-colors p-4 rounded-2xl">
             <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">100%</div>
             <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">דיוק באחריות</div>
           </div>
-          <div>
+          <div onClick={() => scrollTo('why-us')} className="cursor-pointer hover:bg-slate-50 transition-colors p-4 rounded-2xl">
             <div className="text-4xl md:text-5xl font-black text-[#d4af37] mb-2">24/7</div>
             <div className="text-slate-500 font-bold tracking-wider text-sm uppercase">זמינות מומחים</div>
           </div>
         </div>
       </section>
 
-      {/* WHY US SECTION */}
-      <section className="py-20 bg-slate-50 px-6">
+      {/* CTA 1 */}
+      <div className="bg-slate-50 text-center py-12 border-b border-slate-200">
+         <button onClick={onGoToLogin} className="text-[#1c1c1c] font-black text-xl hover:text-[#d4af37] transition-colors underline decoration-2 underline-offset-8">
+            ודאו שהתיק שלכם מקורי עכשיו
+         </button>
+      </div>
+
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="py-24 bg-white px-6">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-16">{t('why_us')}</h2>
+          <h2 className="text-4xl font-black text-center mb-16 text-[#1c1c1c]">איך התהליך עובד?</h2>
+          <div className="grid md:grid-cols-3 gap-12 relative">
+             <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-slate-200 z-0"></div>
+             
+             <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="w-24 h-24 bg-slate-50 rounded-full border border-slate-200 flex items-center justify-center mb-6 shadow-sm">
+                  <Camera size={40} className="text-[#d4af37]" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">1. צילום והעלאה</h3>
+                <p className="text-slate-600 leading-relaxed">העלו תמונות ברורות של הפריט מכל הזוויות, כולל חותמות, רוכסנים וקודים סידוריים, ישירות מהנייד.</p>
+             </div>
+
+             <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="w-24 h-24 bg-[#1c1c1c] rounded-full flex items-center justify-center mb-6 shadow-lg transform scale-110">
+                  <Cpu size={40} className="text-[#d4af37]" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">2. בדיקת מערכת ומומחה</h3>
+                <p className="text-slate-600 leading-relaxed">הטכנולוגיה שלנו סורקת את הפריט ברמת הפיקסל, והמומחים שלנו משלבים את הניסיון האנושי לקבלת החלטה סופית.</p>
+             </div>
+
+             <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="w-24 h-24 bg-[#d4af37] rounded-full flex items-center justify-center mb-6 shadow-md">
+                  <FileText size={40} className="text-[#1c1c1c]" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">3. תעודה רשמית</h3>
+                <p className="text-slate-600 leading-relaxed">קבלו תעודת אימות דיגיטלית המוכרת ע"י ענקיות הסחר, הכוללת קוד QR ייחודי לאימות מיידי.</p>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA 2 */}
+      <div className="bg-[#1c1c1c] text-center py-16 px-6">
+         <h3 className="text-white text-3xl font-bold mb-6">מוכנים להתחיל?</h3>
+         <button onClick={onGoToLogin} className="bg-[#d4af37] text-[#1c1c1c] font-black text-xl px-12 py-4 rounded-full shadow-xl hover:bg-white transition-colors">
+            התחילו תהליך אימות מהיר
+         </button>
+      </div>
+
+      {/* WHY US SECTION */}
+      <section id="why-us" className="py-24 bg-slate-50 px-6 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-black text-center mb-16 text-[#1c1c1c]">{t('why_us')}</h2>
           <div className="grid md:grid-cols-3 gap-8">
-             <FeatureCard icon={<Cpu size={32}/>} title={t('why_1_title')} desc={t('why_1_desc')} />
+             <FeatureCard icon={<Search size={32}/>} title={t('why_1_title')} desc={t('why_1_desc')} />
              <FeatureCard icon={<ShieldCheck size={32}/>} title={t('why_2_title')} desc={t('why_2_desc')} />
              <FeatureCard icon={<Timer size={32}/>} title={t('why_3_title')} desc={t('why_3_desc')} />
           </div>
+        </div>
+      </section>
+
+      {/* REVIEWS SECTION */}
+      <section id="reviews" className="py-24 bg-white px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-black text-center mb-4 text-[#1c1c1c]">אלפי עסקאות בטוחות</h2>
+          <p className="text-center text-slate-500 mb-16 text-lg">מה הלקוחות שלנו אומרים על חוויית האימות</p>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+             <ReviewCard 
+                name="שירן א." 
+                role="קניינית פרטית"
+                text="שירות מדהים ומהיר, חסכו לי אלפי שקלים כשזיהו שתיק השאנל שרציתי לקנות היה מזויף! המומחים שלהם פשוט מקצוענים."
+             />
+             <ReviewCard 
+                name="עמית ל." 
+                role="מוכר באיביי"
+                text="התעודה שלהם עזרה לי למכור את תיק הגוצ'י שלי תוך יומיים, הקונים ברשת רואים את התעודה ומיד מקבלים ביטחון לקנות."
+             />
+             <ReviewCard 
+                name="דנה מ." 
+                role="אספנית מותגים"
+                text="טכנולוגיה מטורפת! הם מזהים זיופי סופר-קלון (Super Fakes) שהעין האנושית פשוט לא מסוגלת לקלוט. שווה כל שקל."
+             />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA 3 */}
+      <div className="bg-slate-100 text-center py-12 border-y border-slate-200">
+         <button onClick={onGoToLogin} className="text-[#1c1c1c] font-black text-xl hover:text-[#d4af37] transition-colors underline decoration-2 underline-offset-8">
+            הצטרפו לאלפי לקוחות שישנים בשקט
+         </button>
+      </div>
+
+      {/* BUSINESS PROGRAM SECTION */}
+      <section id="business" className="py-24 bg-[#1c1c1c] px-6 text-center text-white">
+        <div className="max-w-4xl mx-auto">
+          <Award size={64} className="text-[#d4af37] mx-auto mb-8" />
+          <h2 className="text-4xl md:text-5xl font-black mb-6 text-[#d4af37]">קניינים ובעלי בוטיק?</h2>
+          <p className="text-xl text-slate-300 mb-10 leading-relaxed max-w-2xl mx-auto">
+            הצטרפו לתוכנית העסקים של Luxury Bags Israel. תהנו מחבילות אימות מוזלות, קדימות בתור הבדיקות, וגישה ישירה לצוות המומחים שלנו.
+          </p>
+          <button onClick={onGoToLogin} className="bg-white text-[#1c1c1c] text-lg font-bold px-10 py-4 rounded-full shadow-lg hover:bg-slate-100 transition-colors">
+            לרכישת חבילת בדיקות לעסק
+          </button>
         </div>
       </section>
     </div>
@@ -481,32 +553,71 @@ function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
 
 function FeatureCard({ icon, title, desc }) {
   return (
-    <div className="bg-white p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-shadow">
-      <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 text-teal-700">{icon}</div>
-      <h3 className="text-xl font-bold mb-3">{title}</h3>
-      <p className="text-slate-600">{desc}</p>
+    <div className="bg-white p-8 rounded-3xl border border-slate-100 text-center hover:shadow-xl transition-all hover:-translate-y-1">
+      <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 text-[#d4af37]">{icon}</div>
+      <h3 className="text-xl font-bold mb-3 text-[#1c1c1c]">{title}</h3>
+      <p className="text-slate-600 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function ReviewCard({ name, role, text }) {
+  return (
+    <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200 relative">
+      <div className="flex text-[#d4af37] mb-4">
+         <Star size={20} fill="currentColor" />
+         <Star size={20} fill="currentColor" />
+         <Star size={20} fill="currentColor" />
+         <Star size={20} fill="currentColor" />
+         <Star size={20} fill="currentColor" />
+      </div>
+      <p className="text-slate-700 italic mb-6 leading-relaxed">"{text}"</p>
+      <div className="flex items-center gap-3 border-t border-slate-200 pt-6">
+         <div className="w-10 h-10 bg-[#1c1c1c] rounded-full flex items-center justify-center text-[#d4af37] font-bold">
+           {name.charAt(0)}
+         </div>
+         <div>
+           <div className="font-bold text-sm text-[#1c1c1c]">{name}</div>
+           <div className="text-xs text-slate-500">{role}</div>
+         </div>
+      </div>
     </div>
   );
 }
 
 // ==========================================
-// LOGIN SCREEN
+// LOGIN SCREEN (Google & Admin Tab added)
 // ==========================================
 function LoginScreen({ onBack, t, isRtl }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isAdminPortal, setIsAdminPortal] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     try {
-      if (isSignUp) await createUserWithEmailAndPassword(auth, email, password);
-      else await signInWithEmailAndPassword(auth, email, password);
+      if (isSignUp && !isAdminPortal) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
     } catch (err) {
       console.error(err);
       setErrorMsg("שגיאה בהתחברות. אנא ודא פרטים ונסה שנית.");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setErrorMsg('');
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("שגיאה בהתחברות עם גוגל. אנא נסה שנית.");
     }
   };
 
@@ -515,24 +626,49 @@ function LoginScreen({ onBack, t, isRtl }) {
       <button onClick={onBack} className={`absolute top-6 ${isRtl ? 'right-6' : 'left-6'} z-50 flex items-center gap-2 font-bold bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow`}>
         <ChevronLeft size={16} className={isRtl ? 'rotate-180' : ''} /> חזרה לאתר
       </button>
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 bg-white">
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 bg-white overflow-y-auto">
         <div className="w-full max-w-md">
-          <BrandLogo className="w-20 h-20 mb-8" />
-          <h2 className="text-3xl font-black mb-2">{isSignUp ? t('signup_title') : t('welcome')}</h2>
-          <p className="text-slate-500 mb-8">{isSignUp ? t('signup_sub') : t('welcome_sub')}</p>
+          <BrandLogo className="w-20 h-20 mb-6" />
           
-          {errorMsg && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium">{errorMsg}</div>}
+          <div className="flex justify-center gap-4 mb-8 border-b border-slate-200">
+            <button onClick={() => {setIsAdminPortal(false); setErrorMsg('');}} className={`pb-2 px-4 font-bold text-lg transition-colors ${!isAdminPortal ? 'text-[#d4af37] border-b-2 border-[#d4af37]' : 'text-slate-400 hover:text-slate-600'}`}>כניסת לקוחות</button>
+            <button onClick={() => {setIsAdminPortal(true); setIsSignUp(false); setErrorMsg('');}} className={`pb-2 px-4 font-bold text-lg transition-colors ${isAdminPortal ? 'text-[#d4af37] border-b-2 border-[#d4af37]' : 'text-slate-400 hover:text-slate-600'}`}>פורטל מומחים</button>
+          </div>
+
+          <h2 className="text-3xl font-black mb-2">{isAdminPortal ? "כניסת מנהל" : (isSignUp ? t('signup_title') : t('welcome'))}</h2>
+          <p className="text-slate-500 mb-8">{isAdminPortal ? "הזן פרטי גישה של צוות המומחים לניהול הבקשות." : (isSignUp ? t('signup_sub') : t('welcome_sub'))}</p>
+          
+          {errorMsg && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium flex items-center gap-2"><AlertCircle size={16}/> {errorMsg}</div>}
           
           <form onSubmit={handleAuthSubmit} className="space-y-4">
-            <input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-teal-500" />
-            <input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-teal-500" />
-            <button type="submit" className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl shadow-md hover:bg-black">{isSignUp ? t('btn_signup') : t('btn_login')}</button>
+            <input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+            <input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+            <button type="submit" className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl shadow-md hover:bg-black transition-colors">{isSignUp && !isAdminPortal ? t('btn_signup') : t('btn_login')}</button>
           </form>
           
-          <div className="mt-8 text-center text-sm">
-            <span className="text-slate-500">{isSignUp ? t('have_account') : t('no_account')} </span>
-            <button onClick={() => setIsSignUp(!isSignUp)} className="font-bold text-teal-700 underline">{isSignUp ? t('login_here') : t('signup_free')}</button>
-          </div>
+          {!isAdminPortal && (
+            <>
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
+                <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-slate-400">או</span></div>
+              </div>
+              
+              <button type="button" onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 text-slate-700 font-bold py-4 rounded-xl shadow-sm hover:bg-slate-50 flex items-center justify-center gap-3 transition-colors">
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.86C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.05H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.95l3.66-2.86z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.05l3.66 2.86c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                המשך עם גוגל
+              </button>
+              
+              <div className="mt-8 text-center text-sm">
+                <span className="text-slate-500">{isSignUp ? t('have_account') : t('no_account')} </span>
+                <button onClick={() => setIsSignUp(!isSignUp)} className="font-bold text-[#d4af37] underline">{isSignUp ? t('login_here') : t('signup_free')}</button>
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className="hidden md:block md:w-1/2 bg-slate-900 relative">
@@ -585,8 +721,40 @@ function Header({ toggleMenu, role, t }) {
 }
 
 // ==========================================
-// CLIENT DASHBOARD
+// CLIENT DASHBOARD WITH STATUS TIMELINE
 // ==========================================
+function ProgressTracker({ status }) {
+  const steps = [
+    { id: 'paid', label: 'התקבל' },
+    { id: 'reviewing', label: 'בבדיקה' },
+    { id: 'completed', label: 'הושלם' }
+  ];
+  
+  let currentStep = 0;
+  if (status === 'reviewing' || status === 'waiting_for_customer') currentStep = 1;
+  if (status === 'completed') currentStep = 2;
+
+  return (
+    <div className="flex items-center w-full max-w-xs mt-3 opacity-90">
+       {steps.map((step, idx) => (
+         <React.Fragment key={step.id}>
+           <div className="flex flex-col items-center relative z-10">
+             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-500 ${idx <= currentStep ? 'bg-[#d4af37] text-white shadow-md' : 'bg-slate-200 text-slate-400'}`}>
+               {idx < currentStep ? <CheckCircle size={12}/> : idx + 1}
+             </div>
+             <span className={`text-[10px] mt-1 absolute top-7 w-max text-center ${idx <= currentStep ? 'text-slate-800 font-bold' : 'text-slate-400'}`}>{step.label}</span>
+           </div>
+           {idx < steps.length - 1 && (
+             <div className="flex-1 h-1 mx-2 rounded relative bg-slate-200">
+               <div className={`absolute inset-0 rounded bg-[#d4af37] transition-all duration-1000 ${idx < currentStep ? 'w-full' : 'w-0'}`}></div>
+             </div>
+           )}
+         </React.Fragment>
+       ))}
+    </div>
+  );
+}
+
 function ClientDashboard({ t, requests, setView, onSelectCert, role, updateRequest }) {
   const [uploadingMissingFor, setUploadingMissingFor] = useState(null);
 
@@ -612,22 +780,27 @@ function ClientDashboard({ t, requests, setView, onSelectCert, role, updateReque
         </div>
         <div className="divide-y divide-slate-100">
           {requests.length === 0 ? (
-            <div className="p-12 text-center text-slate-400">אין בקשות היסטוריות.</div>
+            <div className="p-12 text-center text-slate-400 flex flex-col items-center">
+              <UploadCloud size={48} className="mb-4 opacity-20" />
+              <p>אין בקשות היסטוריות למעקב.</p>
+              <button onClick={() => setView('new-request')} className="mt-4 text-[#d4af37] font-bold underline">צור בקשה ראשונה</button>
+            </div>
           ) : (
             requests.map(req => (
-              <div key={req.firestoreId || req.id} className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-slate-100 rounded-xl overflow-hidden shadow-sm shrink-0">
+              <div key={req.firestoreId || req.id} className="p-4 md:p-6 flex flex-col md:flex-row items-start justify-between gap-6 hover:bg-slate-50 transition-colors">
+                <div className="flex items-start gap-4 flex-1">
+                  <div className="w-20 h-20 bg-slate-100 rounded-xl overflow-hidden shadow-sm shrink-0 border border-slate-200">
                     <img src={(req.images && Object.values(req.images)[0]) || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80'} alt="Item" className="w-full h-full object-cover" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <div className="font-bold text-slate-900 text-lg">{req.brand} <span className="font-normal text-slate-500 text-sm">| {req.model}</span></div>
                     <div className="text-sm text-slate-500 flex items-center gap-2 mt-1">
                       <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-xs">{req.id}</span> • {req.date}
                     </div>
+                    {req.status !== 'pending_payment' && <ProgressTracker status={req.status} />}
                   </div>
                 </div>
-                <div className="w-full md:w-auto">
+                <div className="w-full md:w-auto self-center mt-4 md:mt-0">
                    <StatusBadge status={req.status} result={req.result} t={t} onClick={() => req.status === 'completed' ? onSelectCert(req) : req.status === 'waiting_for_customer' ? setUploadingMissingFor(req) : null} />
                 </div>
               </div>
@@ -643,22 +816,22 @@ function StatusBadge({ status, result, t, onClick }) {
   if (status === 'completed') {
     const isAuthentic = result === 'authentic';
     return (
-      <button onClick={onClick} className={`w-full md:w-auto px-4 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 ${isAuthentic ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}>
-        {isAuthentic ? <CheckCircle size={16}/> : <XCircle size={16}/>} {isAuthentic ? t('authentic') : t('fake')} - צפה בתעודה
+      <button onClick={onClick} className={`w-full md:w-auto px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-transform hover:scale-105 ${isAuthentic ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+        {isAuthentic ? <CheckCircle size={18}/> : <XCircle size={18}/>} צפה בתעודה
       </button>
     );
   }
   if (status === 'waiting_for_customer') {
     return (
-      <button onClick={onClick} className="w-full md:w-auto px-4 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 animate-pulse">
-        <AlertCircle size={16}/> נדרשות תמונות (לחץ להשלמה)
+      <button onClick={onClick} className="w-full md:w-auto px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-yellow-100 text-yellow-800 border border-yellow-200 hover:bg-yellow-200 animate-pulse shadow-sm">
+        <AlertCircle size={18}/> השלם תמונות חסרות
       </button>
     );
   }
   if (status === 'pending_payment') {
-    return <span className="inline-flex px-4 py-2 rounded-full text-sm font-bold bg-yellow-100 text-yellow-700"><Clock size={16} className="mr-2"/> {t('pending_payment')}</span>;
+    return <span className="inline-flex px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-500 border border-slate-200"><Clock size={18} className="mr-2"/> {t('pending_payment')}</span>;
   }
-  return <span className="inline-flex px-4 py-2 rounded-full text-sm font-bold bg-blue-100 text-blue-700"><Timer size={16} className="mr-2"/> {t('pending_expert')}</span>;
+  return <span className="inline-flex px-5 py-2.5 rounded-xl text-sm font-bold bg-blue-50 text-blue-600 border border-blue-100"><Timer size={18} className="mr-2"/> {t('pending_expert')}</span>;
 }
 
 // ==========================================
@@ -693,8 +866,8 @@ function MissingPhotosUploader({ req, onBack, updateRequest }) {
       
       <div className="p-6 md:p-8 space-y-6">
          {req.adminMessage && (
-           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-             <h4 className="font-bold text-slate-800 text-sm mb-1">הודעה מהמומחה שלנו:</h4>
+           <div className="bg-white p-4 rounded-xl border border-yellow-200 shadow-sm">
+             <h4 className="font-bold text-slate-800 text-sm mb-1">הודעה ממומחה LBI:</h4>
              <p className="text-slate-600">{req.adminMessage}</p>
            </div>
          )}
@@ -782,6 +955,11 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   const [model, setModel] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
   const [paymentTrack, setPaymentTrack] = useState('regular');
+  
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [discountApplied, setDiscountApplied] = useState(false);
+
   const [showSuccess, setShowSuccess] = useState(() => {
     return new URLSearchParams(window.location.search).get('checkout') === 'success';
   });
@@ -795,8 +973,21 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
 
   const { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader();
 
+  const handleApplyCoupon = () => {
+    if (VALID_COUPONS.includes(couponCode.trim().toUpperCase())) {
+      setDiscountApplied(true);
+      alert('הקופון הופעל בהצלחה! הבדיקה תועבר ללא עלות.');
+    } else {
+      alert('קוד קופון אינו תקין או פג תוקף.');
+    }
+  };
+
   const handlePaymentSuccess = async (paymentStatus = 'pending_payment') => {
     setIsSaving(true);
+    
+    // Override status if a 100% discount coupon was applied
+    const finalStatus = discountApplied ? 'paid' : paymentStatus;
+
     try {
       const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'counters', 'main_counter');
       let newIdNum = 19201;
@@ -821,14 +1012,14 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
           model: model || 'N/A',
           serialNumber: serialNumber || '',
           date: new Date().toLocaleDateString('en-GB'),
-          status: paymentStatus,
+          status: finalStatus,
           paymentTrack,
           images: uploadedImages
       });
       
       // --- META PIXEL EVENT TRACKING ---
       if (typeof window !== 'undefined' && window.fbq) {
-        const amountToCharge = paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29);
+        const amountToCharge = discountApplied ? 0 : (paymentTrack === 'express' ? (geo.currency === 'ILS' ? 149 : 49) : paymentTrack === 'fast' ? (geo.currency === 'ILS' ? 129 : 39) : (geo.currency === 'ILS' ? 99 : 29));
         window.fbq('track', 'Lead', {
           content_name: 'Authentication Request Submitted',
           currency: geo.currency,
@@ -837,13 +1028,18 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
       }
       // ---------------------------------
 
-      const checkoutLinks = {
-        regular: "https://luxurybagsisrael.com/shop/32c5986f-d99d-4f59-a89f-89842258a7ec",
-        fast: "https://luxurybagsisrael.com/shop/authenticateyourbag",
-        express: "https://luxurybagsisrael.com/shop/57520b28-0fb9-4e41-bd0b-c9d858790007"
-      };
-      
-      window.location.href = checkoutLinks[paymentTrack] || checkoutLinks.regular;
+      if (discountApplied) {
+        // Skip Beacons external payment and show success directly
+        setShowSuccess(true);
+      } else {
+        // Proceed to external Beacons payment link
+        const checkoutLinks = {
+          regular: "https://luxurybagsisrael.com/shop/32c5986f-d99d-4f59-a89f-89842258a7ec",
+          fast: "https://luxurybagsisrael.com/shop/authenticateyourbag",
+          express: "https://luxurybagsisrael.com/shop/57520b28-0fb9-4e41-bd0b-c9d858790007"
+        };
+        window.location.href = checkoutLinks[paymentTrack] || checkoutLinks.regular;
+      }
 
     } catch(err) {
       console.error(err);
@@ -860,7 +1056,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
         <p className="text-slate-500 mb-8">{t('success_sub')}</p>
         <div className="space-y-3">
           <button onClick={() => setView('dashboard')} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors">{t('btn_home')}</button>
-          <button onClick={() => { setStep(1); setShowSuccess(false); setBrand(''); setModel(''); setSerialNumber(''); }} className="w-full bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('btn_another')}</button>
+          <button onClick={() => { setStep(1); setShowSuccess(false); setBrand(''); setModel(''); setSerialNumber(''); setDiscountApplied(false); setCouponCode(''); }} className="w-full bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('btn_another')}</button>
         </div>
       </div>
     );
@@ -884,14 +1080,14 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
           <div className="space-y-5 animate-in fade-in duration-300">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">{t('brand')}</label>
-              <select value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500">
+              <select value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#d4af37]">
                 <option value="">{t('select_brand')}</option>
                 {LUXURY_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
                <label className="block text-sm font-bold text-slate-700 mb-2">{t('item_type')}</label>
-               <select value={itemType} onChange={(e) => setItemType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500">
+               <select value={itemType} onChange={(e) => setItemType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#d4af37]">
                  <option value="">{t('select_type')}</option>
                  {ITEM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                </select>
@@ -899,17 +1095,17 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">{t('model')} <span className="font-normal text-slate-400">({t('optional')})</span></label>
               {brand === 'Louis Vuitton' && itemType.includes('Bag') ? (
-                <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500">
+                <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#d4af37]">
                   <option value="">בחרו דגם...</option>
                   {LV_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               ) : (
-                <input type="text" value={model} onChange={(e) => setModel(e.target.value)} placeholder="לדוגמה: Submariner" className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500" />
+                <input type="text" value={model} onChange={(e) => setModel(e.target.value)} placeholder="לדוגמה: Submariner" className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
               )}
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">{t('serial_number')} <span className="font-normal text-slate-400">({t('serial_optional')})</span></label>
-              <input type="text" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="הזן מספר סידורי אם קיים" className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500" />
+              <input type="text" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="הזן מספר סידורי אם קיים" className="w-full bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
             </div>
             <button onClick={() => setStep(2)} disabled={!brand || !itemType} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl hover:bg-black transition-colors mt-6 disabled:opacity-50">
               {t('continue_photos')}
@@ -922,14 +1118,14 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {BAG_PARTS.map(part => (
-                <div key={part.id} onClick={() => triggerFileInput(part.id)} className={`relative aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden transition-all ${uploadedImages[part.id] ? 'border-teal-500 bg-teal-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'}`}>
+                <div key={part.id} onClick={() => triggerFileInput(part.id)} className={`relative aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden transition-all ${uploadedImages[part.id] ? 'border-[#d4af37] bg-yellow-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'}`}>
                   {uploadedImages[part.id] ? (
                     <>
                       <img src={uploadedImages[part.id]} alt={part.id} className="absolute inset-0 w-full h-full object-cover" />
                       <button onClick={(e) => removeImage(part.id, e)} className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600"><X size={16}/></button>
                     </>
                   ) : (
-                    <>
+                     <>
                       <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 mb-3"><Camera size={24}/></div>
                       <span className="text-xs font-bold text-slate-600 text-center">{part.label}</span>
                     </>
@@ -949,16 +1145,29 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="grid gap-4">
-               <TrackOption id="regular" title={t('track_reg')} hours="12-24 שעות" price={geo.currency==='ILS'?99:29} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} />
-               <TrackOption id="fast" title={t('track_fast')} hours={t('hours_12')} price={geo.currency==='ILS'?129:39} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-teal-600 font-bold" tag="Popular" />
-               <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={geo.currency==='ILS'?149:49} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-rose-600 font-bold" tag="Priority" />
+               <TrackOption id="regular" title={t('track_reg')} hours="12-24 שעות" price={geo.currency==='ILS'?99:29} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} discountApplied={discountApplied} />
+               <TrackOption id="fast" title={t('track_fast')} hours={t('hours_12')} price={geo.currency==='ILS'?129:39} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-teal-600 font-bold" tag="Popular" discountApplied={discountApplied} />
+               <TrackOption id="express" title={t('track_exp')} hours={t('hours_2')} price={geo.currency==='ILS'?149:49} geo={geo} current={paymentTrack} onSelect={setPaymentTrack} highlight="text-rose-600 font-bold" tag="Priority" discountApplied={discountApplied} />
             </div>
             
-            <div className="pt-6 border-t border-slate-100">
-              <button onClick={() => handlePaymentSuccess('pending_payment')} disabled={isSaving} className="w-full flex items-center justify-center gap-2 bg-teal-600 text-white font-bold py-4 rounded-xl hover:bg-teal-700 transition-colors shadow-lg disabled:opacity-50">
-                 <HandCoins size={20} /> {isSaving ? 'שומר ומעביר לתשלום...' : `מעבר לתשלום מאובטח וסיום`}
-              </button>
-              <button onClick={() => setStep(2)} className="w-full mt-4 bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
+            <div className="pt-6 border-t border-slate-100 space-y-4">
+              
+              <div className="flex gap-2">
+                <input type="text" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="הזן קוד קופון להטבה" className="flex-1 bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#d4af37]" disabled={discountApplied} />
+                <button onClick={handleApplyCoupon} disabled={discountApplied || !couponCode.trim()} className="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-900 disabled:opacity-50">הפעל</button>
+              </div>
+
+              {discountApplied ? (
+                 <button onClick={() => handlePaymentSuccess('paid')} disabled={isSaving} className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50">
+                   <CheckCircle size={20} /> {isSaving ? 'שומר...' : 'שלח בקשה (ללא עלות)'}
+                 </button>
+              ) : (
+                 <button onClick={() => handlePaymentSuccess('pending_payment')} disabled={isSaving} className="w-full flex items-center justify-center gap-2 bg-[#d4af37] text-[#1c1c1c] font-bold py-4 rounded-xl hover:bg-[#c4a132] transition-colors shadow-lg disabled:opacity-50">
+                   <HandCoins size={20} /> {isSaving ? 'שומר ומעביר לתשלום...' : `מעבר לתשלום מאובטח וסיום`}
+                 </button>
+              )}
+
+              <button onClick={() => setStep(2)} className="w-full bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>
             </div>
           </div>
         )}
@@ -967,18 +1176,20 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
   );
 }
 
-function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500" }) {
+function TrackOption({ id, title, hours, price, geo, current, onSelect, tag, highlight = "text-slate-500", discountApplied }) {
   const isSelected = current === id;
   return (
-    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${isSelected ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-white hover:border-teal-300'}`}>
+    <div onClick={() => onSelect(id)} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${isSelected ? 'border-[#d4af37] bg-yellow-50' : 'border-slate-200 bg-white hover:border-[#d4af37]/50'}`}>
       <div className="flex items-center gap-4">
-        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-teal-600' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 bg-teal-600 rounded-full"/>}</div>
+        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[#d4af37]' : 'border-slate-300'}`}>{isSelected && <div className="w-2.5 h-2.5 bg-[#d4af37] rounded-full"/>}</div>
         <div>
            <div className="font-bold text-slate-800 flex items-center gap-2">{title} {tag && <span className="text-[10px] uppercase bg-slate-800 text-white px-2 py-0.5 rounded-full">{tag}</span>}</div>
            <div className={`text-sm flex items-center gap-1 mt-1 ${highlight}`}><Clock size={14}/> {hours}</div>
         </div>
       </div>
-      <div className="text-xl font-black text-slate-900">{geo.symbol}{price}</div>
+      <div className="text-xl font-black text-slate-900">
+        {discountApplied ? <span className="text-green-600">חינם</span> : <>{geo.symbol}{price}</>}
+      </div>
     </div>
   );
 }
@@ -1001,10 +1212,10 @@ function BusinessPackages({ t, geo, isRtl, setView }) {
           <div key={idx} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 text-center relative overflow-hidden">
             <div className="absolute top-4 right-4 bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1 rounded-full">- {pkg.discount}</div>
             <h3 className="text-2xl font-black text-slate-800 mb-2">{pkg.title}</h3>
-            <div className="text-4xl font-black text-teal-600 mb-6">{geo.symbol}{pkg.price}</div>
+            <div className="text-4xl font-black text-[#d4af37] mb-6">{geo.symbol}{pkg.price}</div>
             <ul className="text-slate-600 space-y-3 mb-8">
-              <li className="flex justify-center gap-2"><CheckCircle size={18} className="text-teal-500"/> {pkg.checks} Authentications</li>
-              <li className="flex justify-center gap-2"><CheckCircle size={18} className="text-teal-500"/> + {pkg.free} Free</li>
+              <li className="flex justify-center gap-2"><CheckCircle size={18} className="text-[#d4af37]"/> {pkg.checks} Authentications</li>
+              <li className="flex justify-center gap-2"><CheckCircle size={18} className="text-[#d4af37]"/> + {pkg.free} Free</li>
             </ul>
             <a href="https://wa.me/972500000000" target="_blank" rel="noreferrer" className="block w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-3 rounded-xl hover:bg-black transition-colors">{t('contact_sales')}</a>
           </div>
@@ -1068,7 +1279,7 @@ function ScreenCertificateView({ data, isClientView, t, isRtl }) {
       </div>
 
       <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-4">
-        <button onClick={handlePrint} className="flex-1 bg-slate-900 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-black">
+        <button onClick={handlePrint} className="flex-1 bg-[#1c1c1c] text-[#d4af37] font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-black">
           <Download size={18} /> הורד כ-PDF / הדפס
         </button>
         {isClientView && isAuthentic && (
@@ -1260,7 +1471,7 @@ function AuthenticationTool({ requests, updateRequest, onSelectCert }) {
                 <div className="bg-yellow-50 p-6 rounded-2xl border border-yellow-200 text-center">
                    <Clock size={48} className="mx-auto text-yellow-500 mb-4" />
                    <h3 className="font-bold text-yellow-900 mb-2">ממתין לתשלום הלקוח</h3>
-                   <p className="text-sm text-yellow-700 mb-4">הבקשה נוצרה אך טרם התקבל אישור ממערכת פייפאל.</p>
+                   <p className="text-sm text-yellow-700 mb-4">הבקשה נוצרה אך טרם התקבל אישור ממערכת פייפאל/Beacons.</p>
                    <button onClick={() => updateRequest(activeReq.firestoreId, { status: 'reviewing' })} className="w-full bg-yellow-600 text-white font-bold py-3 rounded-xl hover:bg-yellow-700">
                      אשר קבלת תשלום ידנית
                    </button>
@@ -1320,7 +1531,7 @@ function AuthenticationTool({ requests, updateRequest, onSelectCert }) {
                 <h3 className="text-xl font-bold">{req.brand} - {req.model}</h3>
                 <p className="text-sm text-slate-500">ID: {req.id} | לקוח: {req.clientEmail} | סטטוס: {req.status}</p>
               </div>
-              <div className="text-lg font-black text-teal-600">{req.paymentTrack}</div>
+              <div className="text-lg font-black text-[#d4af37]">{req.paymentTrack}</div>
             </div>
             <div className="flex gap-2 overflow-x-auto py-2 mb-4">
                {req.images && Object.entries(req.images).map(([k,v]) => (
@@ -1328,11 +1539,11 @@ function AuthenticationTool({ requests, updateRequest, onSelectCert }) {
                ))}
             </div>
             {req.status === 'pending_payment' ? (
-              <button onClick={() => updateRequest(req.firestoreId, { status: 'paid' })} className="w-full bg-yellow-100 text-yellow-800 font-bold py-3 rounded-xl hover:bg-yellow-200">אשר קבלת תשלום ידנית (PayPal.Me)</button>
+              <button onClick={() => updateRequest(req.firestoreId, { status: 'reviewing' })} className="w-full bg-yellow-100 text-yellow-800 font-bold py-3 rounded-xl hover:bg-yellow-200">אשר קבלת תשלום ידנית</button>
             ) : req.status === 'waiting_for_customer' ? (
               <div className="w-full bg-orange-100 text-orange-800 font-bold py-3 rounded-xl text-center">הלקוח מתבקש להשלים תמונות...</div>
             ) : (
-              <button onClick={() => { setSelectedReqId(req.firestoreId); setIsTimerRunning(true); }} className="w-full bg-teal-600 text-white font-bold py-3 rounded-xl hover:bg-teal-700">
+              <button onClick={() => { setSelectedReqId(req.firestoreId); setIsTimerRunning(true); }} className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-3 rounded-xl hover:bg-black">
                 פתח תיק לבדיקה
               </button>
             )}

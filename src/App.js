@@ -232,9 +232,31 @@ function MainApp() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState('client');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [currentView, setCurrentView] = useState(() => {
-    return new URLSearchParams(window.location.search).get('checkout') === 'success' ? 'new-request' : 'dashboard';
+  const [currentView, _setCurrentView] = useState(() => {
+    const defaultView = new URLSearchParams(window.location.search).get('checkout') === 'success' ? 'new-request' : 'dashboard';
+    const hash = window.location.hash.replace('#', '');
+    return hash || defaultView;
   });
+
+  const setCurrentView = useCallback((view) => {
+    _setCurrentView(view);
+    if (window.location.hash !== `#${view}`) {
+      window.history.pushState({ view }, '', `#${view}`);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (e.state && e.state.view) {
+        _setCurrentView(e.state.view);
+      } else {
+        const hash = window.location.hash.replace('#', '');
+        _setCurrentView(hash || 'dashboard');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [systemRequests, setSystemRequests] = useState([]);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
@@ -346,13 +368,13 @@ function MainApp() {
       <Sidebar t={t} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); setSelectedCertificate(null); }} role={role} isOpen={isMobileMenuOpen} onLogout={handleLogout} geo={geo} />
       
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} />
+        <Header toggleMenu={() => setIsMobileMenuOpen(true)} role={role} t={t} currentView={currentView} onBack={() => { if(selectedCertificate) { setSelectedCertificate(null); } else { window.history.back(); } }} isRtl={isRtl} />
         <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-32">
           
           {selectedCertificate ? (
             <div className="max-w-3xl mx-auto">
                <button onClick={() => setSelectedCertificate(null)} className="text-slate-500 font-medium hover:text-slate-800 flex items-center gap-1 mb-6">
-                 <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back')}
+                 <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''}/> {t('back') || 'חזור'}
                </button>
                <ScreenCertificateView data={selectedCertificate} isClientView={role === 'client'} t={t} isRtl={isRtl} />
                <PrintCertificateView data={selectedCertificate} />
@@ -782,10 +804,17 @@ function Sidebar({ t, currentView, setCurrentView, role, isOpen, onLogout }) {
   );
 }
 
-function Header({ toggleMenu, role, t }) {
+function Header({ toggleMenu, role, t, currentView, onBack, isRtl }) {
   return (
     <header className="bg-white border-b px-4 py-4 flex items-center justify-between md:justify-end sticky top-0 z-30">
-      <button onClick={toggleMenu} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><Menu size={24} /></button>
+      <div className="flex items-center gap-2">
+        <button onClick={toggleMenu} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><Menu size={24} /></button>
+        {currentView && currentView !== 'dashboard' && currentView !== 'home' && (
+          <button onClick={onBack} className="md:hidden px-3 py-2 text-slate-500 hover:bg-slate-100 rounded-lg flex items-center gap-1 text-sm font-bold border border-slate-200">
+            <ChevronLeft size={18} className={isRtl ? 'rotate-180' : ''} /> {t('back') || 'חזור'}
+          </button>
+        )}
+      </div>
       <div className="font-bold text-slate-800">{role === 'admin' ? 'LBI Expert Portal' : t('client_portal')}</div>
     </header>
   );

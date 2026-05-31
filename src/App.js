@@ -5,7 +5,7 @@ import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLef
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, runTransaction, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, runTransaction, query, where, getDocs, setDoc } from 'firebase/firestore';
 
 // ==========================================
 // FIREBASE CONFIGURATION
@@ -34,7 +34,7 @@ try {
 // ==========================================
 // SECURITY & ADMIN SETTINGS
 // ==========================================
-const ADMIN_EMAILS = ['admin@luxurybags.co.il', 'ohad270@gmail.com', 'ohad@luxurybags.co.il'];
+const ADMIN_EMAILS = ['admin@luxurybags.co.il', 'ohad270@gmail.com', 'ohad@luxurybags.co.il', 'zpbisrael@gmail.com'];
 const TELEGRAM_TOKEN = "8628800853:AAGwwiVHEii4ao5PO93sWN9755BiQkijDH8";
 const TELEGRAM_CHAT_ID = "6397836431";
 const VALID_COUPONS = ['LUXBAGSVIP10', 'LBIFREE', 'OHAD100', 'VIP100']; // קודי קופון לבדיקת חינם
@@ -591,33 +591,62 @@ function ReviewCard({ name, role, text }) {
 function LoginScreen({ onBack, t, isRtl }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [isAdminPortal, setIsAdminPortal] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const isWebView = () => {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    return (ua.indexOf('FBAV') > -1 || ua.indexOf('Instagram') > -1 || ua.indexOf('WhatsApp') > -1);
+  };
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     try {
       if (isSignUp && !isAdminPortal) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, 'clients', userCredential.user.uid), {
+           firstName,
+           lastName,
+           phone,
+           email,
+           createdAt: Date.now()
+        });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (err) {
       console.error(err);
-      setErrorMsg("שגיאה בהתחברות. אנא ודא פרטים ונסה שנית.");
+      if (err.code === 'auth/weak-password') {
+        setErrorMsg("הסיסמה חלשה מדי. בחר סיסמה של 6 תווים לפחות.");
+      } else if (err.code === 'auth/email-already-in-use') {
+        setErrorMsg("כתובת האימייל כבר קיימת במערכת.");
+      } else {
+        setErrorMsg("שגיאה בהתחברות. אנא ודא פרטים ונסה שנית.");
+      }
     }
   };
 
   const handleGoogleLogin = async () => {
     setErrorMsg('');
+    if (isWebView()) {
+       setErrorMsg("כדי להתחבר עם גוגל, פתח את האתר בדפדפן החיצוני (Chrome / Safari). לא ניתן להתחבר דרך הדפדפן הפנימי.");
+       return;
+    }
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (err) {
       console.error(err);
-      setErrorMsg("שגיאה בהתחברות עם גוגל. אנא נסה שנית.");
+      if (err.message && err.message.includes('disallowed_useragent')) {
+         setErrorMsg("שגיאת Google: פתח את האתר בדפדפן החיצוני (Chrome / Safari) כדי להתחבר עם גוגל.");
+      } else {
+         setErrorMsg("שגיאה בהתחברות עם גוגל. אנא נסה שנית.");
+      }
     }
   };
 
@@ -641,6 +670,15 @@ function LoginScreen({ onBack, t, isRtl }) {
           {errorMsg && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium flex items-center gap-2"><AlertCircle size={16}/> {errorMsg}</div>}
           
           <form onSubmit={handleAuthSubmit} className="space-y-4">
+            {isSignUp && !isAdminPortal && (
+              <>
+                <div className="flex gap-4">
+                  <input type="text" placeholder="שם פרטי" value={firstName} onChange={e => setFirstName(e.target.value)} required className="w-1/2 bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+                  <input type="text" placeholder="שם משפחה" value={lastName} onChange={e => setLastName(e.target.value)} required className="w-1/2 bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+                </div>
+                <input type="tel" placeholder="מספר טלפון" value={phone} onChange={e => setPhone(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+              </>
+            )}
             <input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
             <input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
             <button type="submit" className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl shadow-md hover:bg-black transition-colors">{isSignUp && !isAdminPortal ? t('btn_signup') : t('btn_login')}</button>
@@ -665,7 +703,7 @@ function LoginScreen({ onBack, t, isRtl }) {
               
               <div className="mt-8 text-center text-sm">
                 <span className="text-slate-500">{isSignUp ? t('have_account') : t('no_account')} </span>
-                <button onClick={() => setIsSignUp(!isSignUp)} className="font-bold text-[#d4af37] underline">{isSignUp ? t('login_here') : t('signup_free')}</button>
+                <button onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); }} className="font-bold text-[#d4af37] underline">{isSignUp ? t('login_here') : t('signup_free')}</button>
               </div>
             </>
           )}

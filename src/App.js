@@ -606,7 +606,11 @@ function LoginScreen({ onBack, t, isRtl }) {
       return;
     }
     try {
-      await sendPasswordResetEmail(auth, email);
+      const actionCodeSettings = {
+        url: window.location.origin,
+        handleCodeInApp: false
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setResetMsg("נשלח קישור לאיפוס סיסמה למייל שהזנת.");
       setErrorMsg('');
     } catch (err) {

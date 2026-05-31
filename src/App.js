@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft, LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail, QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle, Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe, Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Download, Share2, Star, CheckSquare, TrendingUp } from 'lucide-react';
+import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLeft, LayoutDashboard, Menu, X, PlusCircle, Clock, Camera, FileText, Upload, Mail, QrCode, ShieldCheck, ShieldAlert, Smartphone, XCircle, Timer, PauseCircle, ImagePlus, PlayCircle, LogOut, ArrowRight, Globe, Briefcase, RefreshCcw, HandCoins, Cpu, Award, Zap, Download, Share2, Star, CheckSquare, TrendingUp, Eye, EyeOff } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
@@ -591,6 +591,7 @@ function ReviewCard({ name, role, text }) {
 function LoginScreen({ onBack, t, isRtl }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -680,7 +681,12 @@ function LoginScreen({ onBack, t, isRtl }) {
               </>
             )}
             <input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
-            <input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+            <div className="relative w-full">
+              <input type={showPassword ? "text" : "password"} placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-slate-50 border-none px-5 py-4 rounded-xl focus:ring-2 focus:ring-[#d4af37]" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             <button type="submit" className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl shadow-md hover:bg-black transition-colors">{isSignUp && !isAdminPortal ? t('btn_signup') : t('btn_login')}</button>
           </form>
           

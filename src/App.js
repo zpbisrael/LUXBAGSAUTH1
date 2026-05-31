@@ -4,7 +4,7 @@ import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLef
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, runTransaction, query, where, getDocs, setDoc } from 'firebase/firestore';
 
 // ==========================================
@@ -598,6 +598,21 @@ function LoginScreen({ onBack, t, isRtl }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isAdminPortal, setIsAdminPortal] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [resetMsg, setResetMsg] = useState('');
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setErrorMsg("אנא הזן כתובת אימייל כדי לאפס סיסמה.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetMsg("נשלח קישור לאיפוס סיסמה למייל שהזנת.");
+      setErrorMsg('');
+    } catch (err) {
+      setErrorMsg("שגיאה בשליחת איפוס סיסמה. ודא שהמייל תקין.");
+    }
+  };
 
   const isWebView = () => {
     const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -669,6 +684,7 @@ function LoginScreen({ onBack, t, isRtl }) {
           <p className="text-slate-500 mb-8">{isAdminPortal ? "הזן פרטי גישה של צוות המומחים לניהול הבקשות." : (isSignUp ? t('signup_sub') : t('welcome_sub'))}</p>
           
           {errorMsg && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium flex items-center gap-2"><AlertCircle size={16}/> {errorMsg}</div>}
+          {resetMsg && <div className="bg-green-50 text-green-600 p-4 rounded-xl mb-6 text-sm font-medium flex items-center gap-2"><CheckCircle size={16}/> {resetMsg}</div>}
           
           <form onSubmit={handleAuthSubmit} className="space-y-4">
             {isSignUp && !isAdminPortal && (
@@ -687,6 +703,13 @@ function LoginScreen({ onBack, t, isRtl }) {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            {!isSignUp && (
+              <div className="text-right mt-1">
+                <button type="button" onClick={handleResetPassword} className="text-sm text-[#d4af37] hover:underline bg-transparent border-none p-0 cursor-pointer">
+                  שכחת סיסמה?
+                </button>
+              </div>
+            )}
             <button type="submit" className="w-full bg-[#1c1c1c] text-[#d4af37] font-bold py-4 rounded-xl shadow-md hover:bg-black transition-colors">{isSignUp && !isAdminPortal ? t('btn_signup') : t('btn_login')}</button>
           </form>
           

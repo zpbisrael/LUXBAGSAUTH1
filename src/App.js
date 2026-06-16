@@ -6,6 +6,7 @@ import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLef
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, runTransaction, query, where, getDocs, setDoc } from 'firebase/firestore';
+import Blog from './Blog';
 
 // ==========================================
 // FIREBASE CONFIGURATION
@@ -385,6 +386,8 @@ function MainApp() {
             <NewAuthenticationRequest t={t} geo={geo} isRtl={isRtl} addRequest={addRequest} setView={setCurrentView} />
           ) : currentView === 'business-pkgs' ? (
             <BusinessPackages t={t} geo={geo} isRtl={isRtl} setView={setCurrentView} />
+          ) : currentView === 'blog' ? (
+            <Blog db={db} />
           ) : currentView === 'auth-tool' && role === 'admin' ? (
             <AuthenticationTool requests={systemRequests} updateRequest={updateRequest} onSelectCert={setSelectedCertificate} />
           ) : null}
@@ -776,11 +779,13 @@ function LoginScreen({ onBack, t, isRtl }) {
 // ==========================================
 function Sidebar({ t, currentView, setCurrentView, role, isOpen, onLogout }) {
   const menu = role === 'admin' ? [
-    { id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Briefcase size={20}/> }
+    { id: 'auth-tool', label: 'תור משימות לבדיקה', icon: <Briefcase size={20}/> },
+    { id: 'blog', label: 'מגזין וחדשות', icon: <FileText size={20}/> }
   ] : [
     { id: 'dashboard', label: t('my_checks'), icon: <LayoutDashboard size={20}/> },
     { id: 'new-request', label: t('new_request'), icon: <PlusCircle size={20}/> },
-    { id: 'business-pkgs', label: t('business_pkg'), icon: <Award size={20}/> }
+    { id: 'business-pkgs', label: t('business_pkg'), icon: <Award size={20}/> },
+    { id: 'blog', label: 'מגזין וחדשות', icon: <FileText size={20}/> }
   ];
 
   return (

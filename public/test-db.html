@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>LBI Database Inspector</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f1f5f9; color: #1e293b; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    h2 { margin-top: 0; }
+    .img-grid { display: flex; gap: 10px; margin-top: 10px; }
+    .img-grid img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; }
+  </style>
+</head>
+<body>
+  <h1>מציג בקשות אימות אחרונות ב-Firestore</h1>
+  <div id="status">טוען נתונים...</div>
+  <div id="results"></div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBvvH0iqqzzm23gDy-1RpBWcHhtgisRhKw",
+      authDomain: "luxyry-bags-israel.firebaseapp.com",
+      projectId: "luxyry-bags-israel",
+      storageBucket: "luxyry-bags-israel.firebasestorage.app",
+      messagingSenderId: "894217543775",
+      appId: "1:894217543775:web:fdafaf8b261cbf07a8fbea"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      
+      document.getElementById('status').innerText = 'מתחבר ל-Firestore...';
+      
+      const q = query(
+        collection(db, 'artifacts', 'luxury-bags-israel-prod', 'public', 'data', 'auth_requests'),
+        orderBy('createdAt', 'desc'),
+        limit(10)
+      );
+      
+      const snap = await getDocs(q);
+      document.getElementById('status').style.display = 'none';
+      
+      if (snap.empty) {
+        document.getElementById('results').innerHTML = '<p>לא נמצאו בקשות.</p>';
+        return;
+      }
+      
+      let html = '';
+      snap.forEach(doc => {
+        const data = doc.data();
+        html += `
+          <div class="card">
+            <h2>${data.brand || 'מותג לא ידוע'} - ${data.model || 'דגם לא ידוע'}</h2>
+            <p><strong>מזהה בקשה:</strong> ${data.id || doc.id}</p>
+            <p><strong>תאריך יצירה:</strong> ${data.createdAt ? new Date(data.createdAt).toLocaleString() : 'N/A'}</p>
+            <p><strong>סטטוס:</strong> ${data.status || 'N/A'}</p>
+            <p><strong>אימייל לקוח:</strong> ${data.clientEmail || 'N/A'}</p>
+            <div class="img-grid">
+        `;
+        if (data.images) {
+          Object.entries(data.images).forEach(([k, v]) => {
+            html += `
+              <div>
+                <img src="${v}" alt="${k}">
+                <div style="text-align:center; font-size:10px; font-weight:bold; margin-top:4px;">${k}</div>
+              </div>
+            `;
+          });
+        } else {
+          html += '<p>אין תמונות.</p>';
+        }
+        html += `
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('results').innerHTML = html;
+    } catch (err) {
+      document.getElementById('status').innerText = 'שגיאה בטעינת הנתונים: ' + err.message;
+      console.error(err);
+    }
+  </script>
+</body>
+</html>

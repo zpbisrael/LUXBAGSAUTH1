@@ -6,6 +6,7 @@ import { Search, UploadCloud, AlertCircle, CheckCircle, ChevronRight, ChevronLef
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, runTransaction, query, where, getDocs, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Blog from './Blog';
 
 // ==========================================
@@ -23,11 +24,12 @@ const userFirebaseConfig = {
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'luxury-bags-israel-prod';
 
-let app, auth, db;
+let app, auth, db, storage;
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  storage = getStorage(app);
 } catch (e) {
   console.error("Firebase init failed", e);
 }
@@ -38,7 +40,7 @@ try {
 const ADMIN_EMAILS = ['admin@luxurybags.co.il', 'ohad270@gmail.com', 'ohad@luxurybags.co.il', 'zpbisrael@gmail.com'];
 const TELEGRAM_TOKEN = "8628800853:AAGwwiVHEii4ao5PO93sWN9755BiQkijDH8";
 const TELEGRAM_CHAT_ID = "6397836431";
-const VALID_COUPONS = ['LUXBAGSVIP10', 'LBIFREE', 'OHAD100', 'VIP100']; // קודי קופון לבדיקת חינם
+const VALID_COUPONS = ['LUXBAGFREECHECK']; // קוד קופון לבדיקת חינם
 
 const sendTelegramMessage = async (message) => {
   try {
@@ -294,6 +296,7 @@ function MainApp() {
         const email = (currentUser.email || '').toLowerCase();
         if (ADMIN_EMAILS.includes(email)) {
            setRole('admin');
+           _setCurrentView('auth-tool');
         } else {
            setRole('client');
         }
@@ -324,13 +327,6 @@ function MainApp() {
       const requestsRef = collection(db, 'artifacts', appId, 'public', 'data', 'auth_requests');
       
       const cleanData = JSON.parse(JSON.stringify(newReqData));
-      if (cleanData.images) {
-          Object.keys(cleanData.images).forEach(key => {
-              if (cleanData.images[key] && cleanData.images[key].startsWith('data:image')) {
-                  cleanData.images[key] = 'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=200&q=80';
-              }
-          });
-      }
 
       await addDoc(requestsRef, { 
         ...cleanData, 
@@ -943,29 +939,45 @@ function StatusBadge({ status, result, t, onClick }) {
 // MISSING PHOTOS UPLOADER (CLIENT SIDE)
 // ==========================================
 function MissingPhotosUploader({ req, onBack, updateRequest }) {
-  const { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader();
+  const { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange, isUploading, uploadingSlot } = useImageUploader();
   
-  const missingParts = req.missingParts || [];
+  const missingParts = req.missingPhotos || [];
 
-  const handleSubmit = () => {
-    const mergedImages = { ...req.images, ...uploadedImages };
-    updateRequest(req.firestoreId, { images: mergedImages, status: 'reviewing', missingParts: [] });
-    sendTelegramMessage(`לקוח העלה תמונות השלמה עבור בקשה ${req.id}`);
-    onBack();
+  const handleSubmit = async () => {
+    try {
+      const mergedImages = { ...req.images, ...uploadedImages };
+      
+      await updateRequest(req.firestoreId, {
+        images: mergedImages,
+        status: 'pending_expert',
+        missingPhotos: []
+      });
+
+      sendTelegramMessage(`לקוח השלים תמונות חסרות עבור תיק ${req.id} (${req.brand})! הבדיקה חזרה לתור המומחים.`);
+      onBack();
+    } catch (err) {
+      console.error(err);
+      alert("שגיאה בשמירת התמונות. נסה שוב.");
+    }
   };
 
-  const handleNoBetterPhotos = () => {
-    updateRequest(req.firestoreId, { status: 'reviewing', adminMessage: 'הלקוח דיווח שאין באפשרותו לספק תמונות טובות יותר.', missingParts: [] });
-    sendTelegramMessage(`לקוח דיווח שאין תמונות טובות יותר עבור בקשה ${req.id}`);
-    onBack();
+  const handleNoBetterPhotos = async () => {
+    try {
+      await updateRequest(req.firestoreId, {
+        status: 'pending_expert',
+        missingPhotos: []
+      });
+      sendTelegramMessage(`לקוח דיווח שאין באפשרותו להעלות תמונות טובות יותר עבור תיק ${req.id}. הבדיקה חזרה לתור המומחים להכרעה.`);
+      onBack();
+    } catch(err) {
+       console.error(err);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-yellow-200 overflow-hidden">
-      <div className="bg-yellow-50 border-b border-yellow-200 p-6 flex justify-between items-center">
-         <div>
-           <h2 className="text-xl font-bold text-yellow-900 flex items-center gap-2"><AlertCircle /> השלמת תמונות לבקשה {req.id}</h2>
-         </div>
+    <div className="bg-slate-100/50 rounded-3xl border border-slate-200 shadow-xl overflow-hidden max-w-lg mx-auto animate-in zoom-in-95 duration-200">
+      <div className="bg-[#1c1c1c] text-[#d4af37] px-6 py-4 flex items-center justify-between">
+         <h3 className="font-black text-lg">צילום והשלמת תמונות</h3>
          <button onClick={onBack} className="text-slate-500 hover:bg-yellow-100 p-2 rounded-full"><X size={20}/></button>
       </div>
       
@@ -982,9 +994,15 @@ function MissingPhotosUploader({ req, onBack, updateRequest }) {
          <div className="grid grid-cols-2 gap-4">
             {missingParts.map(partId => {
                const partDef = BAG_PARTS.find(p => p.id === partId);
+               const isThisUploading = isUploading && uploadingSlot === partId;
                return (
-                 <div key={partId} onClick={() => triggerFileInput(partId)} className={`relative aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden transition-all ${uploadedImages[partId] ? 'border-teal-500 bg-teal-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}>
-                   {uploadedImages[partId] ? (
+                 <div key={partId} onClick={() => !isThisUploading && triggerFileInput(partId)} className={`relative aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden transition-all ${uploadedImages[partId] ? 'border-teal-500 bg-teal-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}>
+                   {isThisUploading ? (
+                     <div className="flex flex-col items-center justify-center gap-2">
+                       <RefreshCcw className="w-8 h-8 text-[#d4af37] animate-spin" />
+                       <span className="text-[10px] font-bold text-slate-500">מעלה לשרת...</span>
+                     </div>
+                   ) : uploadedImages[partId] ? (
                      <>
                        <img src={uploadedImages[partId]} alt={partId} className="absolute inset-0 w-full h-full object-cover" />
                        <button onClick={(e) => removeImage(partId, e)} className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600"><X size={16}/></button>
@@ -1020,6 +1038,8 @@ function useImageUploader() {
   const [uploadedImages, setUploadedImages] = useState({});
   const fileInputRef = useRef(null);
   const [uploadingPart, setUploadingPart] = useState(null);
+  const [uploadingSlot, setUploadingSlot] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const triggerFileInput = (partId) => {
     setUploadingPart(partId);
@@ -1037,17 +1057,28 @@ function useImageUploader() {
     const file = e.target.files?.[0];
     if (!file || !uploadingPart) return;
     
-    // Client-side quick compression to Base64 for instant preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedImages(prev => ({ ...prev, [uploadingPart]: reader.result }));
-      setUploadingPart(null);
-    };
-    reader.readAsDataURL(file);
+    const currentPart = uploadingPart;
+    setUploadingSlot(currentPart);
+    setIsUploading(true);
+    setUploadingPart(null);
     if(fileInputRef.current) fileInputRef.current.value = '';
+
+    try {
+      const storageRef = ref(storage, `auth_requests/${Date.now()}_${currentPart}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      setUploadedImages(prev => ({ ...prev, [currentPart]: downloadURL }));
+    } catch (err) {
+      console.error("Error uploading file to Firebase Storage", err);
+      alert("שגיאה בהעלאת התמונה. אנא ודא חיבור אינטרנט ונסה שוב.");
+    } finally {
+      setIsUploading(false);
+      setUploadingSlot(null);
+    }
   };
 
-  return { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange };
+  return { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange, isUploading, uploadingSlot };
 }
 
 // ==========================================
@@ -1076,7 +1107,7 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
     }
   }, [showSuccess]);
 
-  const { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange } = useImageUploader();
+  const { uploadedImages, fileInputRef, triggerFileInput, removeImage, handleFileChange, isUploading, uploadingSlot } = useImageUploader();
 
   const handleApplyCoupon = () => {
     if (VALID_COUPONS.includes(couponCode.trim().toUpperCase())) {
@@ -1222,21 +1253,29 @@ function NewAuthenticationRequest({ t, geo, isRtl, addRequest, setView }) {
           <div className="space-y-6 animate-in fade-in duration-300">
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {BAG_PARTS.map(part => (
-                <div key={part.id} onClick={() => triggerFileInput(part.id)} className={`relative aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden transition-all ${uploadedImages[part.id] ? 'border-[#d4af37] bg-yellow-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'}`}>
-                  {uploadedImages[part.id] ? (
-                    <>
-                      <img src={uploadedImages[part.id]} alt={part.id} className="absolute inset-0 w-full h-full object-cover" />
-                      <button onClick={(e) => removeImage(part.id, e)} className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600"><X size={16}/></button>
-                    </>
-                  ) : (
-                     <>
-                      <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 mb-3"><Camera size={24}/></div>
-                      <span className="text-xs font-bold text-slate-600 text-center">{part.label}</span>
-                    </>
-                  )}
-                </div>
-              ))}
+              {BAG_PARTS.map(part => {
+                const isThisUploading = isUploading && uploadingSlot === part.id;
+                return (
+                  <div key={part.id} onClick={() => !isThisUploading && triggerFileInput(part.id)} className={`relative aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden transition-all ${uploadedImages[part.id] ? 'border-[#d4af37] bg-yellow-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'}`}>
+                    {isThisUploading ? (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <RefreshCcw className="w-8 h-8 text-[#d4af37] animate-spin" />
+                        <span className="text-[10px] font-bold text-slate-500">מעלה לשרת...</span>
+                      </div>
+                    ) : uploadedImages[part.id] ? (
+                      <>
+                        <img src={uploadedImages[part.id]} alt={part.id} className="absolute inset-0 w-full h-full object-cover" />
+                        <button onClick={(e) => removeImage(part.id, e)} className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600"><X size={16}/></button>
+                      </>
+                    ) : (
+                       <>
+                        <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 mb-3"><Camera size={24}/></div>
+                        <span className="text-xs font-bold text-slate-600 text-center">{part.label}</span>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="w-1/3 bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors">{t('back')}</button>

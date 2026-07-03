@@ -8,7 +8,7 @@ export default function Blog({ db }) {
   useEffect(() => {
     const q = query(
       collection(db, 'public_blogs'),
-      where('platform', '==', 'LOVEFORSECOND'),
+      where('platform', 'in', ['LOVEFORSECOND', 'LUXURYBAGS']),
       orderBy('publishedAt', 'desc')
     );
     const unsub = onSnapshot(q, snap => {

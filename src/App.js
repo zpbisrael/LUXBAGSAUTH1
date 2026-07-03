@@ -59,8 +59,8 @@ const sendTelegramMessage = async (message) => {
 // ==========================================
 const translations = {
   he: {
-    nav_login: "התחברות", nav_start: "התחילו אימות", hero_title: "אפס פשרות. אפס זיופים.",
-    hero_subtitle_il: "הסטנדרט החדש של האימות בישראל. טכנולוגיית AI בשירות מומחים אנושיים.",
+    nav_login: "התחברות", nav_start: "התחילו אימות", hero_title: "המעבדה הלאומית לאימות מקוריות",
+    hero_subtitle_il: "מומחי אימות המקוריות שלנו, המגובים בטכנולוגיית AI מתקדמת ובניסיון של שנים, יאמתו את מקוריות תיק היוקרה שלכן החל משעתיים.",
     cta_primary: "אמתו את הפריט שלכם", cta_secondary: "איך זה עובד?", trusted_by: "אנו מאמתים את מותגי העל המובילים",
     why_us: "למה קניינים בוחרים בנו?", why_1_title: "שילוב של AI ומומחים", why_1_desc: "החלטה סופית ע\"י מומחה אנושי וטכנולוגיית בינה מלאכותית שמזהה את הפרטים הקטנים ביותר.",
     why_2_title: "אחריות ואמינות", why_2_desc: "התעודות שלנו מוכרות ע\"י פלטפורמות הסליקה והמסחר הגדולות בעולם, כולל PayPal ו-Vinted.",
@@ -398,15 +398,51 @@ function MainApp() {
 // LANDING PAGE (EXTENDED WITH FULL SECTIONS)
 // ==========================================
 function LandingPage({ t, geo, isRtl, lang, setLang, onGoToLogin, setGeo }) {
+  const [showBlog, setShowBlog] = useState(false);
+
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  if (showBlog) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col" dir={isRtl ? "rtl" : "ltr"}>
+        <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowBlog(false)}>
+            <div className="w-10 h-10 bg-[#1c1c1c] rounded-full flex items-center justify-center border border-[#d4af37]">
+              <span className="text-[#d4af37] font-bold text-lg font-serif">L</span>
+            </div>
+            <span className="font-serif text-lg tracking-[0.15em] font-black text-[#1c1c1c]">LUXURY BAGS</span>
+          </div>
+          <button onClick={() => setShowBlog(false)} className="text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1">
+             <ChevronRight size={18} className={isRtl ? '' : 'rotate-180'} /> חזרה לדף הבית
+          </button>
+        </header>
+        <div className="flex-1 bg-slate-900 overflow-y-auto">
+          <Blog db={db} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" dir={isRtl ? "rtl" : "ltr"}>
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <BrandLogo className="w-12 h-12" />
-        <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] font-bold px-6 py-2 rounded-full hover:bg-black transition-colors">{t('nav_login')}</button>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div className="w-10 h-10 bg-[#1c1c1c] rounded-full flex items-center justify-center border border-[#d4af37]">
+            <span className="text-[#d4af37] font-bold text-lg font-serif">L</span>
+          </div>
+          <span className="font-serif text-lg tracking-[0.15em] font-black text-[#1c1c1c]">LUXURY BAGS</span>
+        </div>
+
+        <nav className="hidden md:flex items-center gap-8">
+          <button onClick={() => scrollTo('how-it-works')} className="text-slate-600 hover:text-[#d4af37] font-bold text-sm transition-colors">בדיקת מקוריות</button>
+          <button onClick={() => scrollTo('business')} className="text-slate-600 hover:text-[#d4af37] font-bold text-sm transition-colors">פתרונות לעסקים</button>
+          <button onClick={() => scrollTo('business')} className="text-slate-600 hover:text-[#d4af37] font-bold text-sm transition-colors">אקדמיית לואי ויטון</button>
+          <button onClick={() => setShowBlog(true)} className="text-slate-600 hover:text-[#d4af37] font-bold text-sm transition-colors">מגזין</button>
+        </nav>
+
+        <button onClick={onGoToLogin} className="bg-[#1c1c1c] text-[#d4af37] font-bold px-6 py-2.5 rounded-full hover:bg-black transition-colors shadow-sm">{t('nav_login')}</button>
       </header>
 
       {/* HERO SECTION */}
